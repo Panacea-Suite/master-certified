@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Shield, CheckCircle, XCircle, Search, AlertTriangle } from 'lucide-react';
-import { NeuCard, NeuCardHeader, NeuCardTitle, NeuCardContent } from '@/components/ui/neu-card';
-import { NeuButton } from '@/components/ui/neu-button';
-import { NeuInput } from '@/components/ui/neu-input';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 interface VerificationResult {
   isValid: boolean;
@@ -82,27 +82,26 @@ export const ProductVerification = () => {
       </div>
 
       {/* Verification Form */}
-      <NeuCard>
-        <NeuCardHeader>
-          <NeuCardTitle className="flex items-center gap-3">
-            <div className="neu-subtle p-3 rounded-xl">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-3">
+            <div className="bg-primary/10 p-3 rounded-lg">
               <Search className="w-5 h-5 text-primary" />
             </div>
             Verify Product
-          </NeuCardTitle>
-        </NeuCardHeader>
-        <NeuCardContent className="space-y-4">
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
           <div className="space-y-2">
             <label className="text-sm font-medium text-foreground">QR Code or Product ID</label>
-            <NeuInput
+            <Input
               placeholder="Enter QR code URL or scan QR code..."
               value={qrCode}
               onChange={(e) => setQrCode(e.target.value)}
             />
           </div>
 
-          <NeuButton 
-            variant="primary" 
+          <Button 
             onClick={verifyProduct} 
             disabled={!qrCode.trim() || isVerifying}
             className="w-full"
@@ -118,19 +117,19 @@ export const ProductVerification = () => {
                 Verify Product
               </>
             )}
-          </NeuButton>
-        </NeuCardContent>
-      </NeuCard>
+          </Button>
+        </CardContent>
+      </Card>
 
       {/* Verification Result */}
       {result && (
-        <NeuCard>
-          <NeuCardContent className="p-6">
+        <Card>
+          <CardContent className="p-6">
             <div className="space-y-6">
               {/* Status Header */}
               <div className="text-center space-y-3">
                 <div className="flex justify-center">
-                  <div className="neu-subtle p-4 rounded-2xl">
+                  <div className="bg-muted/50 p-4 rounded-lg">
                     {getStatusIcon(result.authenticity)}
                   </div>
                 </div>
@@ -138,81 +137,81 @@ export const ProductVerification = () => {
                   <h3 className={`text-xl font-bold ${getStatusColor(result.authenticity)}`}>
                     {getStatusText(result.authenticity)}
                   </h3>
-                  <p className="text-foreground/60 mt-1">Verification completed</p>
+                  <p className="text-muted-foreground mt-1">Verification completed</p>
                 </div>
               </div>
 
               {/* Product Details */}
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="neu-subtle p-4 rounded-xl">
-                    <label className="text-sm text-foreground/60">Product Name</label>
+                  <div className="bg-muted/50 p-4 rounded-lg">
+                    <label className="text-sm text-muted-foreground">Product Name</label>
                     <p className="font-medium text-foreground">{result.productName}</p>
                   </div>
                   
-                  <div className="neu-subtle p-4 rounded-xl">
-                    <label className="text-sm text-foreground/60">Product ID</label>
+                  <div className="bg-muted/50 p-4 rounded-lg">
+                    <label className="text-sm text-muted-foreground">Product ID</label>
                     <p className="font-medium text-foreground">{result.productId}</p>
                   </div>
                   
-                  <div className="neu-subtle p-4 rounded-xl">
-                    <label className="text-sm text-foreground/60">Manufacturer</label>
+                  <div className="bg-muted/50 p-4 rounded-lg">
+                    <label className="text-sm text-muted-foreground">Manufacturer</label>
                     <p className="font-medium text-foreground">{result.manufacturer}</p>
                   </div>
                   
-                  <div className="neu-subtle p-4 rounded-xl">
-                    <label className="text-sm text-foreground/60">Verification Date</label>
+                  <div className="bg-muted/50 p-4 rounded-lg">
+                    <label className="text-sm text-muted-foreground">Verification Date</label>
                     <p className="font-medium text-foreground">
                       {result.verificationDate.toLocaleString()}
                     </p>
                   </div>
                 </div>
 
-                <div className="neu-subtle p-4 rounded-xl">
-                  <label className="text-sm text-foreground/60">Verification Details</label>
+                <div className="bg-muted/50 p-4 rounded-lg">
+                  <label className="text-sm text-muted-foreground">Verification Details</label>
                   <p className="text-foreground mt-1">{result.details}</p>
                 </div>
               </div>
 
               {/* Actions */}
               <div className="flex gap-3 pt-4">
-                <NeuButton variant="primary" className="flex-1">
+                <Button className="flex-1">
                   View Certificate
-                </NeuButton>
-                <NeuButton variant="ghost" className="flex-1">
+                </Button>
+                <Button variant="outline" className="flex-1">
                   Report Issue
-                </NeuButton>
+                </Button>
               </div>
             </div>
-          </NeuCardContent>
-        </NeuCard>
+          </CardContent>
+        </Card>
       )}
 
       {/* Recent Verifications */}
-      <NeuCard>
-        <NeuCardHeader>
-          <NeuCardTitle>Recent Verifications</NeuCardTitle>
-        </NeuCardHeader>
-        <NeuCardContent className="space-y-3">
+      <Card>
+        <CardHeader>
+          <CardTitle>Recent Verifications</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
           {[
             { product: 'Luxury Handbag #LH-2024-003', status: 'verified', time: '2 hours ago' },
             { product: 'Premium Sneakers #PS-2024-127', status: 'verified', time: '5 hours ago' },
             { product: 'Designer Watch #DW-2024-089', status: 'suspicious', time: '1 day ago' },
             { product: 'Luxury Perfume #LP-2024-234', status: 'verified', time: '2 days ago' }
           ].map((item, index) => (
-            <div key={index} className="flex items-center gap-3 p-3 neu-subtle rounded-xl">
-              <div className="neu-subtle p-2 rounded-lg">
+            <div key={index} className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+              <div className="bg-primary/10 p-2 rounded-lg">
                 {getStatusIcon(item.status)}
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-foreground truncate">{item.product}</p>
                 <p className={`text-xs ${getStatusColor(item.status)}`}>{getStatusText(item.status)}</p>
               </div>
-              <span className="text-xs text-foreground/50 whitespace-nowrap">{item.time}</span>
+              <span className="text-xs text-muted-foreground whitespace-nowrap">{item.time}</span>
             </div>
           ))}
-        </NeuCardContent>
-      </NeuCard>
+        </CardContent>
+      </Card>
     </div>
   );
 };

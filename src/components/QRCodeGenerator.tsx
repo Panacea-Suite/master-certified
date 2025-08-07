@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { QrCode, Plus, Copy, ExternalLink } from 'lucide-react';
-import { NeuCard, NeuCardHeader, NeuCardTitle, NeuCardContent } from '@/components/ui/neu-card';
-import { NeuButton } from '@/components/ui/neu-button';
-import { NeuInput } from '@/components/ui/neu-input';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
 
 interface QRCode {
@@ -77,19 +77,19 @@ export const QRCodeGenerator = () => {
   return (
     <div className="space-y-6">
       {/* Generation Form */}
-      <NeuCard>
-        <NeuCardHeader>
-          <NeuCardTitle className="flex items-center gap-3">
-            <div className="neu-subtle p-3 rounded-xl">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-3">
+            <div className="bg-primary/10 p-3 rounded-lg">
               <Plus className="w-5 h-5 text-primary" />
             </div>
             Generate New QR Code
-          </NeuCardTitle>
-        </NeuCardHeader>
-        <NeuCardContent className="space-y-4">
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
           <div className="space-y-2">
             <label className="text-sm font-medium text-foreground">QR Code Name</label>
-            <NeuInput
+            <Input
               placeholder="e.g., Product Authentication QR"
               value={newQRName}
               onChange={(e) => setNewQRName(e.target.value)}
@@ -98,82 +98,82 @@ export const QRCodeGenerator = () => {
           
           <div className="space-y-2">
             <label className="text-sm font-medium text-foreground">Redirect URL</label>
-            <NeuInput
+            <Input
               placeholder="https://your-site.com/verify"
               value={newRedirectUrl}
               onChange={(e) => setNewRedirectUrl(e.target.value)}
             />
           </div>
 
-          <NeuButton variant="primary" onClick={generateQRCode} className="w-full">
+          <Button onClick={generateQRCode} className="w-full">
             <QrCode className="w-4 h-4" />
             Generate QR Code
-          </NeuButton>
-        </NeuCardContent>
-      </NeuCard>
+          </Button>
+        </CardContent>
+      </Card>
 
       {/* QR Codes List */}
       <div className="space-y-4">
         <h3 className="text-lg font-semibold text-foreground">Generated QR Codes</h3>
         {codes.map((code) => (
-          <NeuCard key={code.id}>
-            <NeuCardContent className="p-6">
+          <Card key={code.id}>
+            <CardContent className="p-6">
               <div className="flex items-start justify-between">
                 <div className="space-y-3 flex-1">
                   <div className="flex items-center gap-3">
-                    <div className="neu-subtle p-2 rounded-lg">
+                    <div className="bg-primary/10 p-2 rounded-lg">
                       <QrCode className="w-4 h-4 text-primary" />
                     </div>
                     <div>
                       <h4 className="font-medium text-foreground">{code.name}</h4>
-                      <p className="text-sm text-foreground/60">ID: {code.id}</p>
+                      <p className="text-sm text-muted-foreground">ID: {code.id}</p>
                     </div>
                   </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                     <div>
-                      <span className="text-foreground/60">QR URL:</span>
+                      <span className="text-muted-foreground">QR URL:</span>
                       <div className="flex items-center gap-2 mt-1">
-                        <code className="bg-surface-dark/50 px-2 py-1 rounded text-xs font-mono flex-1 truncate">
+                        <code className="bg-muted px-2 py-1 rounded text-xs font-mono flex-1 truncate">
                           {code.qrUrl}
                         </code>
-                        <NeuButton 
+                        <Button 
                           variant="ghost" 
                           size="icon"
                           className="h-8 w-8"
                           onClick={() => copyToClipboard(code.qrUrl)}
                         >
                           <Copy className="w-3 h-3" />
-                        </NeuButton>
+                        </Button>
                       </div>
                     </div>
                     
                     <div>
-                      <span className="text-foreground/60">Redirect:</span>
+                      <span className="text-muted-foreground">Redirect:</span>
                       <div className="flex items-center gap-2 mt-1">
-                        <code className="bg-surface-dark/50 px-2 py-1 rounded text-xs font-mono flex-1 truncate">
+                        <code className="bg-muted px-2 py-1 rounded text-xs font-mono flex-1 truncate">
                           {code.redirectUrl}
                         </code>
-                        <NeuButton 
+                        <Button 
                           variant="ghost" 
                           size="icon"
                           className="h-8 w-8"
                           onClick={() => window.open(code.redirectUrl, '_blank')}
                         >
                           <ExternalLink className="w-3 h-3" />
-                        </NeuButton>
+                        </Button>
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-6 text-sm text-foreground/60">
+                  <div className="flex items-center gap-6 text-sm text-muted-foreground">
                     <span>Scans: <strong className="text-primary">{code.scans}</strong></span>
                     <span>Created: {code.created.toLocaleDateString()}</span>
                   </div>
                 </div>
               </div>
-            </NeuCardContent>
-          </NeuCard>
+            </CardContent>
+          </Card>
         ))}
       </div>
     </div>

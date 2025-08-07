@@ -1,6 +1,7 @@
 import React from 'react';
 import { BarChart3, QrCode, Settings, Shield, Users, TrendingUp } from 'lucide-react';
-import { NeuCard, NeuCardHeader, NeuCardTitle, NeuCardContent } from '@/components/ui/neu-card';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
 interface StatCardProps {
   title: string;
@@ -14,23 +15,23 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, change, icon, trend }
   const trendColor = trend === 'up' ? 'text-success' : trend === 'down' ? 'text-destructive' : 'text-foreground/60';
   
   return (
-    <NeuCard>
-      <NeuCardContent className="p-6">
+    <Card>
+      <CardContent className="p-6">
         <div className="flex items-center justify-between">
           <div className="space-y-2">
-            <p className="text-sm text-foreground/60">{title}</p>
+            <p className="text-sm text-muted-foreground">{title}</p>
             <p className="text-2xl font-bold text-foreground">{value}</p>
             <p className={`text-xs ${trendColor} flex items-center gap-1`}>
               <TrendingUp className="w-3 h-3" />
               {change}
             </p>
           </div>
-          <div className="neu-subtle p-4 rounded-xl">
+          <div className="bg-primary/10 p-4 rounded-lg">
             {icon}
           </div>
         </div>
-      </NeuCardContent>
-    </NeuCard>
+      </CardContent>
+    </Card>
   );
 };
 
@@ -102,62 +103,62 @@ export const Dashboard = () => {
 
       {/* Recent Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <NeuCard>
-          <NeuCardHeader>
-            <NeuCardTitle>Recent Activity</NeuCardTitle>
-          </NeuCardHeader>
-          <NeuCardContent className="space-y-4">
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Activity</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
             {recentActivity.map((activity, index) => (
-              <div key={index} className="flex items-center gap-3 p-3 neu-subtle rounded-xl">
-                <div className="neu-subtle p-2 rounded-lg">
+              <div key={index} className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                <div className="bg-primary/10 p-2 rounded-lg">
                   {getActivityIcon(activity.type)}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-foreground truncate">{activity.action}</p>
-                  <p className="text-xs text-foreground/60 truncate">{activity.details}</p>
+                  <p className="text-xs text-muted-foreground truncate">{activity.details}</p>
                 </div>
-                <span className="text-xs text-foreground/50 whitespace-nowrap">{activity.time}</span>
+                <span className="text-xs text-muted-foreground whitespace-nowrap">{activity.time}</span>
               </div>
             ))}
-          </NeuCardContent>
-        </NeuCard>
+          </CardContent>
+        </Card>
 
-        <NeuCard>
-          <NeuCardHeader>
-            <NeuCardTitle>Quick Actions</NeuCardTitle>
-          </NeuCardHeader>
-          <NeuCardContent className="space-y-3">
-            <div className="neu-button p-4 cursor-pointer hover:bg-surface-light active:shadow-[var(--neu-pressed)] transition-all duration-200 rounded-xl">
+        <Card>
+          <CardHeader>
+            <CardTitle>Quick Actions</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <Button variant="default" className="w-full justify-start h-auto p-4">
               <div className="flex items-center gap-3">
-                <QrCode className="w-5 h-5 text-primary" />
-                <div>
-                  <p className="font-medium text-foreground">Generate QR Code</p>
-                  <p className="text-sm text-foreground/60">Create a new authenticated QR code</p>
+                <QrCode className="w-5 h-5" />
+                <div className="text-left">
+                  <p className="font-medium">Generate QR Code</p>
+                  <p className="text-sm text-muted-foreground">Create a new authenticated QR code</p>
                 </div>
               </div>
-            </div>
+            </Button>
 
-            <div className="neu-button p-4 cursor-pointer hover:bg-surface-light active:shadow-[var(--neu-pressed)] transition-all duration-200 rounded-xl">
+            <Button variant="outline" className="w-full justify-start h-auto p-4">
               <div className="flex items-center gap-3">
                 <Shield className="w-5 h-5 text-success" />
-                <div>
-                  <p className="font-medium text-foreground">Verify Product</p>
-                  <p className="text-sm text-foreground/60">Check product authenticity</p>
+                <div className="text-left">
+                  <p className="font-medium">Verify Product</p>
+                  <p className="text-sm text-muted-foreground">Check product authenticity</p>
                 </div>
               </div>
-            </div>
+            </Button>
 
-            <div className="neu-button p-4 cursor-pointer hover:bg-surface-light active:shadow-[var(--neu-pressed)] transition-all duration-200 rounded-xl">
+            <Button variant="outline" className="w-full justify-start h-auto p-4">
               <div className="flex items-center gap-3">
                 <Settings className="w-5 h-5 text-warning" />
-                <div>
-                  <p className="font-medium text-foreground">Manage Redirects</p>
-                  <p className="text-sm text-foreground/60">Update QR code destinations</p>
+                <div className="text-left">
+                  <p className="font-medium">Manage Redirects</p>
+                  <p className="text-sm text-muted-foreground">Update QR code destinations</p>
                 </div>
               </div>
-            </div>
-          </NeuCardContent>
-        </NeuCard>
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

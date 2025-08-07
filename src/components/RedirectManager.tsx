@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { ExternalLink, Edit3, Save, X, Plus } from 'lucide-react';
-import { NeuCard, NeuCardHeader, NeuCardTitle, NeuCardContent } from '@/components/ui/neu-card';
-import { NeuButton } from '@/components/ui/neu-button';
-import { NeuInput } from '@/components/ui/neu-input';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
 
 interface RedirectRule {
@@ -109,21 +109,21 @@ export const RedirectManager = () => {
       {/* Redirects List */}
       <div className="space-y-4">
         {redirects.map((redirect) => (
-          <NeuCard key={redirect.id}>
-            <NeuCardContent className="p-6">
+          <Card key={redirect.id}>
+            <CardContent className="p-6">
               <div className="space-y-4">
                 {/* Header Section */}
                 <div className="flex items-center justify-between">
                   <div className="space-y-1">
                     <h3 className="font-semibold text-foreground">{redirect.qrCodeName}</h3>
-                    <p className="text-sm text-foreground/60">QR Code ID: {redirect.qrCodeId}</p>
+                    <p className="text-sm text-muted-foreground">QR Code ID: {redirect.qrCodeId}</p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-foreground/60">
+                    <span className="text-sm text-muted-foreground">
                       {redirect.clicks} clicks
                     </span>
                     <div className="w-2 h-2 bg-success rounded-full"></div>
-                    <span className="text-sm text-foreground/60">Active</span>
+                    <span className="text-sm text-muted-foreground">Active</span>
                   </div>
                 </div>
 
@@ -133,84 +133,83 @@ export const RedirectManager = () => {
                   
                   {redirect.isEditing ? (
                     <div className="space-y-3">
-                      <NeuInput
+                      <Input
                         value={editingUrl}
                         onChange={(e) => setEditingUrl(e.target.value)}
                         placeholder="Enter redirect URL..."
                       />
                       <div className="flex gap-2">
-                        <NeuButton 
-                          variant="primary" 
+                        <Button 
                           size="sm"
                           onClick={() => saveRedirect(redirect.id)}
                         >
                           <Save className="w-4 h-4" />
                           Save
-                        </NeuButton>
-                        <NeuButton 
-                          variant="ghost" 
+                        </Button>
+                        <Button 
+                          variant="outline" 
                           size="sm"
                           onClick={() => cancelEditing(redirect.id)}
                         >
                           <X className="w-4 h-4" />
                           Cancel
-                        </NeuButton>
+                        </Button>
                       </div>
                     </div>
                   ) : (
                     <div className="flex items-center gap-3">
-                      <div className="flex-1 neu-subtle p-3 rounded-xl">
+                      <div className="flex-1 bg-muted/50 p-3 rounded-lg">
                         <code className="text-sm font-mono text-foreground break-all">
                           {redirect.currentUrl}
                         </code>
                       </div>
                       <div className="flex gap-2">
-                        <NeuButton 
-                          variant="ghost" 
+                        <Button 
+                          variant="outline" 
                           size="icon"
                           onClick={() => startEditing(redirect)}
                         >
                           <Edit3 className="w-4 h-4" />
-                        </NeuButton>
-                        <NeuButton 
-                          variant="ghost" 
+                        </Button>
+                        <Button 
+                          variant="outline" 
                           size="icon"
                           onClick={() => testRedirect(redirect.currentUrl)}
                         >
                           <ExternalLink className="w-4 h-4" />
-                        </NeuButton>
+                        </Button>
                       </div>
                     </div>
                   )}
                 </div>
 
                 {/* Footer Info */}
-                <div className="flex items-center justify-between text-sm text-foreground/60 pt-2 border-t border-surface-dark/20">
+                <div className="flex items-center justify-between text-sm text-muted-foreground pt-2 border-t border-border">
                   <span>Last updated: {redirect.lastUpdated.toLocaleDateString()}</span>
                   <span>Total redirects: {redirect.clicks}</span>
                 </div>
               </div>
-            </NeuCardContent>
-          </NeuCard>
+            </CardContent>
+          </Card>
         ))}
       </div>
 
       {/* Add New Redirect */}
-      <NeuCard variant="subtle">
-        <NeuCardHeader>
-          <NeuCardTitle className="flex items-center gap-3">
-            <div className="neu-subtle p-3 rounded-xl">
+      <Card className="bg-muted/20">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-3">
+            <div className="bg-primary/10 p-3 rounded-lg">
               <Plus className="w-5 h-5 text-primary" />
             </div>
             Add New QR Code
-          </NeuCardTitle>
-        </NeuCardHeader>
-        <NeuCardContent>
-          <p className="text-sm text-foreground/60">
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">
             To create a new redirect rule, first generate a QR code in the QR Generator section.
           </p>
-        </NeuCardContent>
-      </NeuCard>
+        </CardContent>
+      </Card>
     </div>
   );
 };

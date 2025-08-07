@@ -15,7 +15,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }
   ];
 
   return (
-    <nav className="neu-card p-6 mb-8">
+    <nav className="bg-card border border-border rounded-lg p-6 mb-8 shadow-sm">
       <div className="flex flex-col sm:flex-row gap-2">
         {navItems.map((item) => {
           const Icon = item.icon;
@@ -25,10 +25,10 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }
             <button
               key={item.id}
               onClick={() => onTabChange(item.id)}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all duration-200 ${
+              className={`flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-200 ${
                 isActive 
-                  ? 'neu-pressed bg-card-pressed text-primary font-medium' 
-                  : 'neu-button hover:bg-surface-light text-foreground'
+                  ? 'bg-primary text-primary-foreground font-medium' 
+                  : 'hover:bg-accent hover:text-accent-foreground text-foreground'
               }`}
             >
               <Icon className="w-5 h-5" />
