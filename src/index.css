@@ -2,41 +2,60 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+/* Certified Platform Neumorphic Design System
 All colors MUST be HSL.
 */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Neumorphic Base Colors */
+    --background: 0 0% 88.2%; /* #e0e0e0 base */
+    --foreground: 0 0% 25%; /* Dark gray text */
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    /* Neumorphic Surface Colors */
+    --surface: 0 0% 88.2%; /* Main surface color */
+    --surface-light: 0 0% 92%; /* Lighter surface for highlights */
+    --surface-dark: 0 0% 82%; /* Darker surface for shadows */
+    
+    /* Neumorphic Card Colors */
+    --card: 0 0% 88.2%;
+    --card-foreground: 0 0% 25%;
+    --card-raised: 0 0% 90%;
+    --card-pressed: 0 0% 86%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    /* Interactive Elements */
+    --primary: 210 80% 60%; /* Soft blue accent */
+    --primary-foreground: 0 0% 98%;
+    --primary-pressed: 210 80% 55%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --secondary: 0 0% 88.2%;
+    --secondary-foreground: 0 0% 25%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --success: 120 60% 50%;
+    --success-foreground: 0 0% 98%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --warning: 45 90% 60%;
+    --warning-foreground: 0 0% 25%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 70% 60%;
+    --destructive-foreground: 0 0% 98%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    /* Form Elements */
+    --input: 0 0% 88.2%;
+    --input-border: 0 0% 85%;
+    --input-focus: 210 80% 60%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    /* Neumorphic Shadows */
+    --shadow-light: 0 0% 95%;
+    --shadow-dark: 0 0% 75%;
+    
+    /* Neumorphic Shadow Combinations */
+    --neu-raised: 6px 6px 12px hsl(var(--shadow-dark)), -6px -6px 12px hsl(var(--shadow-light));
+    --neu-pressed: inset 6px 6px 12px hsl(var(--shadow-dark)), inset -6px -6px 12px hsl(var(--shadow-light));
+    --neu-flat: 3px 3px 6px hsl(var(--shadow-dark)), -3px -3px 6px hsl(var(--shadow-light));
+    --neu-subtle: 2px 2px 4px hsl(var(--shadow-dark)), -2px -2px 4px hsl(var(--shadow-light));
 
-    --radius: 0.5rem;
+    --radius: 1rem;
 
     --sidebar-background: 0 0% 98%;
 
@@ -96,10 +115,70 @@ All colors MUST be HSL.
 
 @layer base {
   * {
-    @apply border-border;
+    @apply border-0;
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-medium;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+}
+
+@layer components {
+  /* Neumorphic Button Base */
+  .neu-button {
+    @apply rounded-2xl transition-all duration-200 ease-out;
+    background: hsl(var(--surface));
+    box-shadow: var(--neu-raised);
+    border: none;
+  }
+
+  .neu-button:hover {
+    background: hsl(var(--surface-light));
+  }
+
+  .neu-button:active {
+    box-shadow: var(--neu-pressed);
+    background: hsl(var(--card-pressed));
+  }
+
+  /* Neumorphic Card */
+  .neu-card {
+    @apply rounded-3xl;
+    background: hsl(var(--card));
+    box-shadow: var(--neu-raised);
+    border: none;
+  }
+
+  /* Neumorphic Input */
+  .neu-input {
+    @apply rounded-xl transition-all duration-200;
+    background: hsl(var(--input));
+    box-shadow: var(--neu-pressed);
+    border: none;
+  }
+
+  .neu-input:focus {
+    box-shadow: var(--neu-pressed), 0 0 0 2px hsl(var(--input-focus) / 0.3);
+  }
+
+  /* Neumorphic Container */
+  .neu-container {
+    @apply rounded-2xl;
+    background: hsl(var(--surface));
+    box-shadow: var(--neu-flat);
+  }
+
+  /* Neumorphic Pressed State */
+  .neu-pressed {
+    box-shadow: var(--neu-pressed);
+    background: hsl(var(--card-pressed));
+  }
+
+  /* Neumorphic Subtle Elements */
+  .neu-subtle {
+    @apply rounded-xl;
+    background: hsl(var(--surface));
+    box-shadow: var(--neu-subtle);
   }
 }
