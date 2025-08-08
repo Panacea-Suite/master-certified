@@ -1,13 +1,25 @@
-import React, { useState } from 'react';
-import { Shield, QrCode } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
+import { Header } from '@/components/Header';
 import { Navigation } from '@/components/Navigation';
 import { Dashboard } from '@/components/Dashboard';
 import { QRCodeGenerator } from '@/components/QRCodeGenerator';
 import { RedirectManager } from '@/components/RedirectManager';
 import { ProductVerification } from '@/components/ProductVerification';
+import { Button } from '@/components/ui/button';
+import { Shield } from 'lucide-react';
 
 const Index = () => {
+  const navigate = useNavigate();
+  const { user, profile, loading } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
+
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate('/auth');
+    }
+  }, [user, loading, navigate]);
 
   const renderContent = () => {
     switch (activeTab) {
@@ -24,36 +36,33 @@ const Index = () => {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted/50 p-4">
+        <div className="text-center space-y-4">
+          <Shield className="w-16 h-16 text-primary mx-auto" />
+          <h1 className="text-3xl font-bold">Certified Platform</h1>
+          <p className="text-muted-foreground">Please sign in to access the platform</p>
+          <Button onClick={() => navigate('/auth')}>Sign In</Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="bg-card border border-border rounded-lg p-6 mb-8 shadow-sm">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="bg-primary/10 p-3 rounded-lg">
-              <Shield className="w-8 h-8 text-primary" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">Certified Platform</h1>
-              <p className="text-sm text-muted-foreground">Secure QR Code Management & Verification</p>
-            </div>
-          </div>
-          
-          <div className="flex items-center gap-3">
-            <div className="bg-muted/50 px-3 py-2 rounded-lg">
-              <span className="text-sm text-muted-foreground">Status:</span>
-              <span className="text-sm font-medium text-success ml-2">Online</span>
-            </div>
-            
-            <button className="bg-background border border-border hover:bg-accent hover:text-accent-foreground p-3 rounded-lg cursor-pointer transition-colors">
-              <QrCode className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-      </header>
-
+      <Header />
+      
       {/* Main Content */}
-      <div className="container mx-auto px-6 pb-12">
+      <div className="container mx-auto px-6 py-8">
         <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
         
         <main>
