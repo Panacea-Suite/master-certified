@@ -21,7 +21,9 @@ export default function Auth() {
   // Sign Up Form State
   const [signUpEmail, setSignUpEmail] = useState('');
   const [signUpPassword, setSignUpPassword] = useState('');
-  const [displayName, setDisplayName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [brandName, setBrandName] = useState('');
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,7 +40,7 @@ export default function Auth() {
     e.preventDefault();
     setIsLoading(true);
     
-    const { error } = await signUp(signUpEmail, signUpPassword, 'brand_admin', displayName);
+    const { error } = await signUp(signUpEmail, signUpPassword, 'brand_admin', firstName, lastName, brandName);
     if (!error) {
       // Stay on auth page to show email verification message
     }
@@ -150,13 +152,36 @@ export default function Auth() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="display-name">Display Name</Label>
+                  <Label htmlFor="first-name">First Name</Label>
                   <Input
-                    id="display-name"
+                    id="first-name"
                     type="text"
-                    placeholder="Enter your name"
-                    value={displayName}
-                    onChange={(e) => setDisplayName(e.target.value)}
+                    placeholder="Enter your first name"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="last-name">Last Name</Label>
+                  <Input
+                    id="last-name"
+                    type="text"
+                    placeholder="Enter your last name"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="brand-name">Brand Name</Label>
+                  <Input
+                    id="brand-name"
+                    type="text"
+                    placeholder="Enter your brand/company name"
+                    value={brandName}
+                    onChange={(e) => setBrandName(e.target.value)}
+                    required
                   />
                 </div>
                 <Button type="submit" className="w-full" disabled={isLoading}>
