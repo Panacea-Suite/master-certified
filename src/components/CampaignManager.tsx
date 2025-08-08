@@ -7,7 +7,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Plus, Edit, Trash2, ArrowLeft } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, Store } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 interface Brand {
   id: string;
@@ -19,6 +20,8 @@ interface Campaign {
   name: string;
   description?: string;
   brand_id: string;
+  approved_stores?: string[];
+  flow_settings?: any;
   created_at: string;
   brands?: Brand;
 }
@@ -28,6 +31,7 @@ const CampaignManager = () => {
   const [brands, setBrands] = useState<Brand[]>([]);
   const [newCampaignName, setNewCampaignName] = useState('');
   const [newCampaignDescription, setNewCampaignDescription] = useState('');
+  const [newStores, setNewStores] = useState('');
   const [selectedBrandId, setSelectedBrandId] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
@@ -93,12 +97,15 @@ const CampaignManager = () => {
     }
 
     try {
+      const storesArray = newStores.split(',').map(s => s.trim()).filter(s => s.length > 0);
+
       const { data, error } = await supabase
         .from('campaigns')
         .insert([{
           name: newCampaignName,
           description: newCampaignDescription,
-          brand_id: selectedBrandId
+          brand_id: selectedBrandId,
+          approved_stores: storesArray
         }])
         .select(`
           *,
@@ -114,6 +121,7 @@ const CampaignManager = () => {
       setCampaigns([data, ...campaigns]);
       setNewCampaignName('');
       setNewCampaignDescription('');
+      setNewStores('');
       setSelectedBrandId('');
       toast({
         title: "Success",
@@ -207,6 +215,19 @@ const CampaignManager = () => {
               placeholder="Enter campaign description"
             />
           </div>
+          <div>
+            <Label htmlFor="approvedStores">Approved Stores</Label>
+            <Textarea
+              id="approvedStores"
+              value={newStores}
+              onChange={(e) => setNewStores(e.target.value)}
+              placeholder="Enter approved store names, separated by commas (e.g., Store A, Store B, Store C)"
+              rows={3}
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              These stores will be available for customers to select during verification
+            </p>
+          </div>
           <Button onClick={createCampaign}>
             <Plus className="w-4 h-4 mr-2" />
             Create Campaign
@@ -237,6 +258,23 @@ const CampaignManager = () => {
                     <CardDescription>
                       Brand: {campaign.brands?.name} • Created {new Date(campaign.created_at).toLocaleDateString()}
                     </CardDescription>
+                    {campaign.approved_stores && campaign.approved_stores.length > 0 && (
+                      <div className="flex items-center gap-2 mt-2">
+                        <Store className="w-4 h-4 text-muted-foreground" />
+                        <div className="flex gap-1 flex-wrap">
+                          {campaign.approved_stores.slice(0, 3).map((store, index) => (
+                            <Badge key={index} variant="secondary" className="text-xs">
+                              {store}
+                            </Badge>
+                          ))}
+                          {campaign.approved_stores.length > 3 && (
+                            <Badge variant="secondary" className="text-xs">
+                              +{campaign.approved_stores.length - 3} more
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    )}
                     {campaign.description && (
                       <p className="text-sm text-muted-foreground mt-2">{campaign.description}</p>
                     )}

@@ -87,25 +87,31 @@ export type Database = {
       }
       campaigns: {
         Row: {
+          approved_stores: string[] | null
           brand_id: string
           created_at: string
           description: string | null
+          flow_settings: Json | null
           id: string
           name: string
           updated_at: string
         }
         Insert: {
+          approved_stores?: string[] | null
           brand_id: string
           created_at?: string
           description?: string | null
+          flow_settings?: Json | null
           id?: string
           name: string
           updated_at?: string
         }
         Update: {
+          approved_stores?: string[] | null
           brand_id?: string
           created_at?: string
           description?: string | null
+          flow_settings?: Json | null
           id?: string
           name?: string
           updated_at?: string
@@ -116,6 +122,50 @@ export type Database = {
             columns: ["brand_id"]
             isOneToOne: false
             referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      flow_content: {
+        Row: {
+          content: Json
+          content_type: string
+          created_at: string
+          file_url: string | null
+          flow_id: string
+          id: string
+          order_index: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          content: Json
+          content_type: string
+          created_at?: string
+          file_url?: string | null
+          flow_id: string
+          id?: string
+          order_index?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          content?: Json
+          content_type?: string
+          created_at?: string
+          file_url?: string | null
+          flow_id?: string
+          id?: string
+          order_index?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flow_content_flow_id_fkey"
+            columns: ["flow_id"]
+            isOneToOne: false
+            referencedRelation: "flows"
             referencedColumns: ["id"]
           },
         ]

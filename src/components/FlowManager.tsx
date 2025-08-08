@@ -6,7 +6,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Plus, Edit, Trash2, Eye, Settings, Copy } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, Settings, Copy, Smartphone } from 'lucide-react';
+import FlowBuilder from './FlowBuilder';
+import CustomerFlowExperience from './CustomerFlowExperience';
 
 interface Flow {
   id: string;
@@ -26,6 +28,8 @@ const FlowManager = () => {
   const [newFlowRedirectUrl, setNewFlowRedirectUrl] = useState('');
   const [newFlowDescription, setNewFlowDescription] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedFlowId, setSelectedFlowId] = useState<string | null>(null);
+  const [previewMode, setPreviewMode] = useState<'builder' | 'customer' | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -260,9 +264,19 @@ const FlowManager = () => {
     }
   };
 
-  const previewFlow = (flow: Flow) => {
-    // Open the flow URL in a new tab for preview
-    window.open(flow.redirect_url, '_blank');
+  const openFlowBuilder = (flowId: string) => {
+    setSelectedFlowId(flowId);
+    setPreviewMode('builder');
+  };
+
+  const openCustomerPreview = (flowId: string) => {
+    setSelectedFlowId(flowId);
+    setPreviewMode('customer');
+  };
+
+  const closeModals = () => {
+    setSelectedFlowId(null);
+    setPreviewMode(null);
   };
 
   if (isLoading) {
@@ -354,9 +368,10 @@ const FlowManager = () => {
                     <Button 
                       variant="outline" 
                       size="sm"
-                      onClick={() => previewFlow(flow)}
+                      onClick={() => openCustomerPreview(flow.id)}
+                      title="Preview customer experience"
                     >
-                      <Eye className="w-4 h-4" />
+                      <Smartphone className="w-4 h-4" />
                     </Button>
                     <Button 
                       variant="outline" 
@@ -365,7 +380,12 @@ const FlowManager = () => {
                     >
                       <Copy className="w-4 h-4" />
                     </Button>
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => openFlowBuilder(flow.id)}
+                      title="Edit flow builder"
+                    >
                       <Edit className="w-4 h-4" />
                     </Button>
                     <Button 
@@ -385,12 +405,21 @@ const FlowManager = () => {
                   </div>
                 </div>
                 <div className="flex gap-2 mt-4">
-                  <Button variant="default" size="sm">
+                  <Button 
+                    variant="default" 
+                    size="sm"
+                    onClick={() => openFlowBuilder(flow.id)}
+                  >
                     <Settings className="w-4 h-4 mr-2" />
                     Configure Flow
                   </Button>
-                  <Button variant="outline" size="sm">
-                    Use in Campaign
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => openCustomerPreview(flow.id)}
+                  >
+                    <Smartphone className="w-4 h-4 mr-2" />
+                    Preview Mobile
                   </Button>
                 </div>
               </CardContent>
@@ -398,6 +427,32 @@ const FlowManager = () => {
           ))
         )}
       </div>
+
+      {/* Flow Builder Modal */}
+      {previewMode === 'builder' && selectedFlowId && (
+        <div className="fixed inset-0 bg-background z-50 overflow-auto">
+          <FlowBuilder flowId={selectedFlowId} onClose={closeModals} />
+        </div>
+      )}
+
+      {/* Customer Preview Modal */}
+      {previewMode === 'customer' && selectedFlowId && (
+        <div className="fixed inset-0 bg-background z-50 overflow-auto">
+          <div className="p-4">
+            <Button 
+              variant="outline" 
+              onClick={closeModals}
+              className="mb-4"
+            >
+              Close Preview
+            </Button>
+            <CustomerFlowExperience 
+              flowId={selectedFlowId} 
+              qrCode="preview-qr-code" 
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
