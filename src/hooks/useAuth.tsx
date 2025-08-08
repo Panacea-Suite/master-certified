@@ -9,9 +9,8 @@ export type Profile = Database['public']['Tables']['profiles']['Row'];
 
 // Master admin approved emails - only these can access master admin features
 const MASTER_ADMIN_EMAILS = [
-  'admin@panaceacertified.com',
-  'support@panaceacertified.com'
-  // Add more approved emails here
+  'matt@forzaindustries.com'
+  // Additional approved emails can be added through the admin interface
 ];
 
 interface AuthContextType {
