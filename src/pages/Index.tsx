@@ -4,8 +4,9 @@ import { useAuth } from '@/hooks/useAuth';
 import { Header } from '@/components/Header';
 import { Navigation } from '@/components/Navigation';
 import { Dashboard } from '@/components/Dashboard';
-import { QRCodeGenerator } from '@/components/QRCodeGenerator';
-import { RedirectManager } from '@/components/RedirectManager';
+import BrandManager from '@/components/BrandManager';
+import CampaignManager from '@/components/CampaignManager';
+import BatchManager from '@/components/BatchManager';
 import { ProductVerification } from '@/components/ProductVerification';
 import { Button } from '@/components/ui/button';
 import { Shield } from 'lucide-react';
@@ -25,10 +26,12 @@ const Index = () => {
     switch (activeTab) {
       case 'dashboard':
         return <Dashboard />;
-      case 'qr-generator':
-        return <QRCodeGenerator />;
-      case 'redirects':
-        return <RedirectManager />;
+      case 'brands':
+        return <BrandManager />;
+      case 'campaigns':
+        return <CampaignManager />;
+      case 'batches':
+        return <BatchManager />;
       case 'verification':
         return <ProductVerification />;
       default:

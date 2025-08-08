@@ -14,6 +14,150 @@ export type Database = {
   }
   public: {
     Tables: {
+      batches: {
+        Row: {
+          campaign_id: string
+          created_at: string
+          generated_at: string | null
+          id: string
+          name: string
+          qr_code_count: number
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          campaign_id: string
+          created_at?: string
+          generated_at?: string | null
+          id?: string
+          name: string
+          qr_code_count?: number
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          campaign_id?: string
+          created_at?: string
+          generated_at?: string | null
+          id?: string
+          name?: string
+          qr_code_count?: number
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "batches_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      brands: {
+        Row: {
+          brand_colors: Json | null
+          created_at: string
+          id: string
+          logo_url: string | null
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          brand_colors?: Json | null
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          brand_colors?: Json | null
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      campaigns: {
+        Row: {
+          brand_id: string
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          brand_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          brand_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaigns_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      flows: {
+        Row: {
+          campaign_id: string
+          created_at: string
+          flow_config: Json | null
+          id: string
+          name: string
+          redirect_url: string
+          updated_at: string
+        }
+        Insert: {
+          campaign_id: string
+          created_at?: string
+          flow_config?: Json | null
+          id?: string
+          name: string
+          redirect_url: string
+          updated_at?: string
+        }
+        Update: {
+          campaign_id?: string
+          created_at?: string
+          flow_config?: Json | null
+          id?: string
+          name?: string
+          redirect_url?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flows_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           brand_colors: Json | null
@@ -58,6 +202,44 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      qr_codes: {
+        Row: {
+          batch_id: string
+          created_at: string
+          id: string
+          qr_url: string
+          scans: number
+          unique_code: string
+          updated_at: string
+        }
+        Insert: {
+          batch_id: string
+          created_at?: string
+          id?: string
+          qr_url: string
+          scans?: number
+          unique_code: string
+          updated_at?: string
+        }
+        Update: {
+          batch_id?: string
+          created_at?: string
+          id?: string
+          qr_url?: string
+          scans?: number
+          unique_code?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qr_codes_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "batches"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

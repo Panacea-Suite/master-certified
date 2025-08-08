@@ -9,8 +9,9 @@ interface NavigationProps {
 export const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }) => {
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
-    { id: 'qr-generator', label: 'QR Generator', icon: QrCode },
-    { id: 'redirects', label: 'Redirects', icon: Settings },
+    { id: 'brands', label: 'Brands', icon: Settings },
+    { id: 'campaigns', label: 'Campaigns', icon: QrCode },
+    { id: 'batches', label: 'Batches', icon: QrCode },
     { id: 'verification', label: 'Verification', icon: Shield }
   ];
 
