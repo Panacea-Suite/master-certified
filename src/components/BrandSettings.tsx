@@ -1,0 +1,323 @@
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { Upload, Palette, Save, Image } from 'lucide-react';
+
+interface Brand {
+  id: string;
+  name: string;
+  logo_url?: string;
+  brand_colors?: any;
+}
+
+const BrandSettings = () => {
+  const [brand, setBrand] = useState<Brand | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [primaryColor, setPrimaryColor] = useState('#3B82F6');
+  const [secondaryColor, setSecondaryColor] = useState('#6B7280');
+  const [accentColor, setAccentColor] = useState('#10B981');
+  const { toast } = useToast();
+
+  useEffect(() => {
+    fetchBrandData();
+  }, []);
+
+  const fetchBrandData = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('brands')
+        .select('*')
+        .maybeSingle();
+
+      if (error) throw error;
+      
+      if (data) {
+        setBrand(data);
+        // Load existing colors if available
+        if (data.brand_colors && typeof data.brand_colors === 'object') {
+          const colors = data.brand_colors as { primary?: string; secondary?: string; accent?: string };
+          setPrimaryColor(colors.primary || '#3B82F6');
+          setSecondaryColor(colors.secondary || '#6B7280');
+          setAccentColor(colors.accent || '#10B981');
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching brand:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch brand data",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !brand) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Error",
+        description: "Please select an image file",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      // Upload to storage
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${brand.id}/logo.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('brand-logos')
+        .upload(fileName, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('brand-logos')
+        .getPublicUrl(fileName);
+
+      // Update brand with logo URL
+      const { error: updateError } = await supabase
+        .from('brands')
+        .update({ logo_url: publicUrl })
+        .eq('id', brand.id);
+
+      if (updateError) throw updateError;
+
+      setBrand({ ...brand, logo_url: publicUrl });
+      toast({
+        title: "Success",
+        description: "Logo uploaded successfully",
+      });
+    } catch (error) {
+      console.error('Error uploading logo:', error);
+      toast({
+        title: "Error",
+        description: "Failed to upload logo",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const saveColors = async () => {
+    if (!brand) return;
+
+    setIsSaving(true);
+    try {
+      const colors = {
+        primary: primaryColor,
+        secondary: secondaryColor,
+        accent: accentColor
+      };
+
+      const { error } = await supabase
+        .from('brands')
+        .update({ brand_colors: colors })
+        .eq('id', brand.id);
+
+      if (error) throw error;
+
+      setBrand({ ...brand, brand_colors: colors });
+      toast({
+        title: "Success",
+        description: "Brand colors saved successfully",
+      });
+    } catch (error) {
+      console.error('Error saving colors:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save brand colors",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  if (isLoading) {
+    return <div className="text-center py-8">Loading brand settings...</div>;
+  }
+
+  if (!brand) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-muted-foreground">No brand found. Please create a brand first.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold">Brand Settings</h1>
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-2">
+        {/* Logo Upload */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Image className="w-5 h-5" />
+              Brand Logo
+            </CardTitle>
+            <CardDescription>
+              Upload your brand logo. Recommended size: 300x300px
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {brand.logo_url && (
+              <div className="flex justify-center">
+                <img
+                  src={brand.logo_url}
+                  alt="Brand Logo"
+                  className="w-32 h-32 object-contain border rounded-lg"
+                />
+              </div>
+            )}
+            
+            <div className="flex items-center justify-center w-full">
+              <label htmlFor="logo-upload" className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-muted-foreground/25 rounded-lg cursor-pointer hover:bg-muted/50">
+                <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                  <Upload className="w-8 h-8 mb-4 text-muted-foreground" />
+                  <p className="mb-2 text-sm text-muted-foreground">
+                    <span className="font-semibold">Click to upload</span> logo
+                  </p>
+                  <p className="text-xs text-muted-foreground">PNG, JPG or GIF (MAX. 5MB)</p>
+                </div>
+                <input
+                  id="logo-upload"
+                  type="file"
+                  className="hidden"
+                  accept="image/*"
+                  onChange={handleLogoUpload}
+                  disabled={isUploading}
+                />
+              </label>
+            </div>
+            
+            {isUploading && (
+              <p className="text-sm text-muted-foreground text-center">Uploading...</p>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Brand Colors */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Palette className="w-5 h-5" />
+              Brand Colors
+            </CardTitle>
+            <CardDescription>
+              Define your brand's color palette for campaigns and flows
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="primary-color">Primary Color</Label>
+                <div className="flex gap-2 items-center">
+                  <Input
+                    id="primary-color"
+                    type="color"
+                    value={primaryColor}
+                    onChange={(e) => setPrimaryColor(e.target.value)}
+                    className="w-16 h-10 p-1 border rounded"
+                  />
+                  <Input
+                    value={primaryColor}
+                    onChange={(e) => setPrimaryColor(e.target.value)}
+                    placeholder="#3B82F6"
+                    className="flex-1"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="secondary-color">Secondary Color</Label>
+                <div className="flex gap-2 items-center">
+                  <Input
+                    id="secondary-color"
+                    type="color"
+                    value={secondaryColor}
+                    onChange={(e) => setSecondaryColor(e.target.value)}
+                    className="w-16 h-10 p-1 border rounded"
+                  />
+                  <Input
+                    value={secondaryColor}
+                    onChange={(e) => setSecondaryColor(e.target.value)}
+                    placeholder="#6B7280"
+                    className="flex-1"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="accent-color">Accent Color</Label>
+                <div className="flex gap-2 items-center">
+                  <Input
+                    id="accent-color"
+                    type="color"
+                    value={accentColor}
+                    onChange={(e) => setAccentColor(e.target.value)}
+                    className="w-16 h-10 p-1 border rounded"
+                  />
+                  <Input
+                    value={accentColor}
+                    onChange={(e) => setAccentColor(e.target.value)}
+                    placeholder="#10B981"
+                    className="flex-1"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Color Preview */}
+            <div className="border rounded-lg p-4 space-y-2">
+              <p className="text-sm font-medium">Color Preview</p>
+              <div className="flex gap-2">
+                <div
+                  className="w-8 h-8 rounded border"
+                  style={{ backgroundColor: primaryColor }}
+                  title="Primary"
+                />
+                <div
+                  className="w-8 h-8 rounded border"
+                  style={{ backgroundColor: secondaryColor }}
+                  title="Secondary"
+                />
+                <div
+                  className="w-8 h-8 rounded border"
+                  style={{ backgroundColor: accentColor }}
+                  title="Accent"
+                />
+              </div>
+            </div>
+
+            <Button onClick={saveColors} disabled={isSaving} className="w-full">
+              <Save className="w-4 h-4 mr-2" />
+              {isSaving ? 'Saving...' : 'Save Colors'}
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+};
+
+export default BrandSettings;
