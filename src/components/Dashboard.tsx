@@ -2,6 +2,8 @@ import React from 'react';
 import { BarChart3, QrCode, Settings, Shield, Users, TrendingUp } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/hooks/useAuth';
+import { useViewMode } from '@/hooks/useViewMode';
 interface StatCardProps {
   title: string;
   value: string;
@@ -36,31 +38,62 @@ const StatCard: React.FC<StatCardProps> = ({
     </Card>;
 };
 export const Dashboard = () => {
-  const stats = [{
+  const { profile } = useAuth();
+  const { effectiveRole, isViewingAsBrand } = useViewMode();
+  
+  const masterAdminStats = [{
+    title: 'Total Brands',
+    value: '8',
+    change: '+2 new this month',
+    icon: <Shield className="w-6 h-6 text-primary" />,
+    trend: 'up' as const
+  }, {
+    title: 'Total Campaigns', 
+    value: '23',
+    change: 'Across all brands',
+    icon: <BarChart3 className="w-6 h-6 text-success" />,
+    trend: 'up' as const
+  }, {
     title: 'Total QR Codes',
-    value: '1,247',
-    change: '+12% from last month',
+    value: '15,234', 
+    change: 'Generated across all brands',
     icon: <QrCode className="w-6 h-6 text-primary" />,
     trend: 'up' as const
   }, {
     title: 'Total Scans',
-    value: '28,659',
-    change: '+18% from last month',
-    icon: <BarChart3 className="w-6 h-6 text-success" />,
-    trend: 'up' as const
-  }, {
-    title: 'Verified Products',
-    value: '896',
-    change: '+8% from last month',
-    icon: <Shield className="w-6 h-6 text-primary" />,
-    trend: 'up' as const
-  }, {
-    title: 'Active Users',
-    value: '2,431',
-    change: '+24% from last month',
+    value: '89,432',
+    change: '+12% from last month',
     icon: <Users className="w-6 h-6 text-success" />,
     trend: 'up' as const
   }];
+
+  const brandAdminStats = [{
+    title: 'Active Campaigns',
+    value: '3',
+    change: '+1 new this month',
+    icon: <BarChart3 className="w-6 h-6 text-primary" />,
+    trend: 'up' as const
+  }, {
+    title: 'QR Codes Generated',
+    value: '2,543',
+    change: 'Across all campaigns',
+    icon: <QrCode className="w-6 h-6 text-success" />,
+    trend: 'up' as const
+  }, {
+    title: 'Total Scans',
+    value: '12,892',
+    change: '+8% from last month',
+    icon: <Users className="w-6 h-6 text-primary" />,
+    trend: 'up' as const
+  }, {
+    title: 'Active Batches',
+    value: '7',
+    change: 'Ready for deployment',
+    icon: <Shield className="w-6 h-6 text-success" />,
+    trend: 'up' as const
+  }];
+
+  const stats = effectiveRole === 'master_admin' && !isViewingAsBrand ? masterAdminStats : brandAdminStats;
   const recentActivity = [{
     action: 'QR Code Generated',
     details: 'Premium Collection QR',
@@ -106,8 +139,16 @@ export const Dashboard = () => {
   return <div className="space-y-6">
       {/* Welcome Section */}
       <div className="space-y-2">
-        <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
-        <p className="text-foreground/60">Monitor your Certified Platform performance and manage QR codes</p>
+        <h1 className="text-3xl font-bold text-foreground">
+          {effectiveRole === 'master_admin' && !isViewingAsBrand ? 'Master Admin Dashboard' : 'Brand Dashboard'}
+        </h1>
+        <p className="text-foreground/60">
+          {effectiveRole === 'master_admin' && !isViewingAsBrand 
+            ? 'Manage all brands, campaigns, and system settings' 
+            : 'Monitor your brand performance and manage QR codes'
+          }
+          {isViewingAsBrand && ' (Viewing as Brand Admin)'}
+        </p>
       </div>
 
       {/* Stats Grid */}

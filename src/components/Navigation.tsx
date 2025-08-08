@@ -1,5 +1,6 @@
 import React from 'react';
 import { BarChart3, QrCode, Settings, Shield } from 'lucide-react';
+import { useViewMode } from '@/hooks/useViewMode';
 
 interface NavigationProps {
   activeTab: string;
@@ -7,13 +8,20 @@ interface NavigationProps {
 }
 
 export const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }) => {
-  const navItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
-    { id: 'brands', label: 'Brands', icon: Settings },
-    { id: 'campaigns', label: 'Campaigns', icon: QrCode },
-    { id: 'batches', label: 'Batches', icon: QrCode },
-    { id: 'verification', label: 'Verification', icon: Shield }
+  const { effectiveRole, isViewingAsBrand } = useViewMode();
+  
+  const allNavItems = [
+    { id: 'dashboard', label: 'Dashboard', icon: BarChart3, roles: ['master_admin', 'brand_admin', 'customer'] },
+    { id: 'brands', label: 'Brands', icon: Settings, roles: ['master_admin'] },
+    { id: 'campaigns', label: 'Campaigns', icon: QrCode, roles: ['master_admin', 'brand_admin'] },
+    { id: 'batches', label: 'Batches', icon: QrCode, roles: ['master_admin', 'brand_admin'] },
+    { id: 'verification', label: 'Verification', icon: Shield, roles: ['master_admin', 'brand_admin', 'customer'] }
   ];
+
+  // Filter navigation items based on effective role
+  const navItems = allNavItems.filter(item => 
+    item.roles.includes(effectiveRole)
+  );
 
   return (
     <nav className="bg-card border border-border rounded-lg p-6 mb-8 shadow-sm">
