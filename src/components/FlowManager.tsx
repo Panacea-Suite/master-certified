@@ -62,57 +62,18 @@ const FlowManager = () => {
     }
   };
 
-  const createTemplateFlow = async () => {
+  const createNewTemplate = async () => {
     if (!newFlowName.trim()) {
       toast({
         title: "Error",
-        description: "Flow name is required",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!newFlowRedirectUrl.trim()) {
-      toast({
-        title: "Error",
-        description: "Redirect URL is required",
+        description: "Template name is required",
         variant: "destructive",
       });
       return;
     }
 
     try {
-      const flowConfig = {
-        description: newFlowDescription,
-        template: true,
-        version: "1.0",
-        components: [
-          {
-            type: "header",
-            content: "Product Verification"
-          },
-          {
-            type: "product_info",
-            fields: ["name", "sku", "description"]
-          },
-          {
-            type: "verification_status",
-            authentic_message: "✅ This product is authentic",
-            suspicious_message: "⚠️ This product requires verification"
-          },
-          {
-            type: "brand_info",
-            show_logo: true,
-            show_colors: true
-          },
-          {
-            type: "contact_form",
-            fields: ["name", "email", "message"]
-          }
-        ]
-      };
-
-      // Get user's first brand to associate with the flow template
+      // Get user's first brand to associate with the template
       const { data: brandData } = await supabase
         .from('brands')
         .select('id')
@@ -122,31 +83,83 @@ const FlowManager = () => {
       if (!brandData) {
         toast({
           title: "Error",
-          description: "Please create a brand first before creating flows",
+          description: "Please create a brand first before creating flow templates",
           variant: "destructive",
         });
         return;
       }
 
-      // Create a temporary campaign for template flows
+      // Create a template campaign
       const { data: campaignData, error: campaignError } = await supabase
         .from('campaigns')
         .insert([{
           name: `${newFlowName} Template Campaign`,
           description: 'Auto-generated campaign for flow template',
-          brand_id: brandData.id
+          brand_id: brandData.id,
+          approved_stores: ['Template Store A', 'Template Store B', 'Template Store C']
         }])
         .select('id')
         .single();
 
       if (campaignError) throw campaignError;
 
+      // Create flow template with the new 5-stage structure
+      const flowConfig = {
+        template: true,
+        version: "2.0",
+        stages: [
+          {
+            type: "landing",
+            title: "Welcome to Certified",
+            description: "Verify your product authenticity",
+            content: {
+              welcomeText: "Welcome to our product verification system",
+              features: ["Authentic product verification", "Access to product documentation", "Supply chain transparency"]
+            }
+          },
+          {
+            type: "store_location",
+            title: "Store Location",
+            description: "Where did you purchase this product?",
+            content: {
+              instruction: "Please select the store where you purchased this product"
+            }
+          },
+          {
+            type: "account_creation",
+            title: "Create Account",
+            description: "Optional: Create an account for full access",
+            optional: true,
+            content: {
+              benefits: ["Save verification history", "Access exclusive content", "Get product updates"]
+            }
+          },
+          {
+            type: "authentication",
+            title: "Verification",
+            description: "Checking product authenticity...",
+            content: {
+              authenticMessage: "✅ This product is authentic",
+              suspiciousMessage: "⚠️ This product requires verification"
+            }
+          },
+          {
+            type: "content",
+            title: "Product Information",
+            description: "Access detailed product information",
+            content: {
+              gatedMessage: "Create an account to view detailed product information"
+            }
+          }
+        ]
+      };
+
       const { data, error } = await supabase
         .from('flows')
         .insert([{
           name: newFlowName,
           campaign_id: campaignData.id,
-          redirect_url: newFlowRedirectUrl,
+          redirect_url: `${window.location.origin}/flow/${campaignData.id}`,
           flow_config: flowConfig
         }])
         .select(`
@@ -161,14 +174,15 @@ const FlowManager = () => {
 
       setFlows([data, ...flows]);
       setNewFlowName('');
-      setNewFlowRedirectUrl('');
-      setNewFlowDescription('');
       toast({
         title: "Success",
         description: "Flow template created successfully",
       });
+
+      // Open the flow builder immediately
+      openFlowBuilder(data.id);
     } catch (error) {
-      console.error('Error creating flow:', error);
+      console.error('Error creating flow template:', error);
       toast({
         title: "Error",
         description: "Failed to create flow template",
@@ -289,142 +303,160 @@ const FlowManager = () => {
         <h1 className="text-3xl font-bold">Flow Templates</h1>
       </div>
 
-      {/* Create Flow Template Form */}
+      {/* Quick Create Template */}
       <Card>
         <CardHeader>
           <CardTitle>Create New Flow Template</CardTitle>
           <CardDescription>
-            Create reusable flow templates for your campaigns
+            Create a new flow template with our drag-and-drop editor
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="flowName">Flow Name</Label>
+          <div className="flex gap-4 items-end">
+            <div className="flex-1">
+              <Label htmlFor="templateName">Template Name</Label>
               <Input
-                id="flowName"
+                id="templateName"
                 value={newFlowName}
                 onChange={(e) => setNewFlowName(e.target.value)}
-                placeholder="Enter flow name"
+                placeholder="Enter template name (e.g., Premium Product Flow)"
               />
             </div>
-            <div>
-              <Label htmlFor="redirectUrl">Default Redirect URL</Label>
-              <Input
-                id="redirectUrl"
-                value={newFlowRedirectUrl}
-                onChange={(e) => setNewFlowRedirectUrl(e.target.value)}
-                placeholder="https://example.com/verify"
-              />
-            </div>
+            <Button onClick={createNewTemplate} className="mb-0">
+              <Plus className="w-4 h-4 mr-2" />
+              Create & Edit Template
+            </Button>
           </div>
-          <div>
-            <Label htmlFor="flowDescription">Description (Optional)</Label>
-            <Textarea
-              id="flowDescription"
-              value={newFlowDescription}
-              onChange={(e) => setNewFlowDescription(e.target.value)}
-              placeholder="Describe the purpose of this flow template"
-            />
-          </div>
-          <Button onClick={createTemplateFlow}>
-            <Plus className="w-4 h-4 mr-2" />
-            Create Flow Template
-          </Button>
+          <p className="text-sm text-muted-foreground">
+            This will create a new template with the standard 5-stage flow structure and open the drag-and-drop editor.
+          </p>
         </CardContent>
       </Card>
 
-      {/* Flow Templates List */}
-      <div className="grid gap-4">
+      {/* Flow Templates Library */}
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <h2 className="text-xl font-semibold">Flow Templates Library</h2>
+          <div className="text-sm text-muted-foreground">
+            {flows.length} template{flows.length !== 1 ? 's' : ''} available
+          </div>
+        </div>
+        
         {flows.length === 0 ? (
           <Card>
-            <CardContent className="text-center py-8">
-              <p className="text-muted-foreground">No flow templates created yet. Create your first template to get started.</p>
+            <CardContent className="text-center py-12">
+              <div className="space-y-4">
+                <div className="mx-auto w-16 h-16 bg-muted rounded-full flex items-center justify-center">
+                  <Settings className="w-8 h-8 text-muted-foreground" />
+                </div>
+                <div>
+                  <h3 className="font-semibold mb-2">No flow templates yet</h3>
+                  <p className="text-muted-foreground">
+                    Create your first flow template to get started with the drag-and-drop editor.
+                  </p>
+                </div>
+              </div>
             </CardContent>
           </Card>
         ) : (
-          flows.map((flow) => (
-            <Card key={flow.id}>
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <div>
-                    <CardTitle className="flex items-center gap-2">
-                      {flow.name}
-                      {!flow.campaign_id && (
+          <div className="grid gap-4">
+            {flows.map((flow) => (
+              <Card key={flow.id} className="relative">
+                <CardHeader>
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <CardTitle className="flex items-center gap-2 mb-2">
+                        {flow.name}
                         <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
                           Template
                         </span>
-                      )}
-                    </CardTitle>
-                    <CardDescription>
-                      {flow.campaigns?.name ? `Campaign: ${flow.campaigns.name} • ` : ''}
-                      Created {new Date(flow.created_at).toLocaleDateString()}
-                    </CardDescription>
-                    {flow.flow_config?.description && (
-                      <p className="text-sm text-muted-foreground mt-2">{flow.flow_config.description}</p>
-                    )}
+                      </CardTitle>
+                      <CardDescription>
+                        Campaign: {flow.campaigns?.name} • Created {new Date(flow.created_at).toLocaleDateString()}
+                      </CardDescription>
+                      
+                      {/* Flow Stages Preview */}
+                      <div className="mt-3">
+                        <div className="text-sm font-medium mb-2">Flow Structure:</div>
+                        <div className="flex gap-2 flex-wrap">
+                          {flow.flow_config?.stages?.map((stage: any, index: number) => (
+                            <div key={index} className="px-2 py-1 bg-muted rounded text-xs">
+                              {index + 1}. {stage.title}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Action Buttons */}
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => openCustomerPreview(flow.id)}
+                        title="Preview customer experience"
+                      >
+                        <Smartphone className="w-4 h-4" />
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => duplicateFlow(flow)}
+                        title="Duplicate template"
+                      >
+                        <Copy className="w-4 h-4" />
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => openFlowBuilder(flow.id)}
+                        title="Edit with drag-and-drop editor"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                      <Button 
+                        variant="destructive" 
+                        size="sm"
+                        onClick={() => deleteFlow(flow.id)}
+                        title="Delete template"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </div>
-                  <div className="flex gap-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => openCustomerPreview(flow.id)}
-                      title="Preview customer experience"
-                    >
-                      <Smartphone className="w-4 h-4" />
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => duplicateFlow(flow)}
-                    >
-                      <Copy className="w-4 h-4" />
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => openFlowBuilder(flow.id)}
-                      title="Edit flow builder"
-                    >
-                      <Edit className="w-4 h-4" />
-                    </Button>
-                    <Button 
-                      variant="destructive" 
-                      size="sm"
-                      onClick={() => deleteFlow(flow.id)}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="text-sm">
+                      <span className="font-medium">Redirect URL:</span> 
+                      <span className="text-muted-foreground ml-1">{flow.redirect_url}</span>
+                    </div>
+                    
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="default" 
+                        size="sm"
+                        onClick={() => openFlowBuilder(flow.id)}
+                        className="flex-1"
+                      >
+                        <Settings className="w-4 h-4 mr-2" />
+                        Edit Template
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => openCustomerPreview(flow.id)}
+                        className="flex-1"
+                      >
+                        <Smartphone className="w-4 h-4 mr-2" />
+                        Preview Mobile
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="flex gap-2 flex-wrap">
-                  <div className="text-sm text-muted-foreground">
-                    <strong>Redirect URL:</strong> {flow.redirect_url}
-                  </div>
-                </div>
-                <div className="flex gap-2 mt-4">
-                  <Button 
-                    variant="default" 
-                    size="sm"
-                    onClick={() => openFlowBuilder(flow.id)}
-                  >
-                    <Settings className="w-4 h-4 mr-2" />
-                    Configure Flow
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => openCustomerPreview(flow.id)}
-                  >
-                    <Smartphone className="w-4 h-4 mr-2" />
-                    Preview Mobile
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         )}
       </div>
 
