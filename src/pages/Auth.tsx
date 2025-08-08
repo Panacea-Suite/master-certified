@@ -22,7 +22,6 @@ export default function Auth() {
   const [signUpEmail, setSignUpEmail] = useState('');
   const [signUpPassword, setSignUpPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
-  const [role, setRole] = useState<UserRole>('brand_admin');
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,7 +38,7 @@ export default function Auth() {
     e.preventDefault();
     setIsLoading(true);
     
-    const { error } = await signUp(signUpEmail, signUpPassword, role, displayName);
+    const { error } = await signUp(signUpEmail, signUpPassword, 'brand_admin', displayName);
     if (!error) {
       // Stay on auth page to show email verification message
     }
@@ -84,9 +83,9 @@ export default function Auth() {
             <Shield className="w-8 h-8 text-primary mr-2" />
             <h1 className="text-2xl font-bold">Certified Platform</h1>
           </div>
-          <CardTitle className="text-center">Welcome</CardTitle>
+          <CardTitle className="text-center">Brand Portal</CardTitle>
           <CardDescription className="text-center">
-            Sign in to your account or create a new one
+            Access your brand management dashboard
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -159,38 +158,6 @@ export default function Auth() {
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
                   />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="role">Account Type</Label>
-                  <Select value={role} onValueChange={(value: UserRole) => setRole(value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select account type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="brand_admin">
-                        <div className="flex items-center space-x-2">
-                          {getRoleIcon('brand_admin')}
-                          <div>
-                            <div className="font-medium">Brand Admin</div>
-                            <div className="text-sm text-muted-foreground">
-                              {getRoleDescription('brand_admin')}
-                            </div>
-                          </div>
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="customer">
-                        <div className="flex items-center space-x-2">
-                          {getRoleIcon('customer')}
-                          <div>
-                            <div className="font-medium">Customer</div>
-                            <div className="text-sm text-muted-foreground">
-                              {getRoleDescription('customer')}
-                            </div>
-                          </div>
-                        </div>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
                 </div>
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading ? 'Creating account...' : 'Create Account'}

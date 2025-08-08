@@ -7,6 +7,13 @@ import { Database } from '@/integrations/supabase/types';
 export type UserRole = 'master_admin' | 'brand_admin' | 'customer';
 export type Profile = Database['public']['Tables']['profiles']['Row'];
 
+// Master admin approved emails - only these can access master admin features
+const MASTER_ADMIN_EMAILS = [
+  'admin@panaceacertified.com',
+  'support@panaceacertified.com'
+  // Add more approved emails here
+];
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
