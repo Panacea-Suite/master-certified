@@ -58,6 +58,16 @@ export default {
 					border: 'hsl(var(--input-border))',
 					focus: 'hsl(var(--input-focus))'
 				},
+				muted: {
+					DEFAULT: 'hsl(var(--muted))',
+					foreground: 'hsl(var(--muted-foreground))'
+				},
+				accent: {
+					DEFAULT: 'hsl(var(--accent))',
+					foreground: 'hsl(var(--accent-foreground))'
+				},
+				border: 'hsl(var(--border))',
+				ring: 'hsl(var(--ring))',
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
