@@ -9,7 +9,7 @@ import BrandSettings from '@/components/BrandSettings';
 import CampaignManager from '@/components/CampaignManager';
 import BatchManager from '@/components/BatchManager';
 import FlowManager from '@/components/FlowManager';
-import { ProductVerification } from '@/components/ProductVerification';
+
 import { Button } from '@/components/ui/button';
 import { Shield } from 'lucide-react';
 
@@ -38,8 +38,6 @@ const Index = () => {
         return <BatchManager />;
       case 'flows':
         return <FlowManager />;
-      case 'verification':
-        return <ProductVerification />;
       default:
         return <Dashboard />;
     }
