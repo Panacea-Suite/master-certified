@@ -12,6 +12,7 @@ import { Progress } from '@/components/ui/progress';
 interface Brand {
   id: string;
   name: string;
+  approved_stores?: string[];
 }
 
 interface CampaignWizardProps {
@@ -42,7 +43,7 @@ const CampaignWizard = ({ currentBrand, onComplete, onCancel }: CampaignWizardPr
     campaign: {
       name: '',
       description: '',
-      approved_stores: ''
+      approved_stores: currentBrand?.approved_stores?.join(', ') || ''
     },
     batch: {
       name: '',
@@ -265,6 +266,9 @@ const CampaignWizard = ({ currentBrand, onComplete, onCancel }: CampaignWizardPr
                 })}
                 placeholder="Enter approved stores (comma-separated)"
               />
+              <p className="text-xs text-muted-foreground mt-1">
+                Pre-populated from your brand settings. You can customize them for this campaign.
+              </p>
             </div>
             {currentBrand && (
               <div className="p-4 bg-muted rounded-lg">
