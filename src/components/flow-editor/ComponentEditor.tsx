@@ -1,12 +1,14 @@
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import { Slider } from '@/components/ui/slider';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Settings } from 'lucide-react';
+import { Trash2, Upload, Edit2, Settings } from 'lucide-react';
+import { ImageEditor } from '@/components/ImageEditor';
 
 interface SectionData {
   id: string;
@@ -21,10 +23,9 @@ interface ComponentEditorProps {
   onUpdate: (config: any) => void;
 }
 
-export const ComponentEditor: React.FC<ComponentEditorProps> = ({
-  section,
-  onUpdate
-}) => {
+export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpdate }) => {
+  const [showImageEditor, setShowImageEditor] = useState(false);
+  const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
   const { config } = section;
 
   const updateConfig = (key: string, value: any) => {
@@ -83,13 +84,76 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
     <div className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="imageUrl">Image URL</Label>
-        <Input
-          id="imageUrl"
-          type="url"
-          value={config.imageUrl || ''}
-          onChange={(e) => updateConfig('imageUrl', e.target.value)}
-          placeholder="https://example.com/image.jpg"
-        />
+        <div className="flex gap-2">
+          <Input
+            id="imageUrl"
+            type="url"
+            value={config.imageUrl || ''}
+            onChange={(e) => updateConfig('imageUrl', e.target.value)}
+            placeholder="https://example.com/image.jpg"
+            className="flex-1"
+          />
+          {config.imageUrl && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                // Convert existing image URL to file for editing
+                fetch(config.imageUrl)
+                  .then(res => res.blob())
+                  .then(blob => {
+                    const file = new File([blob], 'image.jpg', { type: blob.type });
+                    setSelectedImageFile(file);
+                    setShowImageEditor(true);
+                  })
+                  .catch(() => {
+                    // Fallback: open file picker
+                    const input = document.createElement('input');
+                    input.type = 'file';
+                    input.accept = 'image/*';
+                    input.onchange = (e) => {
+                      const file = (e.target as HTMLInputElement).files?.[0];
+                      if (file) {
+                        setSelectedImageFile(file);
+                        setShowImageEditor(true);
+                      }
+                    };
+                    input.click();
+                  });
+              }}
+            >
+              <Edit2 className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
+      </div>
+      
+      <div className="space-y-2">
+        <Label>Upload & Edit Image</Label>
+        <div className="flex items-center justify-center w-full">
+          <label htmlFor="imageUpload" className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-muted-foreground/25 rounded-lg cursor-pointer hover:bg-muted/50">
+            <div className="flex flex-col items-center justify-center">
+              <Upload className="w-8 h-8 mb-2 text-muted-foreground" />
+              <p className="text-sm text-muted-foreground text-center">
+                <span className="font-semibold">Click to upload & edit</span><br />
+                PNG, JPG (MAX. 5MB)
+              </p>
+            </div>
+            <input
+              id="imageUpload"
+              type="file"
+              className="hidden"
+              accept="image/*"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  setSelectedImageFile(file);
+                  setShowImageEditor(true);
+                }
+              }}
+            />
+          </label>
+        </div>
       </div>
       
       <div className="space-y-2">
@@ -320,6 +384,28 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
         <CardContent className="space-y-4">
           {renderEditor()}
         </CardContent>
+        
+        {/* Image Editor Modal */}
+        {showImageEditor && selectedImageFile && (
+          <ImageEditor
+            file={selectedImageFile}
+            onSave={(editedFile) => {
+              // Convert file to data URL
+              const reader = new FileReader();
+              reader.onload = (e) => {
+                const dataUrl = e.target?.result as string;
+                updateConfig('imageUrl', dataUrl);
+              };
+              reader.readAsDataURL(editedFile);
+              setShowImageEditor(false);
+              setSelectedImageFile(null);
+            }}
+            onCancel={() => {
+              setShowImageEditor(false);
+              setSelectedImageFile(null);
+            }}
+          />
+        )}
       </Card>
       
       <Card>
