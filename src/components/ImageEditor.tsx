@@ -29,46 +29,82 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
   const [rotation, setRotation] = useState([0]);
   const [selectedPreset, setSelectedPreset] = useState<string>("");
   const [canvasSize, setCanvasSize] = useState({ width: 800, height: 600 });
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!canvasRef.current) return;
 
+    setIsLoading(true);
+    setError(null);
+
     const canvas = new FabricCanvas(canvasRef.current, {
       width: canvasSize.width,
       height: canvasSize.height,
-      backgroundColor: "transparent",
+      backgroundColor: "#ffffff",
     });
 
     setFabricCanvas(canvas);
 
     // Load the image
     const reader = new FileReader();
-    reader.onload = (e) => {
-      const imageUrl = e.target?.result as string;
-      FabricImage.fromURL(imageUrl).then((img) => {
+    reader.onload = async (e) => {
+      try {
+        const imageUrl = e.target?.result as string;
+        
+        if (!imageUrl) {
+          throw new Error("Failed to read image file");
+        }
+
+        console.log("Loading image from:", imageUrl.substring(0, 50) + "...");
+        
+        const img = await FabricImage.fromURL(imageUrl, {
+          crossOrigin: 'anonymous'
+        });
+        
+        console.log("Image loaded successfully:", img.width, "x", img.height);
+
         // Scale image to fit canvas initially
-        const canvasWidth = canvas.width!;
-        const canvasHeight = canvas.height!;
-        const imageAspect = img.width! / img.height!;
+        const canvasWidth = canvas.width || canvasSize.width;
+        const canvasHeight = canvas.height || canvasSize.height;
+        const imageAspect = (img.width || 1) / (img.height || 1);
         const canvasAspect = canvasWidth / canvasHeight;
 
         let scaleFactor;
         if (imageAspect > canvasAspect) {
-          scaleFactor = (canvasWidth * 0.8) / img.width!;
+          scaleFactor = (canvasWidth * 0.8) / (img.width || 1);
         } else {
-          scaleFactor = (canvasHeight * 0.8) / img.height!;
+          scaleFactor = (canvasHeight * 0.8) / (img.height || 1);
         }
 
-        img.scale(scaleFactor);
-        canvas.centerObject(img);
+        img.set({
+          scaleX: scaleFactor,
+          scaleY: scaleFactor,
+        });
         
+        canvas.centerObject(img);
         canvas.add(img);
         canvas.setActiveObject(img);
         canvas.renderAll();
+        
         setOriginalImage(img);
-        toast("Image loaded! Use controls to adjust size and position.");
-      });
+        setIsLoading(false);
+        toast.success("Image loaded! Use controls to adjust size and position.");
+        
+      } catch (error) {
+        console.error("Error loading image:", error);
+        setError("Failed to load image. Please try a different file.");
+        setIsLoading(false);
+        toast.error("Failed to load image");
+      }
     };
+
+    reader.onerror = () => {
+      setError("Failed to read the selected file");
+      setIsLoading(false);
+      toast.error("Failed to read file");
+    };
+
     reader.readAsDataURL(file);
 
     return () => {
@@ -82,7 +118,10 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
     const newScale = value[0];
     setScale(value);
     
-    originalImage.scale(newScale);
+    originalImage.set({
+      scaleX: newScale,
+      scaleY: newScale,
+    });
     fabricCanvas.renderAll();
   };
 
@@ -92,7 +131,7 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
     const newRotation = value[0];
     setRotation(value);
     
-    originalImage.rotate(newRotation);
+    originalImage.set({ angle: newRotation });
     fabricCanvas.renderAll();
   };
 
@@ -112,7 +151,7 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
     // Center the image and fit to canvas
     fabricCanvas.centerObject(originalImage);
     fabricCanvas.renderAll();
-    toast("Image centered and cropped to canvas size");
+    toast.success("Image centered and cropped to canvas size");
   };
 
   const handleReset = () => {
@@ -120,11 +159,14 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
     
     setScale([1]);
     setRotation([0]);
-    originalImage.scale(1);
-    originalImage.rotate(0);
+    originalImage.set({
+      scaleX: 1,
+      scaleY: 1,
+      angle: 0,
+    });
     fabricCanvas.centerObject(originalImage);
     fabricCanvas.renderAll();
-    toast("Image reset to original state");
+    toast.success("Image reset to original state");
   };
 
   const handleSave = () => {
@@ -135,7 +177,7 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
       if (blob) {
         const editedFile = new File([blob], file.name, { type: "image/png" });
         onSave(editedFile);
-        toast("Image saved successfully!");
+        toast.success("Image saved successfully!");
       }
     }, "image/png", 1.0);
   };
@@ -153,10 +195,25 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
         <CardContent className="flex flex-1 gap-6 min-h-0">
           {/* Canvas Area */}
           <div className="flex-1 flex items-center justify-center bg-muted/30 rounded-lg min-h-0">
+            {isLoading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-background/50">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+                  <p className="text-sm text-muted-foreground">Loading image...</p>
+                </div>
+              </div>
+            )}
+            {error && (
+              <div className="absolute inset-0 flex items-center justify-center bg-background/50">
+                <div className="text-center p-4">
+                  <p className="text-destructive mb-2">{error}</p>
+                  <Button variant="outline" onClick={onCancel}>Close</Button>
+                </div>
+              </div>
+            )}
             <canvas
               ref={canvasRef}
               className="border border-border rounded shadow-lg max-w-full max-h-full"
-              style={{ backgroundColor: "white" }}
             />
           </div>
 
