@@ -24,13 +24,14 @@ import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ImageEditor } from '@/components/ImageEditor';
 import { ComponentPalette } from './flow-editor/ComponentPalette';
 import { FlowPreview } from './flow-editor/FlowPreview';
 import { PageSection } from './flow-editor/PageSection';
 import { ComponentEditor } from './flow-editor/ComponentEditor';
 import { PageManager, PageData } from './flow-editor/PageManager';
-import { Smartphone, Save, ArrowLeft, Upload } from 'lucide-react';
+import { Smartphone, Save, ArrowLeft, Upload, ChevronDown, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -266,6 +267,23 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
   const [showImageEditor, setShowImageEditor] = useState(false);
   const [selectedLogoFile, setSelectedLogoFile] = useState<File | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  
+  // Collapsible sections state
+  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({
+    flowName: false,
+    pages: false,
+    globalHeader: false,
+    pageSettings: false,
+    components: false,
+    sections: false
+  });
+  
+  const toggleSection = (sectionKey: string) => {
+    setCollapsedSections(prev => ({
+      ...prev,
+      [sectionKey]: !prev[sectionKey]
+    }));
+  };
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -586,34 +604,69 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                 <h3 className="font-semibold">Flow Builder</h3>
               </div>
               
-              <div className="space-y-2">
-                <Label htmlFor="flowName">Flow Name</Label>
-                <Input
-                  id="flowName"
-                  value={flowName}
-                  onChange={(e) => setFlowName(e.target.value)}
-                  placeholder="Enter flow name..."
-                />
-              </div>
+              {/* Flow Name Section */}
+              <Collapsible open={!collapsedSections.flowName} onOpenChange={() => toggleSection('flowName')}>
+                <CollapsibleTrigger asChild>
+                  <Button variant="ghost" className="w-full justify-between text-sm font-medium p-2 h-auto hover:bg-accent">
+                    <span>Flow Name</span>
+                    {collapsedSections.flowName ? (
+                      <ChevronRight className="h-4 w-4" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4" />
+                    )}
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="space-y-2 pt-2">
+                  <Input
+                    id="flowName"
+                    value={flowName}
+                    onChange={(e) => setFlowName(e.target.value)}
+                    placeholder="Enter flow name..."
+                  />
+                </CollapsibleContent>
+              </Collapsible>
 
               <Separator />
               
-              {/* Page Manager */}
-              <PageManager
-                pages={pages}
-                currentPageId={currentPageId}
-                onSelectPage={setCurrentPageId}
-                onAddPage={handleAddPage}
-                onDeletePage={handleDeletePage}
-                onReorderPages={() => {}} // TODO: Implement reordering
-              />
+              {/* Page Manager Section */}
+              <Collapsible open={!collapsedSections.pages} onOpenChange={() => toggleSection('pages')}>
+                <CollapsibleTrigger asChild>
+                  <Button variant="ghost" className="w-full justify-between text-sm font-medium p-2 h-auto hover:bg-accent">
+                    <span>Flow Pages</span>
+                    {collapsedSections.pages ? (
+                      <ChevronRight className="h-4 w-4" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4" />
+                    )}
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="pt-2">
+                  <PageManager
+                    pages={pages}
+                    currentPageId={currentPageId}
+                    onSelectPage={setCurrentPageId}
+                    onAddPage={handleAddPage}
+                    onDeletePage={handleDeletePage}
+                    onReorderPages={() => {}} // TODO: Implement reordering
+                  />
+                </CollapsibleContent>
+              </Collapsible>
 
               <Separator />
               
               {/* Global Header Settings */}
-              <div className="space-y-2">
-                <h4 className="font-medium text-sm text-muted-foreground">Global Header</h4>
-                <div className="space-y-2">
+              <Collapsible open={!collapsedSections.globalHeader} onOpenChange={() => toggleSection('globalHeader')}>
+                <CollapsibleTrigger asChild>
+                  <Button variant="ghost" className="w-full justify-between text-sm font-medium p-2 h-auto hover:bg-accent">
+                    <span>Global Header</span>
+                    {collapsedSections.globalHeader ? (
+                      <ChevronRight className="h-4 w-4" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4" />
+                    )}
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="space-y-2 pt-2">
                   <div className="flex items-center space-x-2">
                     <input
                       type="checkbox"
@@ -716,15 +769,24 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                       </div>
                     </>
                   )}
-                </div>
-              </div>
+                </CollapsibleContent>
+              </Collapsible>
               
               <Separator />
               
               {/* Page Settings */}
-              <div className="space-y-2">
-                <h4 className="font-medium text-sm text-muted-foreground">Page Settings</h4>
-                <div className="space-y-2">
+              <Collapsible open={!collapsedSections.pageSettings} onOpenChange={() => toggleSection('pageSettings')}>
+                <CollapsibleTrigger asChild>
+                  <Button variant="ghost" className="w-full justify-between text-sm font-medium p-2 h-auto hover:bg-accent">
+                    <span>Page Settings</span>
+                    {collapsedSections.pageSettings ? (
+                      <ChevronRight className="h-4 w-4" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4" />
+                    )}
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="space-y-2 pt-2">
                   <Label htmlFor="backgroundColor">Background Color</Label>
                   <Input
                     id="backgroundColor"
@@ -733,60 +795,84 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                     onChange={(e) => setPageSettings(prev => ({ ...prev, backgroundColor: e.target.value }))}
                     className="h-8"
                   />
-                </div>
-              </div>
+                </CollapsibleContent>
+              </Collapsible>
 
               <Separator />
               
-              <ComponentPalette onAddComponent={handleAddSection} />
+              {/* Drag Sections */}
+              <Collapsible open={!collapsedSections.components} onOpenChange={() => toggleSection('components')}>
+                <CollapsibleTrigger asChild>
+                  <Button variant="ghost" className="w-full justify-between text-sm font-medium p-2 h-auto hover:bg-accent">
+                    <span>Drag Sections</span>
+                    {collapsedSections.components ? (
+                      <ChevronRight className="h-4 w-4" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4" />
+                    )}
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="pt-2">
+                  <ComponentPalette onAddComponent={handleAddSection} />
+                </CollapsibleContent>
+              </Collapsible>
               
               <Separator />
               
               {/* Current Page Sections */}
               {currentPage && (
-                <div className="space-y-2">
-                  <h4 className="font-medium text-sm text-muted-foreground">
-                    {currentPage.name} Sections
-                  </h4>
-                  <DndContext
-                    sensors={sensors}
-                    collisionDetection={closestCenter}
-                    onDragStart={handleDragStart}
-                    onDragEnd={handleDragEnd}
-                    modifiers={[restrictToVerticalAxis]}
-                  >
-                    <SortableContext
-                      items={currentPage.sections.map(s => s.id)}
-                      strategy={verticalListSortingStrategy}
+                <Collapsible open={!collapsedSections.sections} onOpenChange={() => toggleSection('sections')}>
+                  <CollapsibleTrigger asChild>
+                    <Button variant="ghost" className="w-full justify-between text-sm font-medium p-2 h-auto hover:bg-accent">
+                      <span>{currentPage.name} Sections</span>
+                      {collapsedSections.sections ? (
+                        <ChevronRight className="h-4 w-4" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="space-y-2 pt-2">
+                    <DndContext
+                      sensors={sensors}
+                      collisionDetection={closestCenter}
+                      onDragStart={handleDragStart}
+                      onDragEnd={handleDragEnd}
+                      modifiers={[restrictToVerticalAxis]}
                     >
-                      <div className="space-y-1">
-                        {currentPage.sections
-                          .sort((a, b) => a.order - b.order)
-                          .map((section) => (
-                <PageSection
-                  key={section.id}
-                  section={section}
-                  isSelected={selectedSection?.id === section.id}
-                  onSelect={() => setSelectedSection(section)}
-                  onDelete={() => handleDeleteSection(section.id)}
-                  onAddSection={handleAddSection}
-                />
-                          ))}
-                      </div>
-                    </SortableContext>
+                      <SortableContext
+                        items={currentPage.sections.map(s => s.id)}
+                        strategy={verticalListSortingStrategy}
+                      >
+                        <div className="space-y-1">
+                          {currentPage.sections
+                            .sort((a, b) => a.order - b.order)
+                            .map((section) => (
+                  <PageSection
+                    key={section.id}
+                    section={section}
+                    isSelected={selectedSection?.id === section.id}
+                    onSelect={() => setSelectedSection(section)}
+                    onDelete={() => handleDeleteSection(section.id)}
+                    onAddSection={handleAddSection}
+                  />
+                            ))}
+                        </div>
+                      </SortableContext>
 
-                    <DragOverlay>
-                      {activeSection ? (
-                        <PageSection
-                          section={activeSection}
-                          isSelected={false}
-                          onSelect={() => {}}
-                          onDelete={() => {}}
-                        />
-                      ) : null}
-                    </DragOverlay>
-                  </DndContext>
-                </div>
+                      <DragOverlay>
+                        {activeSection ? (
+                          <PageSection
+                            section={activeSection}
+                            isSelected={false}
+                            onSelect={() => {}}
+                            onDelete={() => {}}
+                          />
+                        ) : null}
+                      </DragOverlay>
+                    </DndContext>
+                  </CollapsibleContent>
+                </Collapsible>
               )}
             </div>
           </div>
