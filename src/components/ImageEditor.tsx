@@ -7,8 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import { Crop, RotateCcw, Download, X, Link } from "lucide-react";
+import { Crop, RotateCcw, Download, X, Link, Scissors } from "lucide-react";
 import { toast } from "sonner";
+import { removeBackground, loadImage } from "@/utils/backgroundRemoval";
 
 interface ImageEditorProps {
   file: File;
@@ -38,6 +39,7 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [originalAspectRatio, setOriginalAspectRatio] = useState(1);
+  const [isRemovingBackground, setIsRemovingBackground] = useState(false);
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -286,6 +288,77 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
     toast.success("Image reset to fit canvas");
   };
 
+  const handleRemoveBackground = async () => {
+    if (!fabricCanvas || !originalImage) return;
+
+    setIsRemovingBackground(true);
+    toast.info("Removing background... This may take a moment.");
+
+    try {
+      // Convert canvas to blob to get current image
+      const currentCanvas = fabricCanvas.toCanvasElement();
+      const blob = await new Promise<Blob>((resolve) => {
+        currentCanvas.toBlob((blob) => {
+          if (blob) resolve(blob);
+        }, 'image/png');
+      });
+
+      if (!blob) {
+        throw new Error('Failed to get image data');
+      }
+
+      // Load image and remove background
+      const imageElement = await loadImage(blob);
+      const processedBlob = await removeBackground(imageElement);
+
+      // Create new fabric image from processed blob
+      const processedImageUrl = URL.createObjectURL(processedBlob);
+      const newImage = await FabricImage.fromURL(processedImageUrl, {
+        crossOrigin: 'anonymous'
+      });
+
+      // Replace the current image with the processed one
+      fabricCanvas.remove(originalImage);
+      
+      // Scale and position the new image
+      const canvasWidth = canvasSize.width;
+      const canvasHeight = canvasSize.height;
+      const imageAspect = (newImage.width || 1) / (newImage.height || 1);
+      const canvasAspect = canvasWidth / canvasHeight;
+
+      let scaleFactor;
+      if (imageAspect > canvasAspect) {
+        scaleFactor = (canvasWidth * 0.8) / (newImage.width || 1);
+      } else {
+        scaleFactor = (canvasHeight * 0.8) / (newImage.height || 1);
+      }
+
+      newImage.set({
+        scaleX: scaleFactor,
+        scaleY: scaleFactor,
+        originX: 'center',
+        originY: 'center',
+      });
+
+      fabricCanvas.centerObject(newImage);
+      fabricCanvas.add(newImage);
+      fabricCanvas.setActiveObject(newImage);
+      fabricCanvas.renderAll();
+
+      setOriginalImage(newImage);
+      toast.success("Background removed successfully!");
+
+      // Clean up the temporary URL
+      URL.revokeObjectURL(processedImageUrl);
+
+    } catch (error) {
+      console.error('Background removal failed:', error);
+      toast.error("Failed to remove background. Please try again.");
+    } finally {
+      setIsRemovingBackground(false);
+    }
+  };
+
   const handleSave = () => {
     if (!fabricCanvas) return;
 
@@ -432,6 +505,25 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
                   Fill Canvas
                 </Button>
               </div>
+              
+              <Button
+                variant="outline"
+                onClick={handleRemoveBackground}
+                disabled={isRemovingBackground}
+                className="w-full"
+              >
+                {isRemovingBackground ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2"></div>
+                    Removing...
+                  </>
+                ) : (
+                  <>
+                    <Scissors className="w-4 h-4 mr-2" />
+                    Remove Background
+                  </>
+                )}
+              </Button>
               
               <Button
                 variant="outline"
