@@ -101,8 +101,32 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
         
         setOriginalImage(img);
         setOriginalAspectRatio((img.width || 1) / (img.height || 1));
+        
+        // Check if the loaded image has transparency (for PNG files)
+        if (file.type === 'image/png') {
+          const tempCanvas = document.createElement('canvas');
+          const tempCtx = tempCanvas.getContext('2d');
+          if (tempCtx) {
+            tempCanvas.width = img.width || 1;
+            tempCanvas.height = img.height || 1;
+            tempCtx.drawImage(img.getElement(), 0, 0);
+            
+            const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+            const hasAlpha = imageData.data.some((_, index) => index % 4 === 3 && imageData.data[index] < 255);
+            
+            if (hasAlpha) {
+              setHasTransparentBackground(true);
+              canvas.backgroundColor = 'transparent';
+              canvas.renderAll();
+              toast.success("PNG with transparency loaded!");
+            }
+          }
+        }
+        
         setIsLoading(false);
-        toast.success("Image loaded! Use controls to adjust size and position.");
+        if (!hasTransparentBackground) {
+          toast.success("Image loaded! Use controls to adjust size and position.");
+        }
         
       } catch (error) {
         console.error("Error loading image:", error);
@@ -284,6 +308,12 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
 
   const handleRemoveBackground = async () => {
     if (!fabricCanvas || !originalImage) return;
+
+    // Check if image already has transparency
+    if (hasTransparentBackground) {
+      toast.info("This image already has a transparent background!");
+      return;
+    }
 
     setIsRemovingBackground(true);
     toast.info("Removing background... This may take a moment.");
