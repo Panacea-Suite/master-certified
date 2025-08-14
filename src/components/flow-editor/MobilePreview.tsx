@@ -53,11 +53,11 @@ export const MobilePreview: React.FC<MobilePreviewProps> = ({
   const getLogoSizeClasses = (size: string) => {
     switch (size) {
       case 'small':
-        return 'h-6 max-w-20';
+        return 'h-8 max-w-32';
       case 'large':
-        return 'h-12 max-w-32';
+        return 'h-12 max-w-48';
       default: // medium
-        return 'h-8 max-w-24';
+        return 'h-10 max-w-40';
     }
   };
 
