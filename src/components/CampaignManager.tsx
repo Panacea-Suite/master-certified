@@ -215,17 +215,6 @@ const CampaignManager = () => {
                 placeholder="Enter campaign description"
               />
             </div>
-            {currentBrand && (
-              <div>
-                <Label>Brand</Label>
-                <div className="p-3 bg-muted rounded-md">
-                  <p className="font-medium">{currentBrand.name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    This campaign will be created for your current brand
-                  </p>
-                </div>
-              </div>
-            )}
             <div>
               <Label htmlFor="approvedStores">Approved Stores</Label>
               <Textarea
