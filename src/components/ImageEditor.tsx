@@ -87,6 +87,8 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
         img.set({
           scaleX: scaleFactor,
           scaleY: scaleFactor,
+          originX: 'center',
+          originY: 'center',
         });
         
         canvas.centerObject(img);
@@ -145,6 +147,8 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
     originalImage.set({
       scaleX: scaleFactor,
       scaleY: scaleFactor,
+      originX: 'center',
+      originY: 'center',
     });
     
     fabricCanvas.centerObject(originalImage);
@@ -195,13 +199,60 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
     }
   };
 
-  const handleCrop = () => {
+  const handleFitToCanvas = () => {
     if (!fabricCanvas || !originalImage) return;
     
-    // Center the image and fit to canvas
+    const canvasWidth = canvasSize.width;
+    const canvasHeight = canvasSize.height;
+    const imageAspect = (originalImage.width || 1) / (originalImage.height || 1);
+    const canvasAspect = canvasWidth / canvasHeight;
+
+    // Scale to fit (maintain aspect ratio, may have empty space)
+    let scaleFactor;
+    if (imageAspect > canvasAspect) {
+      scaleFactor = canvasWidth / (originalImage.width || 1);
+    } else {
+      scaleFactor = canvasHeight / (originalImage.height || 1);
+    }
+
+    originalImage.set({
+      scaleX: scaleFactor,
+      scaleY: scaleFactor,
+      originX: 'center',
+      originY: 'center',
+    });
+    
     fabricCanvas.centerObject(originalImage);
     fabricCanvas.renderAll();
-    toast.success("Image centered and cropped to canvas size");
+    toast.success("Image fitted to canvas");
+  };
+
+  const handleFillCanvas = () => {
+    if (!fabricCanvas || !originalImage) return;
+    
+    const canvasWidth = canvasSize.width;
+    const canvasHeight = canvasSize.height;
+    const imageAspect = (originalImage.width || 1) / (originalImage.height || 1);
+    const canvasAspect = canvasWidth / canvasHeight;
+
+    // Scale to fill (maintain aspect ratio, may crop edges)
+    let scaleFactor;
+    if (imageAspect > canvasAspect) {
+      scaleFactor = canvasHeight / (originalImage.height || 1);
+    } else {
+      scaleFactor = canvasWidth / (originalImage.width || 1);
+    }
+
+    originalImage.set({
+      scaleX: scaleFactor,
+      scaleY: scaleFactor,
+      originX: 'center',
+      originY: 'center',
+    });
+    
+    fabricCanvas.centerObject(originalImage);
+    fabricCanvas.renderAll();
+    toast.success("Image scaled to fill canvas");
   };
 
   const handleReset = () => {
@@ -226,6 +277,8 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
     originalImage.set({
       scaleX: scaleFactor,
       scaleY: scaleFactor,
+      originX: 'center',
+      originY: 'center',
     });
     
     fabricCanvas.centerObject(originalImage);
@@ -358,14 +411,27 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
 
             {/* Action Buttons */}
             <div className="space-y-3">
-              <Button
-                variant="outline"
-                onClick={handleCrop}
-                className="w-full"
-              >
-                <Crop className="w-4 h-4 mr-2" />
-                Center & Crop
-              </Button>
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  variant="outline"
+                  onClick={handleFitToCanvas}
+                  className="text-xs"
+                  size="sm"
+                >
+                  <Crop className="w-3 h-3 mr-1" />
+                  Fit to Canvas
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  onClick={handleFillCanvas}
+                  className="text-xs"
+                  size="sm"
+                >
+                  <Crop className="w-3 h-3 mr-1" />
+                  Fill Canvas
+                </Button>
+              </div>
               
               <Button
                 variant="outline"
