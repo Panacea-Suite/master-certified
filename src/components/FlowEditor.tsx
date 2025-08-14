@@ -49,7 +49,7 @@ interface FlowEditorProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (flowData: any) => void;
-  templateToEdit?: FlowTemplate | null;
+  templateToEdit?: any | null;
   brandData?: {
     id: string;
     name: string;
@@ -73,10 +73,32 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
   templateToEdit,
   brandData
 }) => {
-  const [flowName, setFlowName] = useState(templateToEdit?.name || 'Untitled Flow');
+  const [flowName, setFlowName] = useState(
+    (templateToEdit && 'name' in templateToEdit) ? templateToEdit.name : 'Untitled Flow'
+  );
   
   // Initialize pages from template or create mandatory pages with landing page
   const initializePages = (): PageData[] => {
+    // Handle pre-built templates from flowTemplates.ts
+    if (templateToEdit && 'pages' in templateToEdit) {
+      // Convert FlowTemplateData pages to PageData format
+      const prebuiltTemplate = templateToEdit as any;
+      return prebuiltTemplate.pages.map((page: any, index: number) => ({
+        id: page.id,
+        type: page.type,
+        name: page.name,
+        sections: page.sections.map((section: any, sectionIndex: number) => ({
+          id: section.id,
+          type: section.type,
+          order: sectionIndex,
+          config: section.config
+        })),
+        settings: {},
+        isMandatory: false,
+        order: index
+      }));
+    }
+    
     if (templateToEdit?.flow_config?.pages) {
       return templateToEdit.flow_config.pages;
     }
