@@ -181,8 +181,8 @@ export const PageManager: React.FC<PageManagerProps> = ({
       
       {pages.length === 0 && (
         <div className="text-center py-4 text-muted-foreground">
-          <p className="text-sm">Flow will include mandatory pages</p>
-          <p className="text-xs">Store Selection → Login → Verification → Thank You</p>
+          <p className="text-sm">Flow will include all pages</p>
+          <p className="text-xs">Landing → Store Selection → Login → Verification → Thank You</p>
         </div>
       )}
       

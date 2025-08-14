@@ -63,14 +63,23 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
 }) => {
   const [flowName, setFlowName] = useState(templateToEdit?.name || 'Untitled Flow');
   
-  // Initialize pages from template or create mandatory pages
+  // Initialize pages from template or create mandatory pages with landing page
   const initializePages = (): PageData[] => {
     if (templateToEdit?.flow_config?.pages) {
       return templateToEdit.flow_config.pages;
     }
     
-    // Create mandatory pages for new flows
-    const mandatoryPages: PageData[] = [
+    // Create all pages including initial landing page and mandatory pages
+    const allPages: PageData[] = [
+      {
+        id: 'landing-page',
+        type: 'landing',
+        name: 'Landing Page',
+        sections: [],
+        settings: {},
+        isMandatory: false,
+        order: 0
+      },
       {
         id: 'store-selection',
         type: 'store_selection',
@@ -109,12 +118,12 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
       }
     ];
 
-    // Migrate legacy single-page format to multi-page
+    // Migrate legacy single-page format to multi-page (add to landing page)
     if (templateToEdit?.flow_config?.sections) {
-      mandatoryPages[0].sections = templateToEdit.flow_config.sections;
+      allPages[0].sections = templateToEdit.flow_config.sections;
     }
     
-    return mandatoryPages;
+    return allPages;
   };
 
   const [pages, setPages] = useState<PageData[]>(initializePages());
