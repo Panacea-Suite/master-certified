@@ -120,9 +120,10 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
             if (hasAlpha) {
               console.log("Setting transparent background for canvas");
               setHasTransparentBackground(true);
-              // DON'T set canvas.backgroundColor - leave it as the default white
-              // The CSS will handle showing the checkerboard pattern
-              console.log("Canvas background left as default, will use CSS overlay");
+              // Set Fabric.js canvas background to transparent
+              canvas.backgroundColor = 'rgba(0,0,0,0)';
+              canvas.renderAll();
+              console.log("Canvas background set to transparent");
               toast.success("PNG with transparency loaded!");
             }
           }
@@ -349,8 +350,10 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
       // Replace the current image with the processed one
       fabricCanvas.remove(originalImage);
       
-      // Don't modify canvas background - let CSS handle the checkerboard
-      console.log("Background removed, using CSS checkerboard overlay");
+      // Set Fabric.js canvas background to transparent
+      fabricCanvas.backgroundColor = 'rgba(0,0,0,0)';
+      fabricCanvas.renderAll();
+      console.log("Canvas background set to transparent after background removal");
       
       // Scale and position the new image
       const canvasWidth = canvasSize.width;
