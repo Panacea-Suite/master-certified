@@ -51,7 +51,7 @@ export const MobilePreview: React.FC<MobilePreviewProps> = ({
   const scaledHeight = deviceHeight * scale;
 
   const getLogoSizeClasses = (size: string) => {
-    return 'h-full max-w-none w-auto';
+    return 'h-48 max-w-none w-auto';
   };
 
   const handleDragOver = (e: React.DragEvent, index: number) => {
@@ -96,7 +96,7 @@ export const MobilePreview: React.FC<MobilePreviewProps> = ({
         {/* Global Header with Brand Logo */}
         {globalHeader.showHeader && (
           <div 
-            className="h-16 border-b flex items-center justify-center"
+            className="h-16 border-b flex items-center justify-center overflow-visible relative z-10"
             style={{ backgroundColor: globalHeader.backgroundColor }}
           >
             {globalHeader.logoUrl ? (
@@ -166,7 +166,7 @@ export const MobilePreview: React.FC<MobilePreviewProps> = ({
       {/* Global Header with Brand Logo */}
       {globalHeader.showHeader && (
         <div 
-          className="h-16 border-b flex items-center justify-center"
+          className="h-16 border-b flex items-center justify-center overflow-visible relative z-10"
           style={{ backgroundColor: globalHeader.backgroundColor }}
         >
           {globalHeader.logoUrl ? (
