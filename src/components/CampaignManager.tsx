@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge';
 interface Brand {
   id: string;
   name: string;
+  approved_stores?: string[];
 }
 
 interface Campaign {
@@ -31,6 +32,7 @@ const CampaignManager = () => {
   const [brands, setBrands] = useState<Brand[]>([]);
   const [newCampaignName, setNewCampaignName] = useState('');
   const [newCampaignDescription, setNewCampaignDescription] = useState('');
+  const [selectedBrandId, setSelectedBrandId] = useState('');
   const [newStores, setNewStores] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -45,7 +47,7 @@ const CampaignManager = () => {
       // Fetch brands
       const { data: brandsData, error: brandsError } = await supabase
         .from('brands')
-        .select('id, name')
+        .select('id, name, approved_stores')
         .order('name');
 
       if (brandsError) throw brandsError;
@@ -77,6 +79,16 @@ const CampaignManager = () => {
     }
   };
 
+  const handleBrandSelection = (brandId: string) => {
+    setSelectedBrandId(brandId);
+    const selectedBrand = brands.find(brand => brand.id === brandId);
+    if (selectedBrand && selectedBrand.approved_stores) {
+      setNewStores(selectedBrand.approved_stores.join(', '));
+    } else {
+      setNewStores('');
+    }
+  };
+
   const createCampaign = async () => {
     if (!newCampaignName.trim()) {
       toast({
@@ -87,10 +99,10 @@ const CampaignManager = () => {
       return;
     }
 
-    if (brands.length === 0) {
+    if (!selectedBrandId) {
       toast({
         title: "Error",
-        description: "No brands available. Create a brand first.",
+        description: "Please select a brand for this campaign",
         variant: "destructive",
       });
       return;
@@ -104,7 +116,7 @@ const CampaignManager = () => {
         .insert([{
           name: newCampaignName,
           description: newCampaignDescription,
-          brand_id: brands[0].id,
+          brand_id: selectedBrandId,
           approved_stores: storesArray
         }])
         .select(`
@@ -121,6 +133,7 @@ const CampaignManager = () => {
       setCampaigns([data, ...campaigns]);
       setNewCampaignName('');
       setNewCampaignDescription('');
+      setSelectedBrandId('');
       setNewStores('');
       
       setShowCreateForm(false);
@@ -206,6 +219,26 @@ const CampaignManager = () => {
                 onChange={(e) => setNewCampaignDescription(e.target.value)}
                 placeholder="Enter campaign description"
               />
+            </div>
+            <div>
+              <Label htmlFor="brandSelect">Select Brand</Label>
+              <Select value={selectedBrandId} onValueChange={handleBrandSelection}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose a brand for this campaign" />
+                </SelectTrigger>
+                <SelectContent>
+                  {brands.map((brand) => (
+                    <SelectItem key={brand.id} value={brand.id}>
+                      {brand.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {selectedBrandId && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Approved stores will be pre-populated from the selected brand
+                </p>
+              )}
             </div>
             <div>
               <Label htmlFor="approvedStores">Approved Stores</Label>

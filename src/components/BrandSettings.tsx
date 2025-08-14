@@ -5,13 +5,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Upload, Palette, Save, Image } from 'lucide-react';
+import { Upload, Palette, Save, Image, Store, Plus, X } from 'lucide-react';
 
 interface Brand {
   id: string;
   name: string;
   logo_url?: string;
   brand_colors?: any;
+  approved_stores?: string[];
 }
 
 const BrandSettings = () => {
@@ -22,6 +23,8 @@ const BrandSettings = () => {
   const [primaryColor, setPrimaryColor] = useState('#3B82F6');
   const [secondaryColor, setSecondaryColor] = useState('#6B7280');
   const [accentColor, setAccentColor] = useState('#10B981');
+  const [approvedStores, setApprovedStores] = useState<string[]>([]);
+  const [newStore, setNewStore] = useState('');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -46,6 +49,8 @@ const BrandSettings = () => {
           setSecondaryColor(colors.secondary || '#6B7280');
           setAccentColor(colors.accent || '#10B981');
         }
+        // Load existing approved stores if available
+        setApprovedStores(data.approved_stores || []);
       }
     } catch (error) {
       console.error('Error fetching brand:', error);
@@ -142,6 +147,46 @@ const BrandSettings = () => {
       toast({
         title: "Error",
         description: "Failed to save brand colors",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const addApprovedStore = () => {
+    if (newStore.trim() && !approvedStores.includes(newStore.trim())) {
+      setApprovedStores([...approvedStores, newStore.trim()]);
+      setNewStore('');
+    }
+  };
+
+  const removeApprovedStore = (store: string) => {
+    setApprovedStores(approvedStores.filter(s => s !== store));
+  };
+
+  const saveApprovedStores = async () => {
+    if (!brand) return;
+
+    setIsSaving(true);
+    try {
+      const { error } = await supabase
+        .from('brands')
+        .update({ approved_stores: approvedStores })
+        .eq('id', brand.id);
+
+      if (error) throw error;
+
+      setBrand({ ...brand, approved_stores: approvedStores });
+      toast({
+        title: "Success",
+        description: "Approved stores saved successfully",
+      });
+    } catch (error) {
+      console.error('Error saving approved stores:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save approved stores",
         variant: "destructive",
       });
     } finally {
@@ -312,6 +357,74 @@ const BrandSettings = () => {
             <Button onClick={saveColors} disabled={isSaving} className="w-full">
               <Save className="w-4 h-4 mr-2" />
               {isSaving ? 'Saving...' : 'Save Colors'}
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Approved Stores */}
+        <Card className="md:col-span-2">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Store className="w-5 h-5" />
+              Approved Stores
+            </CardTitle>
+            <CardDescription>
+              Manage the list of stores approved for your brand campaigns
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex gap-2">
+              <Input
+                value={newStore}
+                onChange={(e) => setNewStore(e.target.value)}
+                placeholder="Add new store name"
+                onKeyPress={(e) => e.key === 'Enter' && addApprovedStore()}
+                className="flex-1"
+              />
+              <Button onClick={addApprovedStore} disabled={!newStore.trim()}>
+                <Plus className="w-4 h-4" />
+              </Button>
+            </div>
+
+            {approvedStores.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-sm font-medium">Current Approved Stores:</p>
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {approvedStores.map((store, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between bg-muted/50 p-2 rounded border"
+                    >
+                      <span className="text-sm">{store}</span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeApprovedStore(store)}
+                        className="h-6 w-6 p-0 hover:bg-destructive/10 hover:text-destructive"
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {approvedStores.length === 0 && (
+              <div className="text-center py-8 text-muted-foreground">
+                <Store className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                <p>No approved stores added yet</p>
+                <p className="text-xs">Add stores that can be used in your campaigns</p>
+              </div>
+            )}
+
+            <Button 
+              onClick={saveApprovedStores} 
+              disabled={isSaving} 
+              className="w-full"
+            >
+              <Save className="w-4 h-4 mr-2" />
+              {isSaving ? 'Saving...' : 'Save Approved Stores'}
             </Button>
           </CardContent>
         </Card>
