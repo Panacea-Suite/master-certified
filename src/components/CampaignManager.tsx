@@ -31,11 +31,7 @@ interface Campaign {
 const CampaignManager = () => {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [currentBrand, setCurrentBrand] = useState<Brand | null>(null);
-  const [newCampaignName, setNewCampaignName] = useState('');
-  const [newCampaignDescription, setNewCampaignDescription] = useState('');
-  const [newStores, setNewStores] = useState('');
   const [isLoading, setIsLoading] = useState(true);
-  const [showCreateForm, setShowCreateForm] = useState(false);
   const [showWizard, setShowWizard] = useState(false);
   const { toast } = useToast();
 
@@ -55,8 +51,6 @@ const CampaignManager = () => {
       
       if (brandData) {
         setCurrentBrand(brandData);
-        // Pre-populate stores from brand settings
-        setNewStores(brandData.approved_stores?.join(', ') || '');
       }
 
       // Fetch campaigns for current brand
@@ -86,67 +80,6 @@ const CampaignManager = () => {
   };
 
 
-  const createCampaign = async () => {
-    if (!newCampaignName.trim()) {
-      toast({
-        title: "Error",
-        description: "Campaign name is required",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!currentBrand) {
-      toast({
-        title: "Error",
-        description: "No brand found. Please set up your brand first.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      const storesArray = newStores.split(',').map(s => s.trim()).filter(s => s.length > 0);
-
-      const { data, error } = await supabase
-        .from('campaigns')
-        .insert([{
-          name: newCampaignName,
-          description: newCampaignDescription,
-          brand_id: currentBrand.id,
-          approved_stores: storesArray
-        }])
-        .select(`
-          *,
-          brands (
-            id,
-            name
-          )
-        `)
-        .single();
-
-      if (error) throw error;
-
-      setCampaigns([data, ...campaigns]);
-      setNewCampaignName('');
-      setNewCampaignDescription('');
-      // Reset stores to brand default
-      setNewStores(currentBrand.approved_stores?.join(', ') || '');
-      
-      setShowCreateForm(false);
-      toast({
-        title: "Success",
-        description: "Campaign created successfully",
-      });
-    } catch (error) {
-      console.error('Error creating campaign:', error);
-      toast({
-        title: "Error",
-        description: "Failed to create campaign",
-        variant: "destructive",
-      });
-    }
-  };
 
   const deleteCampaign = async (campaignId: string) => {
     try {
@@ -193,70 +126,14 @@ const CampaignManager = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Campaign Management</h1>
-        <div className="flex gap-2">
-          <Button 
-            onClick={() => setShowWizard(true)}
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Create Campaign
-          </Button>
-          <Button 
-            onClick={() => setShowCreateForm(!showCreateForm)}
-            variant="outline"
-          >
-            Quick Create
-          </Button>
-        </div>
+        <Button 
+          onClick={() => setShowWizard(true)}
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Create Campaign
+        </Button>
       </div>
 
-      {/* Create Campaign Form - Conditionally Rendered */}
-      {showCreateForm && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Create New Campaign</CardTitle>
-            <CardDescription>
-              Create a new campaign for a specific product line
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="campaignName">Campaign Name</Label>
-              <Input
-                id="campaignName"
-                value={newCampaignName}
-                onChange={(e) => setNewCampaignName(e.target.value)}
-                placeholder="Enter campaign name"
-              />
-            </div>
-            <div>
-              <Label htmlFor="campaignDescription">Description (Optional)</Label>
-              <Textarea
-                id="campaignDescription"
-                value={newCampaignDescription}
-                onChange={(e) => setNewCampaignDescription(e.target.value)}
-                placeholder="Enter campaign description"
-              />
-            </div>
-            <div>
-              <Label htmlFor="approvedStores">Approved Stores</Label>
-              <Textarea
-                id="approvedStores"
-                value={newStores}
-                onChange={(e) => setNewStores(e.target.value)}
-                placeholder="Enter approved store names, separated by commas (e.g., Store A, Store B, Store C)"
-                rows={3}
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                These stores are pre-populated from your brand settings. You can customize them for this specific campaign.
-              </p>
-            </div>
-            <Button onClick={createCampaign}>
-              <Plus className="w-4 h-4 mr-2" />
-              Create Campaign
-            </Button>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Campaigns List */}
       <div className="grid gap-4">
