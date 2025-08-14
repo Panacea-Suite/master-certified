@@ -32,7 +32,6 @@ const CampaignManager = () => {
   const [newCampaignName, setNewCampaignName] = useState('');
   const [newCampaignDescription, setNewCampaignDescription] = useState('');
   const [newStores, setNewStores] = useState('');
-  const [selectedBrandId, setSelectedBrandId] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const { toast } = useToast();
@@ -88,10 +87,10 @@ const CampaignManager = () => {
       return;
     }
 
-    if (!selectedBrandId) {
+    if (brands.length === 0) {
       toast({
         title: "Error",
-        description: "Please select a brand",
+        description: "No brands available. Create a brand first.",
         variant: "destructive",
       });
       return;
@@ -105,7 +104,7 @@ const CampaignManager = () => {
         .insert([{
           name: newCampaignName,
           description: newCampaignDescription,
-          brand_id: selectedBrandId,
+          brand_id: brands[0].id,
           approved_stores: storesArray
         }])
         .select(`
@@ -123,7 +122,7 @@ const CampaignManager = () => {
       setNewCampaignName('');
       setNewCampaignDescription('');
       setNewStores('');
-      setSelectedBrandId('');
+      
       setShowCreateForm(false);
       toast({
         title: "Success",
@@ -190,31 +189,14 @@ const CampaignManager = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="campaignName">Campaign Name</Label>
-                <Input
-                  id="campaignName"
-                  value={newCampaignName}
-                  onChange={(e) => setNewCampaignName(e.target.value)}
-                  placeholder="Enter campaign name"
-                />
-              </div>
-              <div>
-                <Label htmlFor="brandSelect">Brand</Label>
-                <Select value={selectedBrandId} onValueChange={setSelectedBrandId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a brand" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {brands.map((brand) => (
-                      <SelectItem key={brand.id} value={brand.id}>
-                        {brand.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+            <div>
+              <Label htmlFor="campaignName">Campaign Name</Label>
+              <Input
+                id="campaignName"
+                value={newCampaignName}
+                onChange={(e) => setNewCampaignName(e.target.value)}
+                placeholder="Enter campaign name"
+              />
             </div>
             <div>
               <Label htmlFor="campaignDescription">Description (Optional)</Label>
