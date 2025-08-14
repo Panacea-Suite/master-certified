@@ -46,8 +46,8 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
     setError(null);
 
     const canvas = new FabricCanvas(canvasRef.current, {
-      width: canvasSize.width,
-      height: canvasSize.height,
+      width: 300,
+      height: 300,
       backgroundColor: "#ffffff",
     });
 
@@ -72,8 +72,8 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
         console.log("Image loaded successfully:", img.width, "x", img.height);
 
         // Scale image to fit canvas initially
-        const canvasWidth = canvas.width || canvasSize.width;
-        const canvasHeight = canvas.height || canvasSize.height;
+        const canvasWidth = 300;
+        const canvasHeight = 300;
         const imageAspect = (img.width || 1) / (img.height || 1);
         const canvasAspect = canvasWidth / canvasHeight;
 
@@ -118,28 +118,28 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
     return () => {
       canvas.dispose();
     };
-  }, [file, canvasSize]);
+  }, [file]); // Removed canvasSize dependency to prevent recreation
 
   const handleSizeChange = (newWidth: number, newHeight: number) => {
     if (!originalImage || !fabricCanvas) return;
     
+    // Update state
     setCanvasSize({ width: newWidth, height: newHeight });
     setOutputWidth(newWidth);
     setOutputHeight(newHeight);
     
+    // Update canvas dimensions without recreating
     fabricCanvas.setDimensions({ width: newWidth, height: newHeight });
     
     // Scale image to fit new canvas size
-    const canvasWidth = newWidth;
-    const canvasHeight = newHeight;
     const imageAspect = (originalImage.width || 1) / (originalImage.height || 1);
-    const canvasAspect = canvasWidth / canvasHeight;
+    const canvasAspect = newWidth / newHeight;
 
     let scaleFactor;
     if (imageAspect > canvasAspect) {
-      scaleFactor = (canvasWidth * 0.8) / (originalImage.width || 1);
+      scaleFactor = (newWidth * 0.8) / (originalImage.width || 1);
     } else {
-      scaleFactor = (canvasHeight * 0.8) / (originalImage.height || 1);
+      scaleFactor = (newHeight * 0.8) / (originalImage.height || 1);
     }
 
     originalImage.set({
@@ -152,24 +152,26 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
   };
 
   const handleWidthChange = (value: string) => {
-    const newWidth = parseInt(value) || 32;
-    if (newWidth < 32 || newWidth > 2048) return;
+    const newWidth = Math.max(32, Math.min(2048, parseInt(value) || 32));
+    if (newWidth === outputWidth) return;
     
     let newHeight = outputHeight;
-    if (maintainAspectRatio) {
+    if (maintainAspectRatio && originalAspectRatio) {
       newHeight = Math.round(newWidth / originalAspectRatio);
+      newHeight = Math.max(32, Math.min(2048, newHeight));
     }
     
     handleSizeChange(newWidth, newHeight);
   };
 
   const handleHeightChange = (value: string) => {
-    const newHeight = parseInt(value) || 32;
-    if (newHeight < 32 || newHeight > 2048) return;
+    const newHeight = Math.max(32, Math.min(2048, parseInt(value) || 32));
+    if (newHeight === outputHeight) return;
     
     let newWidth = outputWidth;
-    if (maintainAspectRatio) {
+    if (maintainAspectRatio && originalAspectRatio) {
       newWidth = Math.round(newHeight * originalAspectRatio);
+      newWidth = Math.max(32, Math.min(2048, newWidth));
     }
     
     handleSizeChange(newWidth, newHeight);
