@@ -23,6 +23,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ComponentPalette } from './flow-editor/ComponentPalette';
 import { FlowPreview } from './flow-editor/FlowPreview';
 import { PageSection } from './flow-editor/PageSection';
@@ -256,7 +257,8 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
     showHeader: templateToEdit?.flow_config?.globalHeader?.showHeader ?? true,
     brandName: templateToEdit?.flow_config?.globalHeader?.brandName || brandData?.name || 'Brand',
     logoUrl: templateToEdit?.flow_config?.globalHeader?.logoUrl || brandData?.logo_url || '',
-    backgroundColor: templateToEdit?.flow_config?.globalHeader?.backgroundColor || '#ffffff'
+    backgroundColor: templateToEdit?.flow_config?.globalHeader?.backgroundColor || '#ffffff',
+    logoSize: templateToEdit?.flow_config?.globalHeader?.logoSize || 'medium'
   });
   const [selectedSection, setSelectedSection] = useState<SectionData | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -641,6 +643,23 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                           onChange={(e) => setGlobalHeader(prev => ({ ...prev, logoUrl: e.target.value }))}
                           placeholder="https://example.com/logo.png"
                         />
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="logoSize">Logo Size</Label>
+                        <Select
+                          value={globalHeader.logoSize}
+                          onValueChange={(value) => setGlobalHeader(prev => ({ ...prev, logoSize: value }))}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="small">Small</SelectItem>
+                            <SelectItem value="medium">Medium</SelectItem>
+                            <SelectItem value="large">Large</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
                       
                       <div>

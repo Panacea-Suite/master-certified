@@ -17,6 +17,7 @@ interface FlowPreviewProps {
     brandName: string;
     logoUrl: string;
     backgroundColor: string;
+    logoSize: string;
   };
 }
 
@@ -32,7 +33,8 @@ export const FlowPreview: React.FC<FlowPreviewProps> = ({
     showHeader: true,
     brandName: 'Brand',
     logoUrl: '',
-    backgroundColor: '#ffffff'
+    backgroundColor: '#ffffff',
+    logoSize: 'medium'
   }
 }) => {
   const currentPageIndex = pages.findIndex(p => p.id === currentPageId);

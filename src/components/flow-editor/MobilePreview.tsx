@@ -20,6 +20,7 @@ interface MobilePreviewProps {
     brandName: string;
     logoUrl: string;
     backgroundColor: string;
+    logoSize: string;
   };
 }
 
@@ -33,10 +34,22 @@ export const MobilePreview: React.FC<MobilePreviewProps> = ({
     showHeader: true,
     brandName: 'Brand',
     logoUrl: '',
-    backgroundColor: '#ffffff'
+    backgroundColor: '#ffffff',
+    logoSize: 'medium'
   }
 }) => {
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+
+  const getLogoSizeClasses = (size: string) => {
+    switch (size) {
+      case 'small':
+        return 'h-6 max-w-20';
+      case 'large':
+        return 'h-12 max-w-32';
+      default: // medium
+        return 'h-8 max-w-24';
+    }
+  };
 
   const handleDragOver = (e: React.DragEvent, index: number) => {
     e.preventDefault();
@@ -84,7 +97,7 @@ export const MobilePreview: React.FC<MobilePreviewProps> = ({
               <img 
                 src={globalHeader.logoUrl} 
                 alt={globalHeader.brandName}
-                className="h-8 max-w-24 object-contain"
+                className={`${getLogoSizeClasses(globalHeader.logoSize)} object-contain`}
               />
             ) : (
               <div className="flex items-center gap-2">
@@ -151,7 +164,7 @@ export const MobilePreview: React.FC<MobilePreviewProps> = ({
             <img 
               src={globalHeader.logoUrl} 
               alt={globalHeader.brandName}
-              className="h-8 max-w-24 object-contain"
+              className={`${getLogoSizeClasses(globalHeader.logoSize)} object-contain`}
             />
           ) : (
             <div className="flex items-center gap-2">
