@@ -14,13 +14,15 @@ interface MobilePreviewProps {
   selectedSectionId?: string;
   onSelectSection?: (section: SectionData) => void;
   onAddSection?: (sectionType: string, position?: number, parentId?: string, columnIndex?: number) => void;
+  backgroundColor?: string;
 }
 
 export const MobilePreview: React.FC<MobilePreviewProps> = ({ 
   sections, 
   selectedSectionId,
   onSelectSection,
-  onAddSection
+  onAddSection,
+  backgroundColor = '#ffffff'
 }) => {
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
@@ -57,6 +59,7 @@ export const MobilePreview: React.FC<MobilePreviewProps> = ({
       <div className="w-[375px] h-[667px] bg-white rounded-3xl shadow-xl border border-gray-200 flex items-center justify-center">
         <div 
           className="text-center space-y-4 p-8 w-full h-full flex flex-col items-center justify-center border-2 border-dashed border-muted-foreground/30 rounded-3xl"
+          style={{ backgroundColor }}
           onDragOver={(e) => {
             e.preventDefault();
             setDragOverIndex(0);
@@ -96,7 +99,7 @@ export const MobilePreview: React.FC<MobilePreviewProps> = ({
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto" style={{ backgroundColor }}>
         {/* Drop zone at top */}
         <div
           className={`h-2 transition-all ${dragOverIndex === 0 ? 'h-8 bg-primary/20 border-y-2 border-dashed border-primary' : ''}`}

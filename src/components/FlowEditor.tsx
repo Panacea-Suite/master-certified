@@ -64,6 +64,9 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
   const [sections, setSections] = useState<SectionData[]>(
     templateToEdit?.flow_config?.sections || []
   );
+  const [pageSettings, setPageSettings] = useState({
+    backgroundColor: templateToEdit?.flow_config?.theme?.backgroundColor || '#ffffff'
+  });
   const [selectedSection, setSelectedSection] = useState<SectionData | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -179,12 +182,12 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
     setIsSaving(true);
     
      try {
-      // Create page configuration
+     // Create page configuration
       let pageConfig = {
         sections: sections.sort((a, b) => a.order - b.order),
-        theme: templateToEdit?.flow_config?.theme || {
+        theme: {
           primaryColor: '#3b82f6',
-          backgroundColor: '#ffffff',
+          backgroundColor: pageSettings.backgroundColor,
           fontFamily: 'Inter'
         },
         settings: templateToEdit?.flow_config?.settings || {
@@ -295,6 +298,23 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
 
               <Separator />
               
+              {/* Page Settings */}
+              <div className="space-y-2">
+                <h4 className="font-medium text-sm text-muted-foreground">Page Settings</h4>
+                <div className="space-y-2">
+                  <Label htmlFor="backgroundColor">Background Color</Label>
+                  <Input
+                    id="backgroundColor"
+                    type="color"
+                    value={pageSettings.backgroundColor}
+                    onChange={(e) => setPageSettings(prev => ({ ...prev, backgroundColor: e.target.value }))}
+                    className="h-8"
+                  />
+                </div>
+              </div>
+
+              <Separator />
+              
               <ComponentPalette onAddComponent={handleAddSection} />
               
               <Separator />
@@ -365,6 +385,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                 selectedSectionId={selectedSection?.id}
                 onSelectSection={setSelectedSection}
                 onAddSection={handleAddSection}
+                backgroundColor={pageSettings.backgroundColor}
               />
             </div>
           </div>
