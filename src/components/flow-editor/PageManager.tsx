@@ -17,6 +17,8 @@ export interface PageData {
   name: string;
   sections: any[];
   settings: any;
+  isMandatory?: boolean;
+  order: number;
 }
 
 interface PageManagerProps {
@@ -29,16 +31,57 @@ interface PageManagerProps {
 }
 
 const pageTypes = [
-  { type: 'landing', icon: Home, title: 'Landing Page', description: 'Welcome page with branding' },
-  { type: 'store_selection', icon: MapPin, title: 'Store Selection', description: 'Choose store location' },
-  { type: 'account_creation', icon: UserPlus, title: 'Account Creation', description: 'User registration form' },
-  { type: 'authentication', icon: Shield, title: 'Authentication', description: 'User verification' },
-  { type: 'content_display', icon: FileText, title: 'Content Display', description: 'Show products/content' },
-  { type: 'thank_you', icon: CheckCircle, title: 'Thank You', description: 'Completion message' }
+  { type: 'landing', icon: Home, title: 'Landing Page', description: 'Welcome page with branding', isMandatory: false },
+  { type: 'store_selection', icon: MapPin, title: 'Store Selection', description: 'Choose store location', isMandatory: true },
+  { type: 'account_creation', icon: UserPlus, title: 'Login/Signup', description: 'User authentication', isMandatory: true },
+  { type: 'authentication', icon: Shield, title: 'Verification', description: 'User verification', isMandatory: true },
+  { type: 'content_display', icon: FileText, title: 'Content Display', description: 'Show products/content', isMandatory: false },
+  { type: 'thank_you', icon: CheckCircle, title: 'Thank You', description: 'Completion message', isMandatory: true }
 ] as const;
 
 const getPageTypeInfo = (type: PageData['type']) => {
   return pageTypes.find(pt => pt.type === type) || pageTypes[0];
+};
+
+const getMandatoryPages = (): PageData[] => {
+  return [
+    {
+      id: 'store-selection',
+      type: 'store_selection',
+      name: 'Store Selection',
+      sections: [],
+      settings: {},
+      isMandatory: true,
+      order: 1
+    },
+    {
+      id: 'login-signup',
+      type: 'account_creation', 
+      name: 'Login/Signup',
+      sections: [],
+      settings: {},
+      isMandatory: true,
+      order: 2
+    },
+    {
+      id: 'verification',
+      type: 'authentication',
+      name: 'Verification',
+      sections: [],
+      settings: {},
+      isMandatory: true,
+      order: 3
+    },
+    {
+      id: 'thank-you',
+      type: 'thank_you',
+      name: 'Thank You',
+      sections: [],
+      settings: {},
+      isMandatory: true,
+      order: 4
+    }
+  ];
 };
 
 export const PageManager: React.FC<PageManagerProps> = ({
@@ -48,41 +91,46 @@ export const PageManager: React.FC<PageManagerProps> = ({
   onAddPage,
   onDeletePage
 }) => {
+  const availablePageTypes = pageTypes.filter(pt => 
+    !pt.isMandatory && !pages.some(page => page.type === pt.type)
+  );
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h4 className="font-medium text-sm text-muted-foreground">Flow Pages</h4>
-        <div className="relative group">
-          <Button size="sm" variant="outline" className="h-7 w-7 p-0">
-            <Plus className="h-3 w-3" />
-          </Button>
-          
-          {/* Dropdown menu for page types */}
-          <div className="absolute top-8 right-0 w-48 bg-background border rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
-            <div className="p-1">
-              {pageTypes.map((pageType) => {
-                const Icon = pageType.icon;
-                return (
-                  <button
-                    key={pageType.type}
-                    onClick={() => onAddPage(pageType.type)}
-                    className="w-full flex items-center gap-2 p-2 text-sm hover:bg-muted rounded text-left"
-                  >
-                    <Icon className="h-4 w-4 text-primary" />
-                    <div>
-                      <div className="font-medium">{pageType.title}</div>
-                      <div className="text-xs text-muted-foreground">{pageType.description}</div>
-                    </div>
-                  </button>
-                );
-              })}
+        {availablePageTypes.length > 0 && (
+          <div className="relative group">
+            <Button size="sm" variant="outline" className="h-7 w-7 p-0">
+              <Plus className="h-3 w-3" />
+            </Button>
+            
+            {/* Dropdown menu for available page types */}
+            <div className="absolute top-8 right-0 w-48 bg-background border rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
+              <div className="p-1">
+                {availablePageTypes.map((pageType) => {
+                  const Icon = pageType.icon;
+                  return (
+                    <button
+                      key={pageType.type}
+                      onClick={() => onAddPage(pageType.type)}
+                      className="w-full flex items-center gap-2 p-2 text-sm hover:bg-muted rounded text-left"
+                    >
+                      <Icon className="h-4 w-4 text-primary" />
+                      <div>
+                        <div className="font-medium">{pageType.title}</div>
+                        <div className="text-xs text-muted-foreground">{pageType.description}</div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
       
       <div className="space-y-1">
-        {pages.map((page, index) => {
+        {pages.sort((a, b) => (a.order || 0) - (b.order || 0)).map((page, index) => {
           const pageTypeInfo = getPageTypeInfo(page.type);
           const Icon = pageTypeInfo.icon;
           
@@ -91,7 +139,7 @@ export const PageManager: React.FC<PageManagerProps> = ({
               key={page.id}
               className={`cursor-pointer transition-colors ${
                 page.id === currentPageId ? 'ring-2 ring-primary bg-primary/5' : 'hover:bg-muted/50'
-              }`}
+              } ${page.isMandatory ? 'border-orange-200 bg-orange-50/50' : ''}`}
               onClick={() => onSelectPage(page.id)}
             >
               <CardContent className="p-3">
@@ -99,12 +147,19 @@ export const PageManager: React.FC<PageManagerProps> = ({
                   <GripVertical className="h-4 w-4 text-muted-foreground cursor-grab" />
                   <Icon className="h-4 w-4 text-primary flex-shrink-0" />
                   <div className="flex-1 min-w-0">
-                    <div className="font-medium text-sm">{page.name}</div>
+                    <div className="flex items-center gap-2">
+                      <div className="font-medium text-sm">{page.name}</div>
+                      {page.isMandatory && (
+                        <span className="text-xs bg-orange-100 text-orange-800 px-1.5 py-0.5 rounded">
+                          Required
+                        </span>
+                      )}
+                    </div>
                     <div className="text-xs text-muted-foreground">
                       {page.sections.length} sections
                     </div>
                   </div>
-                  {pages.length > 1 && (
+                  {!page.isMandatory && (
                     <Button
                       variant="ghost"
                       size="sm"
@@ -126,10 +181,14 @@ export const PageManager: React.FC<PageManagerProps> = ({
       
       {pages.length === 0 && (
         <div className="text-center py-4 text-muted-foreground">
-          <p className="text-sm">No pages in flow yet</p>
-          <p className="text-xs">Add a page to get started</p>
+          <p className="text-sm">Flow will include mandatory pages</p>
+          <p className="text-xs">Store Selection → Login → Verification → Thank You</p>
         </div>
       )}
+      
+      <div className="text-xs text-muted-foreground p-2 bg-orange-50 border border-orange-200 rounded">
+        💡 Required pages (Store Selection, Login, Verification, Thank You) are automatically included and cannot be removed
+      </div>
     </div>
   );
 };

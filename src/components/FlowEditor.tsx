@@ -63,29 +63,58 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
 }) => {
   const [flowName, setFlowName] = useState(templateToEdit?.name || 'Untitled Flow');
   
-  // Initialize pages from template or create default landing page
+  // Initialize pages from template or create mandatory pages
   const initializePages = (): PageData[] => {
     if (templateToEdit?.flow_config?.pages) {
       return templateToEdit.flow_config.pages;
     }
+    
+    // Create mandatory pages for new flows
+    const mandatoryPages: PageData[] = [
+      {
+        id: 'store-selection',
+        type: 'store_selection',
+        name: 'Store Selection',
+        sections: [],
+        settings: {},
+        isMandatory: true,
+        order: 1
+      },
+      {
+        id: 'login-signup',
+        type: 'account_creation', 
+        name: 'Login/Signup',
+        sections: [],
+        settings: {},
+        isMandatory: true,
+        order: 2
+      },
+      {
+        id: 'verification',
+        type: 'authentication',
+        name: 'Verification',
+        sections: [],
+        settings: {},
+        isMandatory: true,
+        order: 3
+      },
+      {
+        id: 'thank-you',
+        type: 'thank_you',
+        name: 'Thank You',
+        sections: [],
+        settings: {},
+        isMandatory: true,
+        order: 4
+      }
+    ];
+
     // Migrate legacy single-page format to multi-page
     if (templateToEdit?.flow_config?.sections) {
-      return [{
-        id: 'landing-page',
-        type: 'landing',
-        name: 'Landing Page',
-        sections: templateToEdit.flow_config.sections,
-        settings: {}
-      }];
+      mandatoryPages[0].sections = templateToEdit.flow_config.sections;
     }
-    // Default empty landing page
-    return [{
-      id: 'landing-page',
-      type: 'landing',
-      name: 'Landing Page',
-      sections: [],
-      settings: {}
-    }];
+    
+    return mandatoryPages;
   };
 
   const [pages, setPages] = useState<PageData[]>(initializePages());
@@ -148,28 +177,41 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
     const pageTypeNames = {
       landing: 'Landing Page',
       store_selection: 'Store Selection',
-      account_creation: 'Account Creation', 
-      authentication: 'Authentication',
+      account_creation: 'Login/Signup', 
+      authentication: 'Verification',
       content_display: 'Content Display',
       thank_you: 'Thank You'
     };
+
+    // Calculate the order for the new page (insert before thank you page)
+    const thankYouPage = pages.find(p => p.type === 'thank_you');
+    const insertOrder = thankYouPage ? thankYouPage.order : pages.length + 1;
 
     const newPage: PageData = {
       id: `${pageType}-${Date.now()}`,
       type: pageType,
       name: pageTypeNames[pageType],
       sections: [],
-      settings: {}
+      settings: {},
+      isMandatory: false,
+      order: insertOrder
     };
 
-    setPages(prev => [...prev, newPage]);
+    // Update orders of pages that come after the insertion point
+    const updatedPages = pages.map(page => 
+      page.order >= insertOrder ? { ...page, order: page.order + 1 } : page
+    );
+
+    setPages([...updatedPages, newPage]);
     setCurrentPageId(newPage.id);
     toast.success(`${pageTypeNames[pageType]} added to flow`);
   };
 
   const handleDeletePage = (pageId: string) => {
-    if (pages.length <= 1) {
-      toast.error('Cannot delete the last page');
+    const pageToDelete = pages.find(p => p.id === pageId);
+    
+    if (pageToDelete?.isMandatory) {
+      toast.error('Cannot delete mandatory pages');
       return;
     }
     
