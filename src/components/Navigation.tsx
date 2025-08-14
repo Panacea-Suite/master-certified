@@ -13,6 +13,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }
   const allNavItems = [
     { id: 'dashboard', label: 'Dashboard', icon: BarChart3, roles: ['master_admin', 'brand_admin', 'customer'] },
     { id: 'brands', label: 'Brands', icon: Settings, roles: ['master_admin'] },
+    { id: 'brand-settings', label: 'Brand Settings', icon: Settings, roles: ['brand_admin'] },
     { id: 'campaigns', label: 'Campaigns', icon: QrCode, roles: ['master_admin', 'brand_admin'] },
     { id: 'flows', label: 'Flows', icon: Settings, roles: ['brand_admin'] }
   ];
