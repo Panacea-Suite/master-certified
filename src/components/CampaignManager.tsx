@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Plus, Edit, Trash2, Eye, Store } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import CampaignWizard from './CampaignWizard';
 
 interface Brand {
   id: string;
@@ -35,6 +36,7 @@ const CampaignManager = () => {
   const [newStores, setNewStores] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showWizard, setShowWizard] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -174,17 +176,37 @@ const CampaignManager = () => {
     return <div className="text-center py-8">Loading campaigns...</div>;
   }
 
+  if (showWizard) {
+    return (
+      <CampaignWizard
+        currentBrand={currentBrand}
+        onComplete={() => {
+          setShowWizard(false);
+          fetchData();
+        }}
+        onCancel={() => setShowWizard(false)}
+      />
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Campaign Management</h1>
-        <Button 
-          onClick={() => setShowCreateForm(!showCreateForm)}
-          variant={showCreateForm ? "outline" : "default"}
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          {showCreateForm ? 'Cancel' : 'Create New Campaign'}
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            onClick={() => setShowWizard(true)}
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Create Campaign
+          </Button>
+          <Button 
+            onClick={() => setShowCreateForm(!showCreateForm)}
+            variant="outline"
+          >
+            Quick Create
+          </Button>
+        </div>
       </div>
 
       {/* Create Campaign Form - Conditionally Rendered */}
