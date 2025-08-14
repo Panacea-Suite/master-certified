@@ -15,6 +15,12 @@ interface MobilePreviewProps {
   onSelectSection?: (section: SectionData) => void;
   onAddSection?: (sectionType: string, position?: number, parentId?: string, columnIndex?: number) => void;
   backgroundColor?: string;
+  globalHeader?: {
+    showHeader: boolean;
+    brandName: string;
+    logoUrl: string;
+    backgroundColor: string;
+  };
 }
 
 export const MobilePreview: React.FC<MobilePreviewProps> = ({ 
@@ -22,7 +28,13 @@ export const MobilePreview: React.FC<MobilePreviewProps> = ({
   selectedSectionId,
   onSelectSection,
   onAddSection,
-  backgroundColor = '#ffffff'
+  backgroundColor = '#ffffff',
+  globalHeader = {
+    showHeader: true,
+    brandName: 'Brand',
+    logoUrl: '',
+    backgroundColor: '#ffffff'
+  }
 }) => {
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
@@ -93,10 +105,30 @@ export const MobilePreview: React.FC<MobilePreviewProps> = ({
         <div className="w-20 h-1 bg-white rounded-full"></div>
       </div>
 
-      {/* Header */}
-      <div className="p-4 border-b bg-background">
-        <h3 className="font-medium text-center">Page Preview</h3>
-      </div>
+      {/* Global Header with Brand Logo */}
+      {globalHeader.showHeader && (
+        <div 
+          className="p-4 border-b flex items-center justify-center"
+          style={{ backgroundColor: globalHeader.backgroundColor }}
+        >
+          {globalHeader.logoUrl ? (
+            <img 
+              src={globalHeader.logoUrl} 
+              alt={globalHeader.brandName}
+              className="h-8 max-w-24 object-contain"
+            />
+          ) : (
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
+                <span className="text-primary font-bold text-sm">
+                  {globalHeader.brandName.charAt(0).toUpperCase()}
+                </span>
+              </div>
+              <span className="font-medium text-sm">{globalHeader.brandName}</span>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto" style={{ backgroundColor }}>

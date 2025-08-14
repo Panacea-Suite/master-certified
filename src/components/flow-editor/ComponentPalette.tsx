@@ -83,7 +83,7 @@ export const ComponentPalette: React.FC<ComponentPaletteProps> = ({ onAddCompone
       </div>
       
       <div className="text-xs text-muted-foreground p-2 bg-muted/50 rounded">
-        💡 Drag sections to the page preview to add them
+        💡 Drag sections to add them to the page
       </div>
     </div>
   );

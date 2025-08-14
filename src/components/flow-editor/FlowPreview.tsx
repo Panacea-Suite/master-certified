@@ -12,6 +12,12 @@ interface FlowPreviewProps {
   onSelectSection?: (section: any) => void;
   onAddSection?: (sectionType: string, position?: number, parentId?: string, columnIndex?: number) => void;
   backgroundColor?: string;
+  globalHeader?: {
+    showHeader: boolean;
+    brandName: string;
+    logoUrl: string;
+    backgroundColor: string;
+  };
 }
 
 export const FlowPreview: React.FC<FlowPreviewProps> = ({
@@ -21,7 +27,13 @@ export const FlowPreview: React.FC<FlowPreviewProps> = ({
   selectedSectionId,
   onSelectSection,
   onAddSection,
-  backgroundColor = '#ffffff'
+  backgroundColor = '#ffffff',
+  globalHeader = {
+    showHeader: true,
+    brandName: 'Brand',
+    logoUrl: '',
+    backgroundColor: '#ffffff'
+  }
 }) => {
   const currentPageIndex = pages.findIndex(p => p.id === currentPageId);
   const currentPage = pages[currentPageIndex];
@@ -105,6 +117,7 @@ export const FlowPreview: React.FC<FlowPreviewProps> = ({
           onSelectSection={onSelectSection}
           onAddSection={onAddSection}
           backgroundColor={backgroundColor}
+          globalHeader={globalHeader}
         />
       </div>
       

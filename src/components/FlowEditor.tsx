@@ -246,6 +246,12 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
   const [pageSettings, setPageSettings] = useState({
     backgroundColor: templateToEdit?.flow_config?.theme?.backgroundColor || '#ffffff'
   });
+  const [globalHeader, setGlobalHeader] = useState({
+    showHeader: templateToEdit?.flow_config?.globalHeader?.showHeader ?? true,
+    brandName: templateToEdit?.flow_config?.globalHeader?.brandName || 'Brand',
+    logoUrl: templateToEdit?.flow_config?.globalHeader?.logoUrl || '',
+    backgroundColor: templateToEdit?.flow_config?.globalHeader?.backgroundColor || '#ffffff'
+  });
   const [selectedSection, setSelectedSection] = useState<SectionData | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -453,6 +459,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
           ...page,
           sections: page.sections.sort((a, b) => a.order - b.order)
         })),
+        globalHeader,
         theme: {
           primaryColor: '#3b82f6',
           backgroundColor: pageSettings.backgroundColor,
@@ -592,6 +599,61 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
 
               <Separator />
               
+              {/* Global Header Settings */}
+              <div className="space-y-2">
+                <h4 className="font-medium text-sm text-muted-foreground">Global Header</h4>
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="showHeader"
+                      checked={globalHeader.showHeader}
+                      onChange={(e) => setGlobalHeader(prev => ({ ...prev, showHeader: e.target.checked }))}
+                      className="rounded"
+                    />
+                    <Label htmlFor="showHeader" className="text-sm">Show Header</Label>
+                  </div>
+                  
+                  {globalHeader.showHeader && (
+                    <>
+                      <div>
+                        <Label htmlFor="brandName">Brand Name</Label>
+                        <Input
+                          id="brandName"
+                          value={globalHeader.brandName}
+                          onChange={(e) => setGlobalHeader(prev => ({ ...prev, brandName: e.target.value }))}
+                          placeholder="Brand"
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="logoUrl">Logo URL (Optional)</Label>
+                        <Input
+                          id="logoUrl"
+                          type="url"
+                          value={globalHeader.logoUrl}
+                          onChange={(e) => setGlobalHeader(prev => ({ ...prev, logoUrl: e.target.value }))}
+                          placeholder="https://example.com/logo.png"
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="headerBg">Header Background</Label>
+                        <Input
+                          id="headerBg"
+                          type="color"
+                          value={globalHeader.backgroundColor}
+                          onChange={(e) => setGlobalHeader(prev => ({ ...prev, backgroundColor: e.target.value }))}
+                          className="h-8"
+                        />
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+              
+              <Separator />
+              
               {/* Page Settings */}
               <div className="space-y-2">
                 <h4 className="font-medium text-sm text-muted-foreground">Page Settings</h4>
@@ -685,6 +747,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
               onSelectSection={setSelectedSection}
               onAddSection={handleAddSection}
               backgroundColor={pageSettings.backgroundColor}
+              globalHeader={globalHeader}
             />
           </div>
 
