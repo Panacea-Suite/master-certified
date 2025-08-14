@@ -397,51 +397,90 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
     console.log("Starting image save process...");
     console.log("Canvas dimensions:", fabricCanvas.getWidth(), "x", fabricCanvas.getHeight());
     console.log("Output dimensions:", outputWidth, "x", outputHeight);
+    console.log("Has transparent background:", hasTransparentBackground);
 
     try {
       // Ensure canvas is properly rendered before export
       fabricCanvas.renderAll();
       
-      // Create canvas at desired output size
-      const outputCanvas = document.createElement('canvas');
-      outputCanvas.width = outputWidth;
-      outputCanvas.height = outputHeight;
-      const outputCtx = outputCanvas.getContext('2d');
+      // For transparent images, use the fabric canvas's built-in export with transparency
+      if (hasTransparentBackground) {
+        console.log("Exporting with transparency preserved");
+        
+        // Create a temporary canvas at the desired output size with transparency
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = outputWidth;
+        tempCanvas.height = outputHeight;
+        const tempCtx = tempCanvas.getContext('2d');
+        
+        if (!tempCtx) {
+          throw new Error('Could not get canvas context for output');
+        }
+        
+        // Don't fill background - keep it transparent
+        // Get the fabric canvas content with transparency
+        const fabricCanvasElement = fabricCanvas.toCanvasElement();
+        
+        // Draw the fabric canvas onto the output canvas, scaling to fit
+        tempCtx.drawImage(
+          fabricCanvasElement,
+          0, 0, fabricCanvasElement.width, fabricCanvasElement.height,
+          0, 0, outputWidth, outputHeight
+        );
+        
+        // Convert to blob with transparency
+        tempCanvas.toBlob((blob) => {
+          if (blob) {
+            console.log("Transparent blob created successfully:", blob.size, "bytes");
+            const editedFile = new File([blob], file.name, { type: "image/png" });
+            onSave(editedFile);
+            toast.success("Image saved with transparency!");
+          } else {
+            console.error("Failed to create transparent blob from canvas");
+            toast.error("Failed to save image. Please try again.");
+          }
+        }, "image/png", 1.0);
+        
+      } else {
+        // For non-transparent images, add white background
+        console.log("Exporting with white background");
+        
+        const outputCanvas = document.createElement('canvas');
+        outputCanvas.width = outputWidth;
+        outputCanvas.height = outputHeight;
+        const outputCtx = outputCanvas.getContext('2d');
 
-      if (!outputCtx) {
-        throw new Error('Could not get canvas context for output');
-      }
+        if (!outputCtx) {
+          throw new Error('Could not get canvas context for output');
+        }
 
-      // Set background color if not transparent
-      if (!hasTransparentBackground) {
+        // Set white background for non-transparent images
         outputCtx.fillStyle = '#ffffff';
         outputCtx.fillRect(0, 0, outputWidth, outputHeight);
+
+        // Get the fabric canvas as a regular canvas element
+        const fabricCanvasElement = fabricCanvas.toCanvasElement();
+        
+        // Scale and draw the fabric canvas onto the output canvas
+        outputCtx.drawImage(
+          fabricCanvasElement,
+          0, 0, fabricCanvasElement.width, fabricCanvasElement.height,
+          0, 0, outputWidth, outputHeight
+        );
+
+        // Convert to blob
+        outputCanvas.toBlob((blob) => {
+          if (blob) {
+            console.log("Blob created successfully:", blob.size, "bytes");
+            const editedFile = new File([blob], file.name, { type: "image/png" });
+            onSave(editedFile);
+            toast.success("Image saved successfully!");
+          } else {
+            console.error("Failed to create blob from canvas");
+            toast.error("Failed to save image. Please try again.");
+          }
+        }, "image/png", 1.0);
       }
-
-      // Get the fabric canvas as a regular canvas element
-      const fabricCanvasElement = fabricCanvas.toCanvasElement();
-      
-      // Scale and draw the fabric canvas onto the output canvas
-      outputCtx.drawImage(
-        fabricCanvasElement,
-        0, 0, fabricCanvasElement.width, fabricCanvasElement.height,
-        0, 0, outputWidth, outputHeight
-      );
-
-      console.log("Canvas export completed");
-
-      // Convert to blob with error handling
-      outputCanvas.toBlob((blob) => {
-        if (blob) {
-          console.log("Blob created successfully:", blob.size, "bytes");
-          const editedFile = new File([blob], file.name, { type: "image/png" });
-          onSave(editedFile);
-          toast.success("Image saved successfully!");
-        } else {
-          console.error("Failed to create blob from canvas");
-          toast.error("Failed to save image. Please try again.");
-        }
-      }, "image/png", 1.0);
 
     } catch (error) {
       console.error("Error during save process:", error);
