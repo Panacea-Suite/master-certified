@@ -29,10 +29,9 @@ interface Campaign {
 
 const CampaignManager = () => {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-  const [brands, setBrands] = useState<Brand[]>([]);
+  const [currentBrand, setCurrentBrand] = useState<Brand | null>(null);
   const [newCampaignName, setNewCampaignName] = useState('');
   const [newCampaignDescription, setNewCampaignDescription] = useState('');
-  const [selectedBrandId, setSelectedBrandId] = useState('');
   const [newStores, setNewStores] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -44,16 +43,21 @@ const CampaignManager = () => {
 
   const fetchData = async () => {
     try {
-      // Fetch brands
-      const { data: brandsData, error: brandsError } = await supabase
+      // Fetch current user's brand
+      const { data: brandData, error: brandError } = await supabase
         .from('brands')
         .select('id, name, approved_stores')
-        .order('name');
+        .maybeSingle();
 
-      if (brandsError) throw brandsError;
-      setBrands(brandsData || []);
+      if (brandError) throw brandError;
+      
+      if (brandData) {
+        setCurrentBrand(brandData);
+        // Pre-populate stores from brand settings
+        setNewStores(brandData.approved_stores?.join(', ') || '');
+      }
 
-      // Fetch campaigns
+      // Fetch campaigns for current brand
       const { data: campaignsData, error: campaignsError } = await supabase
         .from('campaigns')
         .select(`
@@ -79,15 +83,6 @@ const CampaignManager = () => {
     }
   };
 
-  const handleBrandSelection = (brandId: string) => {
-    setSelectedBrandId(brandId);
-    const selectedBrand = brands.find(brand => brand.id === brandId);
-    if (selectedBrand && selectedBrand.approved_stores) {
-      setNewStores(selectedBrand.approved_stores.join(', '));
-    } else {
-      setNewStores('');
-    }
-  };
 
   const createCampaign = async () => {
     if (!newCampaignName.trim()) {
@@ -99,10 +94,10 @@ const CampaignManager = () => {
       return;
     }
 
-    if (!selectedBrandId) {
+    if (!currentBrand) {
       toast({
         title: "Error",
-        description: "Please select a brand for this campaign",
+        description: "No brand found. Please set up your brand first.",
         variant: "destructive",
       });
       return;
@@ -116,7 +111,7 @@ const CampaignManager = () => {
         .insert([{
           name: newCampaignName,
           description: newCampaignDescription,
-          brand_id: selectedBrandId,
+          brand_id: currentBrand.id,
           approved_stores: storesArray
         }])
         .select(`
@@ -133,8 +128,8 @@ const CampaignManager = () => {
       setCampaigns([data, ...campaigns]);
       setNewCampaignName('');
       setNewCampaignDescription('');
-      setSelectedBrandId('');
-      setNewStores('');
+      // Reset stores to brand default
+      setNewStores(currentBrand.approved_stores?.join(', ') || '');
       
       setShowCreateForm(false);
       toast({
@@ -220,26 +215,17 @@ const CampaignManager = () => {
                 placeholder="Enter campaign description"
               />
             </div>
-            <div>
-              <Label htmlFor="brandSelect">Select Brand</Label>
-              <Select value={selectedBrandId} onValueChange={handleBrandSelection}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Choose a brand for this campaign" />
-                </SelectTrigger>
-                <SelectContent>
-                  {brands.map((brand) => (
-                    <SelectItem key={brand.id} value={brand.id}>
-                      {brand.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {selectedBrandId && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  Approved stores will be pre-populated from the selected brand
-                </p>
-              )}
-            </div>
+            {currentBrand && (
+              <div>
+                <Label>Brand</Label>
+                <div className="p-3 bg-muted rounded-md">
+                  <p className="font-medium">{currentBrand.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    This campaign will be created for your current brand
+                  </p>
+                </div>
+              </div>
+            )}
             <div>
               <Label htmlFor="approvedStores">Approved Stores</Label>
               <Textarea
@@ -250,7 +236,7 @@ const CampaignManager = () => {
                 rows={3}
               />
               <p className="text-xs text-muted-foreground mt-1">
-                These stores will be available for customers to select during verification
+                These stores are pre-populated from your brand settings. You can customize them for this specific campaign.
               </p>
             </div>
             <Button onClick={createCampaign}>
@@ -267,8 +253,8 @@ const CampaignManager = () => {
           <Card>
             <CardContent className="text-center py-8">
               <p className="text-muted-foreground">
-                {brands.length === 0 
-                  ? "Create a brand first before creating campaigns."
+                {!currentBrand 
+                  ? "Set up your brand first before creating campaigns."
                   : "No campaigns created yet. Create your first campaign to get started."
                 }
               </p>
