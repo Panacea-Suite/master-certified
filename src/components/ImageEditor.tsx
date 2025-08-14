@@ -116,7 +116,8 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
             
             if (hasAlpha) {
               setHasTransparentBackground(true);
-              canvas.backgroundColor = 'transparent';
+              // Set canvas background to null/undefined to show CSS checkerboard
+              canvas.backgroundColor = undefined;
               canvas.renderAll();
               toast.success("PNG with transparency loaded!");
             }
@@ -344,8 +345,8 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
       // Replace the current image with the processed one
       fabricCanvas.remove(originalImage);
       
-      // Set transparent background to show checkered pattern
-      fabricCanvas.backgroundColor = 'transparent';
+      // Set background to undefined to show CSS checkerboard pattern
+      fabricCanvas.backgroundColor = undefined;
       
       // Scale and position the new image
       const canvasWidth = canvasSize.width;
@@ -519,15 +520,12 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
             )}
             <canvas
               ref={canvasRef}
-              className={`border border-border rounded shadow-lg max-w-full max-h-full ${
-                hasTransparentBackground 
-                  ? 'bg-transparent' 
-                  : ''
-              }`}
+              className={`border border-border rounded shadow-lg max-w-full max-h-full`}
               style={{
                 backgroundImage: hasTransparentBackground 
                   ? 'repeating-conic-gradient(#808080 0% 25%, transparent 0% 50%) 50% / 20px 20px'
-                  : undefined
+                  : undefined,
+                backgroundColor: hasTransparentBackground ? 'transparent' : '#ffffff'
               }}
             />
           </div>
