@@ -308,7 +308,7 @@ const FlowManager = () => {
             </div>
             <Button onClick={createNewTemplate} className="mb-0">
               <Plus className="w-4 h-4 mr-2" />
-              Create New Page
+              Create New Flow
             </Button>
             <Button onClick={openTemplateSelector} variant="outline" className="mb-0">
               Choose from Templates
