@@ -45,6 +45,11 @@ interface FlowEditorProps {
   onClose: () => void;
   onSave: (flowData: any) => void;
   templateToEdit?: FlowTemplate | null;
+  brandData?: {
+    id: string;
+    name: string;
+    logo_url?: string;
+  } | null;
 }
 
 interface SectionData {
@@ -59,7 +64,8 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
   isOpen,
   onClose,
   onSave,
-  templateToEdit
+  templateToEdit,
+  brandData
 }) => {
   const [flowName, setFlowName] = useState(templateToEdit?.name || 'Untitled Flow');
   
@@ -248,8 +254,8 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
   });
   const [globalHeader, setGlobalHeader] = useState({
     showHeader: templateToEdit?.flow_config?.globalHeader?.showHeader ?? true,
-    brandName: templateToEdit?.flow_config?.globalHeader?.brandName || 'Brand',
-    logoUrl: templateToEdit?.flow_config?.globalHeader?.logoUrl || '',
+    brandName: templateToEdit?.flow_config?.globalHeader?.brandName || brandData?.name || 'Brand',
+    logoUrl: templateToEdit?.flow_config?.globalHeader?.logoUrl || brandData?.logo_url || '',
     backgroundColor: templateToEdit?.flow_config?.globalHeader?.backgroundColor || '#ffffff'
   });
   const [selectedSection, setSelectedSection] = useState<SectionData | null>(null);

@@ -35,6 +35,7 @@ const FlowManager = () => {
   const [selectedFlow, setSelectedFlow] = useState<Flow | null>(null);
   const [previewMode, setPreviewMode] = useState<'editor' | 'customer' | null>(null);
   const [showTemplateSelector, setShowTemplateSelector] = useState(false);
+  const [brandData, setBrandData] = useState<{ id: string; name: string; logo_url?: string } | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -43,20 +44,30 @@ const FlowManager = () => {
 
   const fetchFlows = async () => {
     try {
-      const { data, error } = await supabase
-        .from('flows')
-        .select(`
-          *,
-          campaigns (
-            name
-          )
-        `)
-        .order('created_at', { ascending: false });
+      // Fetch flows and brand data in parallel
+      const [flowsResponse, brandResponse] = await Promise.all([
+        supabase
+          .from('flows')
+          .select(`
+            *,
+            campaigns (
+              name
+            )
+          `)
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('brands')
+          .select('id, name, logo_url')
+          .maybeSingle()
+      ]);
 
-      if (error) throw error;
-      setFlows(data || []);
+      if (flowsResponse.error) throw flowsResponse.error;
+      if (brandResponse.error) throw brandResponse.error;
+
+      setFlows(flowsResponse.data || []);
+      setBrandData(brandResponse.data);
     } catch (error) {
-      console.error('Error fetching flows:', error);
+      console.error('Error fetching data:', error);
       toast({
         title: "Error",
         description: "Failed to fetch flows",
@@ -458,6 +469,7 @@ const FlowManager = () => {
         <FlowEditor
           isOpen={true}
           onClose={closeModals}
+          brandData={brandData}
           onSave={async (pageData) => {
             console.log('FlowManager onSave called with:', pageData);
             try {
