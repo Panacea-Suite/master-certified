@@ -270,14 +270,6 @@ const CampaignWizard = ({ currentBrand, onComplete, onCancel }: CampaignWizardPr
                 Pre-populated from your brand settings. You can customize them for this campaign.
               </p>
             </div>
-            {currentBrand && (
-              <div className="p-4 bg-muted rounded-lg">
-                <Label className="text-sm font-medium">Brand</Label>
-                <p className="text-sm text-muted-foreground">
-                  This campaign will be created for: <strong>{currentBrand.name}</strong>
-                </p>
-              </div>
-            )}
           </CardContent>
         </Card>
       )}
