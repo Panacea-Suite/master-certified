@@ -326,6 +326,13 @@ export type Database = {
       }
     }
     Enums: {
+      page_type:
+        | "landing"
+        | "store_selection"
+        | "account_creation"
+        | "authentication"
+        | "content_display"
+        | "thank_you"
       user_role: "master_admin" | "brand_admin" | "customer"
     }
     CompositeTypes: {
@@ -454,6 +461,14 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      page_type: [
+        "landing",
+        "store_selection",
+        "account_creation",
+        "authentication",
+        "content_display",
+        "thank_you",
+      ],
       user_role: ["master_admin", "brand_admin", "customer"],
     },
   },
