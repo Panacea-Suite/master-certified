@@ -132,6 +132,39 @@ export type Database = {
           },
         ]
       }
+      design_templates: {
+        Row: {
+          category: string
+          config: Json
+          created_at: string
+          description: string | null
+          id: string
+          is_default: boolean | null
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          config?: Json
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_default?: boolean | null
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          config?: Json
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_default?: boolean | null
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       flow_content: {
         Row: {
           content: Json
@@ -182,6 +215,7 @@ export type Database = {
           campaign_id: string | null
           created_at: string
           created_by: string | null
+          design_template_id: string | null
           flow_config: Json | null
           id: string
           is_template: boolean | null
@@ -194,6 +228,7 @@ export type Database = {
           campaign_id?: string | null
           created_at?: string
           created_by?: string | null
+          design_template_id?: string | null
           flow_config?: Json | null
           id?: string
           is_template?: boolean | null
@@ -206,6 +241,7 @@ export type Database = {
           campaign_id?: string | null
           created_at?: string
           created_by?: string | null
+          design_template_id?: string | null
           flow_config?: Json | null
           id?: string
           is_template?: boolean | null
@@ -219,6 +255,13 @@ export type Database = {
             columns: ["campaign_id"]
             isOneToOne: false
             referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flows_design_template_id_fkey"
+            columns: ["design_template_id"]
+            isOneToOne: false
+            referencedRelation: "design_templates"
             referencedColumns: ["id"]
           },
         ]

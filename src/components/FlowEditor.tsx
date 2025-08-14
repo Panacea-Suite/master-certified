@@ -31,9 +31,11 @@ import { FlowPreview } from './flow-editor/FlowPreview';
 import { PageSection } from './flow-editor/PageSection';
 import { ComponentEditor } from './flow-editor/ComponentEditor';
 import { PageManager, PageData } from './flow-editor/PageManager';
-import { Smartphone, Save, ArrowLeft, Upload, ChevronDown, ChevronRight } from 'lucide-react';
+import { Smartphone, Save, ArrowLeft, Upload, ChevronDown, ChevronRight, Palette } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { DesignTemplateSelector } from './DesignTemplateSelector';
+import { TemplateStyleProvider } from './TemplateStyleProvider';
 
 interface FlowTemplate {
   id: string;
@@ -52,6 +54,7 @@ interface FlowEditorProps {
     id: string;
     name: string;
     logo_url?: string;
+    brand_colors?: any;
   } | null;
 }
 
@@ -268,6 +271,10 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
   const [selectedLogoFile, setSelectedLogoFile] = useState<File | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isEditingLogo, setIsEditingLogo] = useState(false);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(
+    templateToEdit?.flow_config?.design_template_id || null
+  );
+  const [showTemplateSelector, setShowTemplateSelector] = useState(false);
   
   // Collapsible sections state
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({
@@ -275,6 +282,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
     pages: false,
     globalHeader: false,
     pageSettings: false,
+    designTemplate: false,
     components: false,
     sections: false
   });
@@ -490,6 +498,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
           sections: page.sections.sort((a, b) => a.order - b.order)
         })),
         globalHeader,
+        design_template_id: selectedTemplateId,
         theme: {
           primaryColor: '#3b82f6',
           backgroundColor: pageSettings.backgroundColor,
@@ -584,12 +593,22 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
   const currentPage = getCurrentPage();
   const activeSection = currentPage?.sections.find(s => s.id === activeId);
 
+  const handleTemplateSelect = (templateId: string) => {
+    setSelectedTemplateId(templateId);
+    setShowTemplateSelector(false);
+    toast.success('Design template applied successfully');
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-7xl max-h-[95vh] overflow-hidden p-0">
-        <DialogHeader className="sr-only">
-          <DialogTitle>Flow Builder</DialogTitle>
-        </DialogHeader>
+    <TemplateStyleProvider 
+      templateId={selectedTemplateId} 
+      brandColors={brandData?.brand_colors}
+    >
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="max-w-7xl max-h-[95vh] overflow-hidden p-0">
+          <DialogHeader className="sr-only">
+            <DialogTitle>Flow Builder</DialogTitle>
+          </DialogHeader>
         <div className="flex h-[95vh]">
           {/* Left Panel - Pages & Components */}
           <div className="w-80 border-r bg-muted/30 p-4 overflow-y-auto">
@@ -821,6 +840,33 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
 
               <Separator />
               
+              {/* Design Template Section */}
+              <Collapsible open={!collapsedSections.designTemplate} onOpenChange={() => toggleSection('designTemplate')}>
+                <CollapsibleTrigger asChild>
+                  <Button variant="ghost" className="w-full justify-between text-sm font-medium p-2 h-auto hover:bg-accent">
+                    <span>Design Template</span>
+                    {collapsedSections.designTemplate ? (
+                      <ChevronRight className="h-4 w-4" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4" />
+                    )}
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="space-y-2 pt-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full gap-2"
+                    onClick={() => setShowTemplateSelector(true)}
+                  >
+                    <Palette className="h-4 w-4" />
+                    Choose Template
+                  </Button>
+                </CollapsibleContent>
+              </Collapsible>
+
+              <Separator />
+              
               {/* Drag Sections */}
               <Collapsible open={!collapsedSections.components} onOpenChange={() => toggleSection('components')}>
                 <CollapsibleTrigger asChild>
@@ -979,6 +1025,21 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
           </div>
         </div>
       </DialogContent>
+      
+      {/* Design Template Selector Dialog */}
+      <Dialog open={showTemplateSelector} onOpenChange={setShowTemplateSelector}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Choose Design Template</DialogTitle>
+          </DialogHeader>
+          <DesignTemplateSelector
+            selectedTemplateId={selectedTemplateId}
+            onTemplateSelect={handleTemplateSelect}
+            brandColors={brandData?.brand_colors}
+          />
+        </DialogContent>
+      </Dialog>
     </Dialog>
+    </TemplateStyleProvider>
   );
 };

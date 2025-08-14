@@ -178,4 +178,62 @@ All colors MUST be HSL.
   .neu-subtle {
     @apply rounded-lg bg-muted/50;
   }
+
+  /* Design Template Styles */
+  .template-header-gradient {
+    background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--secondary)));
+  }
+
+  .template-header-bold-gradient {
+    background: linear-gradient(45deg, hsl(var(--primary)), hsl(var(--accent)));
+  }
+
+  .template-header-dark-gradient {
+    background: linear-gradient(135deg, hsl(222.2 84% 4.9%), hsl(var(--primary)));
+  }
+
+  .template-section-subtle-gradient {
+    background: linear-gradient(180deg, hsl(var(--background)), hsl(var(--muted)) / 0.5);
+  }
+
+  .template-card-glass {
+    @apply bg-white/10 backdrop-blur-sm border border-white/20 shadow-lg;
+  }
+
+  .template-card-dark-glass {
+    @apply bg-gray-800/50 backdrop-blur-sm border border-primary/30 shadow-xl;
+  }
+
+  .template-card-contrast {
+    @apply bg-background text-foreground border border-primary shadow-md;
+  }
+
+  .template-card-minimal {
+    @apply bg-background border-l-4 border-l-primary;
+  }
+
+  .template-button-gradient {
+    background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)));
+  }
+
+  .template-button-gradient:hover {
+    background: linear-gradient(135deg, hsl(var(--primary)) / 0.9, hsl(var(--accent)) / 0.9);
+  }
+
+  .template-button-glow {
+    @apply bg-primary hover:bg-primary/90 text-primary-foreground;
+    box-shadow: 0 4px 14px 0 hsl(var(--primary) / 0.3);
+  }
+
+  .template-shadow-glow {
+    box-shadow: 0 0 40px hsl(var(--primary) / 0.4);
+  }
+
+  .template-shadow-strong {
+    @apply shadow-xl;
+  }
+
+  .template-shadow-elevated {
+    @apply shadow-lg;
+  }
 }
