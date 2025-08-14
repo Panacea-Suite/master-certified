@@ -7,7 +7,8 @@ import {
   Type,
   Columns,
   Columns2,
-  Columns3
+  Columns3,
+  ChevronDown
 } from 'lucide-react';
 
 interface ComponentPaletteProps {
@@ -26,6 +27,12 @@ const sectionTypes = [
     icon: Image,
     title: 'Image Section',
     description: 'Add images with captions'
+  },
+  {
+    type: 'store_selector',
+    icon: ChevronDown,
+    title: 'Store Selector',
+    description: 'Dropdown for store selection'
   },
   {
     type: 'divider',

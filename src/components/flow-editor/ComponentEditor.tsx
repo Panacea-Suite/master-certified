@@ -164,6 +164,83 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
     </div>
   );
 
+  const renderStoreSelector = () => (
+    <div className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="label">Label Text</Label>
+        <Input
+          id="label"
+          value={config.label || ''}
+          onChange={(e) => updateConfig('label', e.target.value)}
+          placeholder="Select your store location"
+        />
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="placeholder">Placeholder Text</Label>
+        <Input
+          id="placeholder"
+          value={config.placeholder || ''}
+          onChange={(e) => updateConfig('placeholder', e.target.value)}
+          placeholder="Choose a store..."
+        />
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="storeOptions">Store Options (one per line)</Label>
+        <Textarea
+          id="storeOptions"
+          value={config.storeOptions || ''}
+          onChange={(e) => updateConfig('storeOptions', e.target.value)}
+          placeholder="Downtown Location&#10;Mall Branch&#10;Airport Store"
+          rows={4}
+        />
+      </div>
+      
+      <div className="grid grid-cols-2 gap-2">
+        <div>
+          <Label className="text-xs">Background</Label>
+          <Input
+            type="color"
+            value={config.backgroundColor || '#ffffff'}
+            onChange={(e) => updateConfig('backgroundColor', e.target.value)}
+            className="h-8"
+          />
+        </div>
+        <div>
+          <Label className="text-xs">Text Color</Label>
+          <Input
+            type="color"
+            value={config.textColor || '#000000'}
+            onChange={(e) => updateConfig('textColor', e.target.value)}
+            className="h-8"
+          />
+        </div>
+      </div>
+      
+      <div className="grid grid-cols-2 gap-2">
+        <div>
+          <Label className="text-xs">Border</Label>
+          <Input
+            type="color"
+            value={config.borderColor || '#e5e7eb'}
+            onChange={(e) => updateConfig('borderColor', e.target.value)}
+            className="h-8"
+          />
+        </div>
+        <div>
+          <Label className="text-xs">Focus Border</Label>
+          <Input
+            type="color"
+            value={config.focusBorderColor || '#3b82f6'}
+            onChange={(e) => updateConfig('focusBorderColor', e.target.value)}
+            className="h-8"
+          />
+        </div>
+      </div>
+    </div>
+  );
+
   const renderColumnEditor = () => (
     <div className="space-y-4">
       <div className="space-y-2">
@@ -216,6 +293,8 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
         return renderTextEditor();
       case 'image':
         return renderImageEditor();
+      case 'store_selector':
+        return renderStoreSelector();
       case 'divider':
         return renderDividerEditor();
       case 'column':

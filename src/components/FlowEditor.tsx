@@ -108,6 +108,21 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
               backgroundColor: 'transparent',
               padding: 4
             }
+          },
+          {
+            id: 'store-selector',
+            type: 'store_selector',
+            order: 2,
+            config: {
+              label: 'Store Location',
+              placeholder: 'Choose a store...',
+              storeOptions: 'Downtown Location\nMall Branch\nAirport Store\nSuburban Center',
+              backgroundColor: '#ffffff',
+              textColor: '#000000',
+              borderColor: '#e5e7eb',
+              focusBorderColor: '#3b82f6',
+              padding: 4
+            }
           }
         ],
         settings: {},
@@ -500,6 +515,16 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
         alt: '',
         caption: '',
         height: '',
+        padding: 4
+      },
+      store_selector: {
+        label: 'Store Location',
+        placeholder: 'Choose a store...',
+        storeOptions: 'Downtown Location\nMall Branch\nAirport Store',
+        backgroundColor: '#ffffff',
+        textColor: '#000000',
+        borderColor: '#e5e7eb',
+        focusBorderColor: '#3b82f6',
         padding: 4
       },
       divider: {
