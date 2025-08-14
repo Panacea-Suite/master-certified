@@ -1,0 +1,1 @@
+DELETE FROM flows WHERE id IN ('5bb4fa12-ed48-4494-8e76-a5f172d0e98f', '37fdaa50-78b4-4e76-ac7c-bb922a1124d1', '920229a2-f5c6-40d3-bf63-d8822900249f') AND is_template = true;
