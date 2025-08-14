@@ -1,84 +1,73 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { 
-  Waves, 
-  ClipboardList, 
-  FileText, 
-  MessageSquare, 
-  CheckCircle2, 
-  Shield 
+  Image, 
+  Minus, 
+  Type
 } from 'lucide-react';
 
 interface ComponentPaletteProps {
   onAddComponent: (componentType: string) => void;
 }
 
-const componentTypes = [
+const sectionTypes = [
   {
-    type: 'welcome',
-    icon: Waves,
-    title: 'Welcome Screen',
-    description: 'Greet users and introduce your brand'
+    type: 'text',
+    icon: Type,
+    title: 'Text Section',
+    description: 'Add text content with formatting'
   },
   {
-    type: 'registration_form',
-    icon: ClipboardList,
-    title: 'Registration Form',
-    description: 'Collect user information'
+    type: 'image',
+    icon: Image,
+    title: 'Image Section',
+    description: 'Add images with captions'
   },
   {
-    type: 'content_display',
-    icon: FileText,
-    title: 'Content Display',
-    description: 'Show text, images, or videos'
-  },
-  {
-    type: 'survey_form',
-    icon: MessageSquare,
-    title: 'Survey Form',
-    description: 'Gather feedback and ratings'
-  },
-  {
-    type: 'verification',
-    icon: Shield,
-    title: 'Verification',
-    description: 'Email or SMS verification step'
-  },
-  {
-    type: 'completion',
-    icon: CheckCircle2,
-    title: 'Completion',
-    description: 'Thank you and final message'
+    type: 'divider',
+    icon: Minus,
+    title: 'Divider',
+    description: 'Add visual separators'
   }
 ];
 
 export const ComponentPalette: React.FC<ComponentPaletteProps> = ({ onAddComponent }) => {
   return (
-    <div className="space-y-2">
-      <h4 className="font-medium text-sm text-muted-foreground">Add Components</h4>
+    <div className="space-y-4">
+      <h4 className="font-medium text-sm text-muted-foreground">Drag Sections</h4>
       <div className="space-y-2">
-        {componentTypes.map((component) => {
-          const Icon = component.icon;
+        {sectionTypes.map((section) => {
+          const Icon = section.icon;
           return (
-            <Button
-              key={component.type}
-              variant="outline"
-              className="w-full justify-start h-auto p-3"
-              onClick={() => onAddComponent(component.type)}
+            <Card 
+              key={section.type}
+              className="cursor-grab active:cursor-grabbing hover:shadow-md transition-shadow"
+              draggable
+              onDragStart={(e) => {
+                e.dataTransfer.setData('text/plain', section.type);
+              }}
             >
-              <div className="flex items-center gap-3 w-full">
-                <Icon className="h-4 w-4 text-primary flex-shrink-0" />
-                <div className="text-left min-w-0">
-                  <div className="font-medium text-sm">{component.title}</div>
-                  <div className="text-xs text-muted-foreground truncate">
-                    {component.description}
+              <CardContent className="p-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <Icon className="h-4 w-4 text-primary" />
+                  </div>
+                  <div className="text-left min-w-0">
+                    <div className="font-medium text-sm">{section.title}</div>
+                    <div className="text-xs text-muted-foreground truncate">
+                      {section.description}
+                    </div>
                   </div>
                 </div>
-              </div>
-            </Button>
+              </CardContent>
+            </Card>
           );
         })}
+      </div>
+      
+      <div className="text-xs text-muted-foreground p-2 bg-muted/50 rounded">
+        💡 Drag sections to the page preview to add them
       </div>
     </div>
   );

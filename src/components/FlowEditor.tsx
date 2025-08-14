@@ -25,7 +25,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ComponentPalette } from './flow-editor/ComponentPalette';
 import { MobilePreview } from './flow-editor/MobilePreview';
-import { FlowComponent } from './flow-editor/FlowComponent';
+import { PageSection } from './flow-editor/PageSection';
 import { ComponentEditor } from './flow-editor/ComponentEditor';
 import { Smartphone, Save, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
@@ -46,7 +46,7 @@ interface FlowEditorProps {
   templateToEdit?: FlowTemplate | null;
 }
 
-interface FlowComponentData {
+interface SectionData {
   id: string;
   type: string;
   order: number;
@@ -59,11 +59,11 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
   onSave,
   templateToEdit
 }) => {
-  const [flowName, setFlowName] = useState(templateToEdit?.name || 'Untitled Flow');
-  const [components, setComponents] = useState<FlowComponentData[]>(
-    templateToEdit?.flow_config?.components || []
+  const [flowName, setFlowName] = useState(templateToEdit?.name || 'Untitled Page');
+  const [sections, setSections] = useState<SectionData[]>(
+    templateToEdit?.flow_config?.sections || []
   );
-  const [selectedComponent, setSelectedComponent] = useState<FlowComponentData | null>(null);
+  const [selectedSection, setSelectedSection] = useState<SectionData | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -82,7 +82,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
     const { active, over } = event;
 
     if (active.id !== over?.id) {
-      setComponents((items) => {
+      setSections((items) => {
         const oldIndex = items.findIndex((item) => item.id === active.id);
         const newIndex = items.findIndex((item) => item.id === over?.id);
         
@@ -99,38 +99,45 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
     setActiveId(null);
   }, []);
 
-  const handleAddComponent = (componentType: string) => {
-    const newComponent: FlowComponentData = {
-      id: `${componentType}-${Date.now()}`,
-      type: componentType,
-      order: components.length,
-      config: getDefaultConfig(componentType)
+  const handleAddSection = (sectionType: string, position?: number) => {
+    const newSection: SectionData = {
+      id: `${sectionType}-${Date.now()}`,
+      type: sectionType,
+      order: position !== undefined ? position : sections.length,
+      config: getDefaultConfig(sectionType)
     };
 
-    setComponents(prev => [...prev, newComponent]);
-    setSelectedComponent(newComponent);
-    toast.success('Component added to flow');
-  };
-
-  const handleDeleteComponent = (componentId: string) => {
-    setComponents(prev => prev.filter(c => c.id !== componentId));
-    if (selectedComponent?.id === componentId) {
-      setSelectedComponent(null);
+    if (position !== undefined) {
+      // Insert at specific position and reorder
+      const updatedSections = [...sections];
+      updatedSections.splice(position, 0, newSection);
+      setSections(updatedSections.map((section, index) => ({ ...section, order: index })));
+    } else {
+      setSections(prev => [...prev, newSection]);
     }
-    toast.success('Component removed');
+    setSelectedSection(newSection);
+    toast.success('Section added to page');
   };
 
-  const handleUpdateComponent = (componentId: string, newConfig: any) => {
-    setComponents(prev => 
-      prev.map(c => 
-        c.id === componentId 
-          ? { ...c, config: { ...c.config, ...newConfig } }
-          : c
+  const handleDeleteSection = (sectionId: string) => {
+    setSections(prev => prev.filter(s => s.id !== sectionId));
+    if (selectedSection?.id === sectionId) {
+      setSelectedSection(null);
+    }
+    toast.success('Section removed');
+  };
+
+  const handleUpdateSection = (sectionId: string, newConfig: any) => {
+    setSections(prev => 
+      prev.map(s => 
+        s.id === sectionId 
+          ? { ...s, config: { ...s.config, ...newConfig } }
+          : s
       )
     );
     
-    if (selectedComponent?.id === componentId) {
-      setSelectedComponent(prev => 
+    if (selectedSection?.id === sectionId) {
+      setSelectedSection(prev => 
         prev ? { ...prev, config: { ...prev.config, ...newConfig } } : null
       );
     }
@@ -138,15 +145,16 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
 
   const handleSave = async () => {
     if (!flowName.trim()) {
-      toast.error('Please enter a flow name');
+      toast.error('Please enter a page name');
       return;
     }
 
     setIsSaving(true);
     
-    try {
-      const flowConfig = {
-        components: components.sort((a, b) => a.order - b.order),
+     try {
+      // Create page configuration
+      let pageConfig = {
+        sections: sections.sort((a, b) => a.order - b.order),
         theme: templateToEdit?.flow_config?.theme || {
           primaryColor: '#3b82f6',
           backgroundColor: '#ffffff',
@@ -159,96 +167,70 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
         }
       };
 
-      // If editing an existing template, create a new flow based on it
+      // If editing an existing template, create a new page based on it
       if (templateToEdit) {
         const { data: { user } } = await supabase.auth.getUser();
         
-        const flowData = {
+        const pageData = {
           name: flowName,
-          flow_config: flowConfig,
+          flow_config: pageConfig,
           is_template: false,
           created_by: user?.id || null,
           template_category: null,
           campaign_id: null // Will be set when creating campaign
         };
 
-        onSave(flowData);
+        onSave(pageData);
       } else {
-        // Creating new flow from scratch
-        const flowData = {
+        // Creating new page from scratch
+        const pageData = {
           name: flowName,
-          flow_config: flowConfig,
+          flow_config: pageConfig,
           is_template: false,
           template_category: null,
           campaign_id: null
         };
 
-        onSave(flowData);
+        onSave(pageData);
       }
 
-      toast.success('Flow saved successfully');
+      toast.success('Page saved successfully');
     } catch (error) {
-      console.error('Error saving flow:', error);
-      toast.error('Failed to save flow');
+      console.error('Error saving page:', error);
+      toast.error('Failed to save page');
     } finally {
       setIsSaving(false);
     }
   };
 
-  const getDefaultConfig = (componentType: string) => {
+  const getDefaultConfig = (sectionType: string) => {
     const configs = {
-      welcome: {
-        title: 'Welcome!',
-        subtitle: 'Thanks for scanning our QR code',
-        backgroundColor: '#ffffff',
+      text: {
+        content: 'Your text content goes here...',
+        fontSize: 16,
         textColor: '#000000',
-        showLogo: true,
-        buttonText: 'Get Started'
+        backgroundColor: 'transparent',
+        padding: 4
       },
-      registration_form: {
-        title: 'Tell us about yourself',
-        fields: [
-          { name: 'email', type: 'email', required: true, label: 'Email Address' },
-          { name: 'name', type: 'text', required: true, label: 'Full Name' }
-        ],
-        buttonText: 'Continue',
-        backgroundColor: '#ffffff'
+      image: {
+        imageUrl: '',
+        alt: '',
+        caption: '',
+        height: '',
+        padding: 4
       },
-      content_display: {
-        title: 'Content Title',
-        content: 'Your content goes here...',
-        backgroundColor: '#ffffff',
-        textColor: '#000000',
-        buttonText: 'Continue'
-      },
-      survey_form: {
-        title: 'Your Feedback',
-        questions: [
-          { id: 'rating', type: 'rating', question: 'How satisfied are you?', required: true, scale: 5 }
-        ],
-        buttonText: 'Submit',
-        backgroundColor: '#ffffff'
-      },
-      verification: {
-        title: 'Verify Your Email',
-        message: 'Please check your email and click the verification link.',
-        backgroundColor: '#ffffff',
-        textColor: '#000000',
-        buttonText: 'Resend Email'
-      },
-      completion: {
-        title: 'Thank You!',
-        message: 'Your submission has been received.',
-        backgroundColor: '#ffffff',
-        textColor: '#000000',
-        showConfetti: true
+      divider: {
+        width: 100,
+        thickness: 1,
+        color: '#e5e7eb',
+        padding: 4
       }
     };
 
-    return configs[componentType as keyof typeof configs] || {};
+    return configs[sectionType as keyof typeof configs] || {};
   };
 
-  const activeComponent = components.find(c => c.id === activeId);
+  const activeSection = sections.find(s => s.id === activeId);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -265,28 +247,28 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                 >
                   <ArrowLeft className="h-4 w-4" />
                 </Button>
-                <h3 className="font-semibold">Flow Editor</h3>
+                <h3 className="font-semibold">Page Builder</h3>
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="flowName">Flow Name</Label>
+                <Label htmlFor="pageName">Page Name</Label>
                 <Input
-                  id="flowName"
+                  id="pageName"
                   value={flowName}
                   onChange={(e) => setFlowName(e.target.value)}
-                  placeholder="Enter flow name..."
+                  placeholder="Enter page name..."
                 />
               </div>
 
               <Separator />
               
-              <ComponentPalette onAddComponent={handleAddComponent} />
+              <ComponentPalette onAddComponent={handleAddSection} />
               
               <Separator />
               
-              {/* Flow Components List */}
+              {/* Page Sections List */}
               <div className="space-y-2">
-                <h4 className="font-medium text-sm text-muted-foreground">Flow Steps</h4>
+                <h4 className="font-medium text-sm text-muted-foreground">Page Sections</h4>
                 <DndContext
                   sensors={sensors}
                   collisionDetection={closestCenter}
@@ -295,28 +277,28 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                   modifiers={[restrictToVerticalAxis]}
                 >
                   <SortableContext
-                    items={components.map(c => c.id)}
+                    items={sections.map(s => s.id)}
                     strategy={verticalListSortingStrategy}
                   >
                     <div className="space-y-1">
-                      {components
+                      {sections
                         .sort((a, b) => a.order - b.order)
-                        .map((component) => (
-                          <FlowComponent
-                            key={component.id}
-                            component={component}
-                            isSelected={selectedComponent?.id === component.id}
-                            onSelect={() => setSelectedComponent(component)}
-                            onDelete={() => handleDeleteComponent(component.id)}
+                        .map((section) => (
+                          <PageSection
+                            key={section.id}
+                            section={section}
+                            isSelected={selectedSection?.id === section.id}
+                            onSelect={() => setSelectedSection(section)}
+                            onDelete={() => handleDeleteSection(section.id)}
                           />
                         ))}
                     </div>
                   </SortableContext>
 
                   <DragOverlay>
-                    {activeComponent ? (
-                      <FlowComponent
-                        component={activeComponent}
+                    {activeSection ? (
+                      <PageSection
+                        section={activeSection}
                         isSelected={false}
                         onSelect={() => {}}
                         onDelete={() => {}}
@@ -334,29 +316,31 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Smartphone className="h-5 w-5 text-primary" />
-                  <h3 className="font-semibold">Mobile Preview</h3>
+                  <h3 className="font-semibold">Live Preview</h3>
                 </div>
                 <Button onClick={handleSave} disabled={isSaving}>
                   <Save className="h-4 w-4 mr-2" />
-                  {isSaving ? 'Saving...' : 'Save Flow'}
+                  {isSaving ? 'Saving...' : 'Save Page'}
                 </Button>
               </div>
             </div>
             
             <div className="flex-1 flex items-center justify-center p-8">
               <MobilePreview 
-                components={components.sort((a, b) => a.order - b.order)}
-                selectedComponentId={selectedComponent?.id}
+                sections={sections.sort((a, b) => a.order - b.order)}
+                selectedSectionId={selectedSection?.id}
+                onSelectSection={setSelectedSection}
+                onAddSection={handleAddSection}
               />
             </div>
           </div>
 
-          {/* Right Panel - Component Properties */}
+          {/* Right Panel - Section Properties */}
           <div className="w-80 border-l bg-muted/30 p-4 overflow-y-auto">
-            {selectedComponent ? (
+            {selectedSection ? (
               <ComponentEditor
-                component={selectedComponent}
-                onUpdate={(config) => handleUpdateComponent(selectedComponent.id, config)}
+                section={selectedSection}
+                onUpdate={(config) => handleUpdateSection(selectedSection.id, config)}
               />
             ) : (
               <div className="text-center py-8 text-muted-foreground">
@@ -364,7 +348,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                   <div className="w-12 h-12 rounded-lg bg-muted mx-auto flex items-center justify-center">
                     ⚙️
                   </div>
-                  <p className="text-sm">Select a component to edit its properties</p>
+                  <p className="text-sm">Select a section to edit its properties</p>
                 </div>
               </div>
             )}
