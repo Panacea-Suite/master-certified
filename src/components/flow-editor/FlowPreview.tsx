@@ -1,8 +1,26 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Home } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { MobilePreview } from './MobilePreview';
 import { PageData } from './PageManager';
+
+export interface DeviceSpec {
+  name: string;
+  displayName: string;
+  width: number;
+  height: number;
+}
+
+export const DEVICE_SPECS: DeviceSpec[] = [
+  { name: 'iphone14', displayName: 'iPhone 14', width: 390, height: 844 },
+  { name: 'iphone13', displayName: 'iPhone 13', width: 390, height: 844 },
+  { name: 'iphoneSE', displayName: 'iPhone SE', width: 375, height: 667 },
+  { name: 'iphone14Plus', displayName: 'iPhone 14 Plus', width: 428, height: 926 },
+  { name: 'iphone14ProMax', displayName: 'iPhone 14 Pro Max', width: 430, height: 932 },
+  { name: 'galaxyS23', displayName: 'Samsung Galaxy S23', width: 360, height: 780 },
+  { name: 'pixel7', displayName: 'Google Pixel 7', width: 412, height: 915 },
+];
 
 interface FlowPreviewProps {
   pages: PageData[];
@@ -37,6 +55,7 @@ export const FlowPreview: React.FC<FlowPreviewProps> = ({
     logoSize: 'medium'
   }
 }) => {
+  const [selectedDevice, setSelectedDevice] = useState<DeviceSpec>(DEVICE_SPECS[0]); // Default to iPhone 14
   const currentPageIndex = pages.findIndex(p => p.id === currentPageId);
   const currentPage = pages[currentPageIndex];
 
@@ -70,6 +89,31 @@ export const FlowPreview: React.FC<FlowPreviewProps> = ({
 
   return (
     <div className="flex flex-col h-full">
+      {/* Header with Title and Device Selector */}
+      <div className="flex items-center justify-between p-4 border-b bg-background">
+        <h3 className="text-lg font-semibold">Flow Preview</h3>
+        <div className="flex items-center gap-4">
+          <Select
+            value={selectedDevice.name}
+            onValueChange={(value) => {
+              const device = DEVICE_SPECS.find(d => d.name === value);
+              if (device) setSelectedDevice(device);
+            }}
+          >
+            <SelectTrigger className="w-48">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="bg-background border z-50">
+              {DEVICE_SPECS.map((device) => (
+                <SelectItem key={device.name} value={device.name}>
+                  {device.displayName} ({device.width}×{device.height})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
       {/* Page Navigation */}
       {pages.length > 1 && (
         <div className="flex items-center justify-between p-4 border-b bg-background">
@@ -120,6 +164,7 @@ export const FlowPreview: React.FC<FlowPreviewProps> = ({
           onAddSection={onAddSection}
           backgroundColor={backgroundColor}
           globalHeader={globalHeader}
+          deviceSpec={selectedDevice}
         />
       </div>
       

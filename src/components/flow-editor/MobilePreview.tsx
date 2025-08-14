@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { PageSection } from './PageSection';
+import { DeviceSpec } from './FlowPreview';
 
 interface SectionData {
   id: string;
@@ -22,6 +23,7 @@ interface MobilePreviewProps {
     backgroundColor: string;
     logoSize: string;
   };
+  deviceSpec?: DeviceSpec;
 }
 
 export const MobilePreview: React.FC<MobilePreviewProps> = ({ 
@@ -36,9 +38,17 @@ export const MobilePreview: React.FC<MobilePreviewProps> = ({
     logoUrl: '',
     backgroundColor: '#ffffff',
     logoSize: 'medium'
-  }
+  },
+  deviceSpec = { name: 'iphone14', displayName: 'iPhone 14', width: 390, height: 844 }
 }) => {
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+
+  // Calculate device dimensions and scaling
+  const deviceWidth = deviceSpec.width;
+  const deviceHeight = deviceSpec.height;
+  const scale = Math.min(375 / deviceWidth, 667 / deviceHeight); // Scale to fit in original container size
+  const scaledWidth = deviceWidth * scale;
+  const scaledHeight = deviceHeight * scale;
 
   const getLogoSizeClasses = (size: string) => {
     switch (size) {
@@ -81,7 +91,10 @@ export const MobilePreview: React.FC<MobilePreviewProps> = ({
 
   if (sections.length === 0) {
     return (
-      <div className="w-[375px] h-[667px] bg-white rounded-3xl shadow-xl border border-gray-200 flex flex-col">
+      <div 
+        className="bg-white rounded-3xl shadow-xl border border-gray-200 flex flex-col"
+        style={{ width: `${scaledWidth}px`, height: `${scaledHeight}px` }}
+      >
         {/* Status Bar */}
         <div className="h-6 bg-black rounded-t-3xl flex items-center justify-center">
           <div className="w-20 h-1 bg-white rounded-full"></div>
@@ -148,7 +161,10 @@ export const MobilePreview: React.FC<MobilePreviewProps> = ({
   }
 
   return (
-    <div className="w-[375px] h-[667px] bg-white rounded-3xl shadow-xl border border-gray-200 flex flex-col">
+    <div 
+      className="bg-white rounded-3xl shadow-xl border border-gray-200 flex flex-col"
+      style={{ width: `${scaledWidth}px`, height: `${scaledHeight}px` }}
+    >
       {/* Status Bar */}
       <div className="h-6 bg-black rounded-t-3xl flex items-center justify-center">
         <div className="w-20 h-1 bg-white rounded-full"></div>
