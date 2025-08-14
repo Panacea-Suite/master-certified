@@ -85,26 +85,50 @@ const BrandSettings = () => {
   };
 
   const handleImageSave = async (editedFile: File) => {
-    if (!brand) return;
+    if (!brand) {
+      console.error('No brand found when trying to save image');
+      toast({
+        title: "Error",
+        description: "No brand found. Please refresh and try again.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     setIsUploading(true);
     setShowImageEditor(false);
     
     try {
+      console.log('Starting image upload for brand:', brand.id);
+      console.log('File details:', {
+        name: editedFile.name,
+        size: editedFile.size,
+        type: editedFile.type
+      });
+
       // Upload to storage
-      const fileExt = editedFile.name.split('.').pop();
+      const fileExt = editedFile.name.split('.').pop() || 'png';
       const fileName = `${brand.id}/logo.${fileExt}`;
       
-      const { error: uploadError } = await supabase.storage
+      console.log('Uploading to path:', fileName);
+
+      const { data: uploadData, error: uploadError } = await supabase.storage
         .from('brand-logos')
         .upload(fileName, editedFile, { upsert: true });
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error('Storage upload error:', uploadError);
+        throw new Error(`Upload failed: ${uploadError.message}`);
+      }
+
+      console.log('Upload successful:', uploadData);
 
       // Get public URL
       const { data: { publicUrl } } = supabase.storage
         .from('brand-logos')
         .getPublicUrl(fileName);
+
+      console.log('Generated public URL:', publicUrl);
 
       // Update brand with logo URL
       const { error: updateError } = await supabase
@@ -112,19 +136,32 @@ const BrandSettings = () => {
         .update({ logo_url: publicUrl })
         .eq('id', brand.id);
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.error('Database update error:', updateError);
+        throw new Error(`Database update failed: ${updateError.message}`);
+      }
+
+      console.log('Brand updated successfully');
 
       setBrand({ ...brand, logo_url: publicUrl });
       setSelectedFile(null);
       toast({
         title: "Success",
-        description: "Logo uploaded successfully",
+        description: "Logo uploaded and saved successfully",
       });
-    } catch (error) {
-      console.error('Error uploading logo:', error);
+    } catch (error: any) {
+      console.error('Error in handleImageSave:', error);
+      
+      let errorMessage = "Failed to upload logo";
+      if (error.message) {
+        errorMessage = error.message;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      }
+
       toast({
-        title: "Error",
-        description: "Failed to upload logo",
+        title: "Upload Error",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
