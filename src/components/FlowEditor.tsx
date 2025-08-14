@@ -69,7 +69,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
       return templateToEdit.flow_config.pages;
     }
     
-    // Create all pages including initial landing page and mandatory pages
+    // Create all pages including initial landing page and mandatory pages with default content
     const allPages: PageData[] = [
       {
         id: 'landing-page',
@@ -84,7 +84,32 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
         id: 'store-selection',
         type: 'store_selection',
         name: 'Store Selection',
-        sections: [],
+        sections: [
+          {
+            id: 'store-title',
+            type: 'text',
+            order: 0,
+            config: {
+              content: 'Select Your Store Location',
+              fontSize: 24,
+              textColor: '#000000',
+              backgroundColor: 'transparent',
+              padding: 4
+            }
+          },
+          {
+            id: 'store-description',
+            type: 'text',
+            order: 1,
+            config: {
+              content: 'Choose the store location where you would like to pick up your order.',
+              fontSize: 16,
+              textColor: '#666666',
+              backgroundColor: 'transparent',
+              padding: 4
+            }
+          }
+        ],
         settings: {},
         isMandatory: true,
         order: 1
@@ -93,7 +118,32 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
         id: 'login-signup',
         type: 'account_creation', 
         name: 'Login/Signup',
-        sections: [],
+        sections: [
+          {
+            id: 'auth-title',
+            type: 'text',
+            order: 0,
+            config: {
+              content: 'Welcome Back!',
+              fontSize: 24,
+              textColor: '#000000',
+              backgroundColor: 'transparent',
+              padding: 4
+            }
+          },
+          {
+            id: 'auth-description',
+            type: 'text',
+            order: 1,
+            config: {
+              content: 'Sign in to your account or create a new one to continue.',
+              fontSize: 16,
+              textColor: '#666666',
+              backgroundColor: 'transparent',
+              padding: 4
+            }
+          }
+        ],
         settings: {},
         isMandatory: true,
         order: 2
@@ -102,7 +152,32 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
         id: 'verification',
         type: 'authentication',
         name: 'Verification',
-        sections: [],
+        sections: [
+          {
+            id: 'verify-title',
+            type: 'text',
+            order: 0,
+            config: {
+              content: 'Verify Your Account',
+              fontSize: 24,
+              textColor: '#000000',
+              backgroundColor: 'transparent',
+              padding: 4
+            }
+          },
+          {
+            id: 'verify-description',
+            type: 'text',
+            order: 1,
+            config: {
+              content: 'Please check your email and follow the verification link to complete your registration.',
+              fontSize: 16,
+              textColor: '#666666',
+              backgroundColor: 'transparent',
+              padding: 4
+            }
+          }
+        ],
         settings: {},
         isMandatory: true,
         order: 3
@@ -111,7 +186,32 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
         id: 'thank-you',
         type: 'thank_you',
         name: 'Thank You',
-        sections: [],
+        sections: [
+          {
+            id: 'thanks-title',
+            type: 'text',
+            order: 0,
+            config: {
+              content: 'Thank You!',
+              fontSize: 24,
+              textColor: '#000000',
+              backgroundColor: 'transparent',
+              padding: 4
+            }
+          },
+          {
+            id: 'thanks-description',
+            type: 'text',
+            order: 1,
+            config: {
+              content: 'Your registration is complete. You can now enjoy all the benefits of our service.',
+              fontSize: 16,
+              textColor: '#666666',
+              backgroundColor: 'transparent',
+              padding: 4
+            }
+          }
+        ],
         settings: {},
         isMandatory: true,
         order: 4
