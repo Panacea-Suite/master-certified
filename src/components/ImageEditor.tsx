@@ -120,9 +120,9 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
             if (hasAlpha) {
               console.log("Setting transparent background for canvas");
               setHasTransparentBackground(true);
-              // Try different approaches to make canvas background transparent
-              canvas.backgroundColor = null;
-              canvas.renderAll();
+              // DON'T set canvas.backgroundColor - leave it as the default white
+              // The CSS will handle showing the checkerboard pattern
+              console.log("Canvas background left as default, will use CSS overlay");
               toast.success("PNG with transparency loaded!");
             }
           }
@@ -349,10 +349,8 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
       // Replace the current image with the processed one
       fabricCanvas.remove(originalImage);
       
-      // Set background to null to show CSS checkerboard pattern
-      console.log("Setting canvas background to null for removed background");
-      fabricCanvas.backgroundColor = null;
-      fabricCanvas.renderAll();
+      // Don't modify canvas background - let CSS handle the checkerboard
+      console.log("Background removed, using CSS checkerboard overlay");
       
       // Scale and position the new image
       const canvasWidth = canvasSize.width;
@@ -524,19 +522,17 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
                 </div>
               </div>
             )}
-            <canvas
-              ref={canvasRef}
-              className={`border border-border rounded shadow-lg max-w-full max-h-full ${
-                hasTransparentBackground ? 'transparent-canvas' : ''
-              }`}
-              style={{
-                // Force transparent background to show checkerboard
-                backgroundColor: hasTransparentBackground ? 'rgba(0,0,0,0)' : '#ffffff',
-                backgroundImage: hasTransparentBackground 
-                  ? 'repeating-conic-gradient(#808080 0% 25%, transparent 0% 50%) 50% / 20px 20px'
-                  : undefined
-              }}
-            />
+            <div className={`relative ${hasTransparentBackground ? 'checkerboard-bg' : ''}`}>
+              <canvas
+                ref={canvasRef}
+                className={`border border-border rounded shadow-lg max-w-full max-h-full ${
+                  hasTransparentBackground ? 'canvas-transparent' : ''
+                }`}
+              />
+              {hasTransparentBackground && (
+                <div className="absolute inset-0 pointer-events-none border border-border rounded shadow-lg checkerboard-pattern" />
+              )}
+            </div>
           </div>
 
           {/* Controls Panel */}
