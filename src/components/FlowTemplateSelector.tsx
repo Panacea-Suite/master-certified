@@ -25,22 +25,15 @@ interface FlowTemplateSelectorProps {
 }
 
 const templateIcons = {
-  'package': Package,
-  'map-pin': MapPin,
-  'calendar': Calendar,
-  'user-check': UserCheck,
-  'target': Target,
-  'message-square': MessageSquare,
-  'shopping-bag': ShoppingBag,
-  'briefcase': Briefcase,
-  'layout': Layout
+  'shield': CheckCircle,
+  'zap': MessageSquare,
+  'circle': Layout,
+  'crown': Users,
+  'star': Plus
 };
 
 const categoryIcons = {
-  ecommerce: ShoppingBag,
-  events: Calendar,
-  services: Briefcase,
-  marketing: Target,
+  certification: CheckCircle,
   custom: Plus
 };
 
@@ -168,13 +161,11 @@ export const FlowTemplateSelector: React.FC<FlowTemplateSelectorProps> = ({
                 </div>
               </div>
 
-              {/* Tags */}
+              {/* Design Type */}
               <div className="flex flex-wrap gap-1">
-                {prebuiltTemplate.tags.slice(0, 3).map((tag, index) => (
-                  <Badge key={index} variant="outline" className="text-xs">
-                    {tag}
-                  </Badge>
-                ))}
+                <Badge variant="outline" className="text-xs">
+                  {prebuiltTemplate.designType}
+                </Badge>
               </div>
 
               {/* Mobile preview indicator */}
@@ -294,21 +285,15 @@ export const FlowTemplateSelector: React.FC<FlowTemplateSelectorProps> = ({
       >
         All Templates
       </Button>
-      {Object.entries(CATEGORIES).map(([key, category]) => {
-        const Icon = categoryIcons[key as keyof typeof categoryIcons];
-        return (
-          <Button
-            key={key}
-            size="sm"
-            variant={selectedCategory === key ? 'default' : 'outline'}
-            onClick={() => setSelectedCategory(key)}
-            className="flex items-center gap-2"
-          >
-            <Icon className="h-4 w-4" />
-            {category.label}
-          </Button>
-        );
-      })}
+      <Button
+        size="sm"
+        variant={selectedCategory === 'certification' ? 'default' : 'outline'}
+        onClick={() => setSelectedCategory('certification')}
+        className="flex items-center gap-2"
+      >
+        <CheckCircle className="h-4 w-4" />
+        Certification
+      </Button>
     </div>
   );
 
