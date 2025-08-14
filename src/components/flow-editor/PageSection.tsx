@@ -135,7 +135,8 @@ export const PageSection: React.FC<PageSectionProps> = ({
             style={{ backgroundColor: config.backgroundColor || 'transparent' }}
           >
             <div 
-              className={`grid gap-${config.gap || 4} ${getColumnGridClass(config.layout)}`}
+              className={`grid ${getColumnGridClass(config.layout)}`}
+              style={{ gap: `${(config.gap || 4) * 0.25}rem` }}
             >
               {getColumnCount(config.layout) === 1 && (
                 <ColumnDropZone 
