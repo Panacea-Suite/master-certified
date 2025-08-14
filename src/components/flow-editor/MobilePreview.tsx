@@ -51,7 +51,15 @@ export const MobilePreview: React.FC<MobilePreviewProps> = ({
   const scaledHeight = deviceHeight * scale;
 
   const getLogoSizeClasses = (size: string) => {
-    return 'h-48 max-w-none w-auto';
+    switch (size) {
+      case 'small':
+        return 'h-32 max-w-none w-auto';
+      case 'large':
+        return 'h-64 max-w-none w-auto';
+      case 'medium':
+      default:
+        return 'h-48 max-w-none w-auto';
+    }
   };
 
   const handleDragOver = (e: React.DragEvent, index: number) => {
