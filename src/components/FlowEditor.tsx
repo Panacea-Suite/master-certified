@@ -24,12 +24,13 @@ import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ImageEditor } from '@/components/ImageEditor';
 import { ComponentPalette } from './flow-editor/ComponentPalette';
 import { FlowPreview } from './flow-editor/FlowPreview';
 import { PageSection } from './flow-editor/PageSection';
 import { ComponentEditor } from './flow-editor/ComponentEditor';
 import { PageManager, PageData } from './flow-editor/PageManager';
-import { Smartphone, Save, ArrowLeft } from 'lucide-react';
+import { Smartphone, Save, ArrowLeft, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -262,6 +263,8 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
   });
   const [selectedSection, setSelectedSection] = useState<SectionData | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [showImageEditor, setShowImageEditor] = useState(false);
+  const [selectedLogoFile, setSelectedLogoFile] = useState<File | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
   const sensors = useSensors(
@@ -644,6 +647,45 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                           placeholder="https://example.com/logo.png"
                         />
                       </div>
+
+                      <div>
+                        <Label htmlFor="logoUpload">Logo Image</Label>
+                        <div className="space-y-2">
+                          {globalHeader.logoUrl && (
+                            <div className="flex justify-center">
+                              <img
+                                src={globalHeader.logoUrl}
+                                alt="Brand Logo"
+                                className="w-16 h-16 object-contain border rounded-lg"
+                              />
+                            </div>
+                          )}
+                          <div className="flex items-center justify-center w-full">
+                            <label htmlFor="logoUpload" className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-muted-foreground/25 rounded-lg cursor-pointer hover:bg-muted/50">
+                              <div className="flex flex-col items-center justify-center">
+                                <Upload className="w-6 h-6 mb-2 text-muted-foreground" />
+                                <p className="text-xs text-muted-foreground text-center">
+                                  <span className="font-semibold">Click to upload & edit</span><br />
+                                  PNG, JPG (MAX. 5MB)
+                                </p>
+                              </div>
+                              <input
+                                id="logoUpload"
+                                type="file"
+                                className="hidden"
+                                accept="image/*"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) {
+                                    setSelectedLogoFile(file);
+                                    setShowImageEditor(true);
+                                  }
+                                }}
+                              />
+                            </label>
+                          </div>
+                        </div>
+                      </div>
                       
                       <div>
                         <Label htmlFor="logoSize">Logo Size</Label>
@@ -796,6 +838,28 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
           </div>
         </div>
       </DialogContent>
+      
+      {/* Image Editor Modal */}
+      {showImageEditor && selectedLogoFile && (
+        <ImageEditor
+          file={selectedLogoFile}
+          onSave={(editedFile) => {
+            // Convert file to data URL
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              const dataUrl = e.target?.result as string;
+              setGlobalHeader(prev => ({ ...prev, logoUrl: dataUrl }));
+            };
+            reader.readAsDataURL(editedFile);
+            setShowImageEditor(false);
+            setSelectedLogoFile(null);
+          }}
+          onCancel={() => {
+            setShowImageEditor(false);
+            setSelectedLogoFile(null);
+          }}
+        />
+      )}
     </Dialog>
   );
 };
