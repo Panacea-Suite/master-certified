@@ -5,7 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Upload, Palette, Save, Image, Store, Plus, X } from 'lucide-react';
+import { Upload, Palette, Save, Image, Store, Plus, X, Edit } from 'lucide-react';
+import { ImageEditor } from '@/components/ImageEditor';
 
 interface Brand {
   id: string;
@@ -25,6 +26,8 @@ const BrandSettings = () => {
   const [accentColor, setAccentColor] = useState('#10B981');
   const [approvedStores, setApprovedStores] = useState<string[]>([]);
   const [newStore, setNewStore] = useState('');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [showImageEditor, setShowImageEditor] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -64,9 +67,9 @@ const BrandSettings = () => {
     }
   };
 
-  const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file || !brand) return;
+    if (!file) return;
 
     if (!file.type.startsWith('image/')) {
       toast({
@@ -77,15 +80,24 @@ const BrandSettings = () => {
       return;
     }
 
+    setSelectedFile(file);
+    setShowImageEditor(true);
+  };
+
+  const handleImageSave = async (editedFile: File) => {
+    if (!brand) return;
+
     setIsUploading(true);
+    setShowImageEditor(false);
+    
     try {
       // Upload to storage
-      const fileExt = file.name.split('.').pop();
+      const fileExt = editedFile.name.split('.').pop();
       const fileName = `${brand.id}/logo.${fileExt}`;
       
       const { error: uploadError } = await supabase.storage
         .from('brand-logos')
-        .upload(fileName, file, { upsert: true });
+        .upload(fileName, editedFile, { upsert: true });
 
       if (uploadError) throw uploadError;
 
@@ -103,6 +115,7 @@ const BrandSettings = () => {
       if (updateError) throw updateError;
 
       setBrand({ ...brand, logo_url: publicUrl });
+      setSelectedFile(null);
       toast({
         title: "Success",
         description: "Logo uploaded successfully",
@@ -117,6 +130,11 @@ const BrandSettings = () => {
     } finally {
       setIsUploading(false);
     }
+  };
+
+  const handleImageCancel = () => {
+    setShowImageEditor(false);
+    setSelectedFile(null);
   };
 
   const saveColors = async () => {
@@ -238,18 +256,18 @@ const BrandSettings = () => {
             <div className="flex items-center justify-center w-full">
               <label htmlFor="logo-upload" className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-muted-foreground/25 rounded-lg cursor-pointer hover:bg-muted/50">
                 <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                  <Upload className="w-8 h-8 mb-4 text-muted-foreground" />
+                  <Edit className="w-8 h-8 mb-4 text-muted-foreground" />
                   <p className="mb-2 text-sm text-muted-foreground">
-                    <span className="font-semibold">Click to upload</span> logo
+                    <span className="font-semibold">Click to upload & edit</span> logo
                   </p>
-                  <p className="text-xs text-muted-foreground">PNG, JPG or GIF (MAX. 5MB)</p>
+                  <p className="text-xs text-muted-foreground">Resize and crop after upload • PNG, JPG (MAX. 5MB)</p>
                 </div>
                 <input
                   id="logo-upload"
                   type="file"
                   className="hidden"
                   accept="image/*"
-                  onChange={handleLogoUpload}
+                  onChange={handleFileSelect}
                   disabled={isUploading}
                 />
               </label>
@@ -429,6 +447,15 @@ const BrandSettings = () => {
           </CardContent>
         </Card>
       </div>
+      
+      {/* Image Editor Modal */}
+      {showImageEditor && selectedFile && (
+        <ImageEditor
+          file={selectedFile}
+          onSave={handleImageSave}
+          onCancel={handleImageCancel}
+        />
+      )}
     </div>
   );
 };
