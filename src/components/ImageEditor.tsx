@@ -5,7 +5,9 @@ import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Crop, RotateCcw, ZoomIn, ZoomOut, Download, X } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
+import { Crop, RotateCcw, Download, X, Link } from "lucide-react";
 import { toast } from "sonner";
 
 interface ImageEditorProps {
@@ -15,22 +17,27 @@ interface ImageEditorProps {
 }
 
 const PRESET_SIZES = [
-  { name: "Square Logo", width: 300, height: 300 },
-  { name: "Rectangle Logo", width: 400, height: 200 },
   { name: "Small Icon", width: 64, height: 64 },
-  { name: "Large Display", width: 800, height: 600 },
+  { name: "Medium Icon", width: 128, height: 128 },
+  { name: "Square Logo", width: 300, height: 300 },
+  { name: "Large Logo", width: 512, height: 512 },
+  { name: "Rectangle Logo", width: 400, height: 200 },
+  { name: "Banner", width: 800, height: 200 },
 ];
 
 export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [fabricCanvas, setFabricCanvas] = useState<FabricCanvas | null>(null);
   const [originalImage, setOriginalImage] = useState<FabricImage | null>(null);
-  const [scale, setScale] = useState([1]);
   const [rotation, setRotation] = useState([0]);
   const [selectedPreset, setSelectedPreset] = useState<string>("");
-  const [canvasSize, setCanvasSize] = useState({ width: 800, height: 600 });
+  const [canvasSize, setCanvasSize] = useState({ width: 300, height: 300 });
+  const [outputWidth, setOutputWidth] = useState(300);
+  const [outputHeight, setOutputHeight] = useState(300);
+  const [maintainAspectRatio, setMaintainAspectRatio] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [originalAspectRatio, setOriginalAspectRatio] = useState(1);
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -88,6 +95,7 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
         canvas.renderAll();
         
         setOriginalImage(img);
+        setOriginalAspectRatio((img.width || 1) / (img.height || 1));
         setIsLoading(false);
         toast.success("Image loaded! Use controls to adjust size and position.");
         
@@ -112,17 +120,59 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
     };
   }, [file, canvasSize]);
 
-  const handleScaleChange = (value: number[]) => {
+  const handleSizeChange = (newWidth: number, newHeight: number) => {
     if (!originalImage || !fabricCanvas) return;
     
-    const newScale = value[0];
-    setScale(value);
+    setCanvasSize({ width: newWidth, height: newHeight });
+    setOutputWidth(newWidth);
+    setOutputHeight(newHeight);
     
+    fabricCanvas.setDimensions({ width: newWidth, height: newHeight });
+    
+    // Scale image to fit new canvas size
+    const canvasWidth = newWidth;
+    const canvasHeight = newHeight;
+    const imageAspect = (originalImage.width || 1) / (originalImage.height || 1);
+    const canvasAspect = canvasWidth / canvasHeight;
+
+    let scaleFactor;
+    if (imageAspect > canvasAspect) {
+      scaleFactor = (canvasWidth * 0.8) / (originalImage.width || 1);
+    } else {
+      scaleFactor = (canvasHeight * 0.8) / (originalImage.height || 1);
+    }
+
     originalImage.set({
-      scaleX: newScale,
-      scaleY: newScale,
+      scaleX: scaleFactor,
+      scaleY: scaleFactor,
     });
+    
+    fabricCanvas.centerObject(originalImage);
     fabricCanvas.renderAll();
+  };
+
+  const handleWidthChange = (value: string) => {
+    const newWidth = parseInt(value) || 32;
+    if (newWidth < 32 || newWidth > 2048) return;
+    
+    let newHeight = outputHeight;
+    if (maintainAspectRatio) {
+      newHeight = Math.round(newWidth / originalAspectRatio);
+    }
+    
+    handleSizeChange(newWidth, newHeight);
+  };
+
+  const handleHeightChange = (value: string) => {
+    const newHeight = parseInt(value) || 32;
+    if (newHeight < 32 || newHeight > 2048) return;
+    
+    let newWidth = outputWidth;
+    if (maintainAspectRatio) {
+      newWidth = Math.round(newHeight * originalAspectRatio);
+    }
+    
+    handleSizeChange(newWidth, newHeight);
   };
 
   const handleRotationChange = (value: number[]) => {
@@ -138,10 +188,8 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
   const handlePresetSelect = (preset: string) => {
     setSelectedPreset(preset);
     const presetData = PRESET_SIZES.find(p => p.name === preset);
-    if (presetData && fabricCanvas) {
-      setCanvasSize({ width: presetData.width, height: presetData.height });
-      fabricCanvas.setDimensions({ width: presetData.width, height: presetData.height });
-      fabricCanvas.renderAll();
+    if (presetData) {
+      handleSizeChange(presetData.width, presetData.height);
     }
   };
 
@@ -157,16 +205,30 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
   const handleReset = () => {
     if (!originalImage || !fabricCanvas) return;
     
-    setScale([1]);
     setRotation([0]);
+    originalImage.set({ angle: 0 });
+    
+    // Reset to fit canvas
+    const canvasWidth = canvasSize.width;
+    const canvasHeight = canvasSize.height;
+    const imageAspect = (originalImage.width || 1) / (originalImage.height || 1);
+    const canvasAspect = canvasWidth / canvasHeight;
+
+    let scaleFactor;
+    if (imageAspect > canvasAspect) {
+      scaleFactor = (canvasWidth * 0.8) / (originalImage.width || 1);
+    } else {
+      scaleFactor = (canvasHeight * 0.8) / (originalImage.height || 1);
+    }
+
     originalImage.set({
-      scaleX: 1,
-      scaleY: 1,
-      angle: 0,
+      scaleX: scaleFactor,
+      scaleY: scaleFactor,
     });
+    
     fabricCanvas.centerObject(originalImage);
     fabricCanvas.renderAll();
-    toast.success("Image reset to original state");
+    toast.success("Image reset to fit canvas");
   };
 
   const handleSave = () => {
@@ -219,34 +281,64 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
 
           {/* Controls Panel */}
           <div className="w-80 space-y-6 overflow-y-auto">
-            {/* Preset Sizes */}
+            {/* Output Size Controls */}
             <div className="space-y-3">
-              <Label>Preset Sizes</Label>
-              <Select value={selectedPreset} onValueChange={handlePresetSelect}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Choose a preset size" />
-                </SelectTrigger>
-                <SelectContent>
-                  {PRESET_SIZES.map((preset) => (
-                    <SelectItem key={preset.name} value={preset.name}>
-                      {preset.name} ({preset.width}×{preset.height})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="flex items-center justify-between">
+                <Label>Output Size</Label>
+                <div className="flex items-center space-x-2">
+                  <Link className="h-4 w-4" />
+                  <Switch
+                    checked={maintainAspectRatio}
+                    onCheckedChange={setMaintainAspectRatio}
+                  />
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <Label className="text-xs text-muted-foreground">Width</Label>
+                  <Input
+                    type="number"
+                    value={outputWidth}
+                    onChange={(e) => handleWidthChange(e.target.value)}
+                    min={32}
+                    max={2048}
+                    className="h-8"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Height</Label>
+                  <Input
+                    type="number"
+                    value={outputHeight}
+                    onChange={(e) => handleHeightChange(e.target.value)}
+                    min={32}
+                    max={2048}
+                    className="h-8"
+                  />
+                </div>
+              </div>
             </div>
 
-            {/* Scale Control */}
+            {/* Preset Sizes */}
             <div className="space-y-3">
-              <Label>Scale: {scale[0].toFixed(2)}x</Label>
-              <Slider
-                value={scale}
-                onValueChange={handleScaleChange}
-                min={0.1}
-                max={3}
-                step={0.1}
-                className="w-full"
-              />
+              <Label>Quick Presets</Label>
+              <div className="grid grid-cols-2 gap-1">
+                {PRESET_SIZES.map((preset) => (
+                  <Button
+                    key={preset.name}
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handlePresetSelect(preset.name)}
+                    className="text-xs p-2 h-auto"
+                  >
+                    <div className="text-center">
+                      <div className="font-medium">{preset.width}×{preset.height}</div>
+                      <div className="text-muted-foreground">{preset.name}</div>
+                    </div>
+                  </Button>
+                ))}
+              </div>
             </div>
 
             {/* Rotation Control */}
@@ -283,11 +375,14 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
               </Button>
             </div>
 
-            {/* Canvas Size Info */}
+            {/* File Info */}
             <div className="text-sm text-muted-foreground p-3 bg-muted rounded">
-              <p><strong>Output Size:</strong> {canvasSize.width}×{canvasSize.height}px</p>
-              <p><strong>Original File:</strong> {file.name}</p>
-              <p><strong>File Size:</strong> {(file.size / 1024).toFixed(1)}KB</p>
+              <p><strong>Output:</strong> {outputWidth}×{outputHeight}px</p>
+              <p><strong>Original:</strong> {file.name}</p>
+              <p><strong>Size:</strong> {(file.size / 1024).toFixed(1)}KB</p>
+              {maintainAspectRatio && (
+                <p><strong>Aspect:</strong> Locked</p>
+              )}
             </div>
 
             {/* Save/Cancel Buttons */}
