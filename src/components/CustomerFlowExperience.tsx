@@ -26,6 +26,7 @@ const CustomerFlowExperience = ({ flowId, qrCode }: CustomerFlowExperienceProps)
   const [flow, setFlow] = useState<any>(null);
   const [campaign, setCampaign] = useState<any>(null);
   const [content, setContent] = useState<FlowContent[]>([]);
+  const [isNewSectionFlow, setIsNewSectionFlow] = useState(false);
   const [userInputs, setUserInputs] = useState({
     selectedStore: '',
     email: '',
@@ -81,7 +82,19 @@ const CustomerFlowExperience = ({ flowId, qrCode }: CustomerFlowExperienceProps)
 
       setFlow(flowData);
       setCampaign(flowData.campaigns);
-      setContent(contentData || []);
+      
+      // Check if flow uses new section-based structure
+      const flowConfig = flowData.flow_config as any;
+      if (flowConfig?.sections && Array.isArray(flowConfig.sections) && flowConfig.sections.length > 0) {
+        // Use new section-based flow
+        console.log('Using new section-based flow with sections:', flowConfig.sections);
+        setIsNewSectionFlow(true);
+        setContent([]); // Clear old content
+      } else {
+        // Use old flow_content table
+        setIsNewSectionFlow(false);
+        setContent(contentData || []);
+      }
     } catch (error) {
       console.error('Error fetching flow data:', error);
       toast({
@@ -385,6 +398,105 @@ const CustomerFlowExperience = ({ flowId, qrCode }: CustomerFlowExperienceProps)
         return null;
     }
   };
+
+  const renderSectionBasedFlow = () => {
+    const flowConfig = flow?.flow_config as any;
+    const sections = flowConfig?.sections || [];
+    const backgroundColor = flowConfig?.theme?.backgroundColor || '#ffffff';
+    
+    return (
+      <div 
+        className="min-h-screen"
+        style={{ backgroundColor }}
+      >
+        <div className="max-w-sm mx-auto px-4 py-6">
+          <div className="space-y-4">
+            {sections.map((section: any) => (
+              <div key={section.id} className={`p-${section.config?.padding || 4}`}>
+                {section.type === 'text' && (
+                  <div 
+                    style={{ 
+                      backgroundColor: section.config?.backgroundColor || 'transparent',
+                      color: section.config?.textColor || '#000000'
+                    }}
+                    className="p-4 rounded"
+                  >
+                    <div 
+                      style={{ fontSize: `${section.config?.fontSize || 16}px` }}
+                    >
+                      {section.config?.content || 'No content'}
+                    </div>
+                  </div>
+                )}
+                
+                {section.type === 'image' && (
+                  <div className="space-y-2">
+                    {section.config?.imageUrl ? (
+                      <img 
+                        src={section.config.imageUrl} 
+                        alt={section.config?.alt || 'Section image'}
+                        className="w-full h-auto rounded-lg"
+                        style={{ maxHeight: section.config?.height || 'auto' }}
+                      />
+                    ) : (
+                      <div className="w-full h-32 bg-muted rounded-lg flex items-center justify-center">
+                        <p className="text-muted-foreground">No image</p>
+                      </div>
+                    )}
+                    {section.config?.caption && (
+                      <p className="text-sm text-muted-foreground text-center">
+                        {section.config.caption}
+                      </p>
+                    )}
+                  </div>
+                )}
+                
+                {section.type === 'divider' && (
+                  <hr 
+                    className="border-0"
+                    style={{
+                      height: `${section.config?.thickness || 1}px`,
+                      backgroundColor: section.config?.color || '#e5e7eb',
+                      width: `${section.config?.width || 100}%`,
+                      margin: '0 auto'
+                    }}
+                  />
+                )}
+                
+                {section.type === 'column' && (
+                  <div 
+                    className="grid"
+                    style={{ 
+                      gap: `${(section.config?.gap || 4) * 0.25}rem`,
+                      backgroundColor: section.config?.backgroundColor || 'transparent'
+                    }}
+                  >
+                    {/* Column rendering logic can be added here */}
+                    <div className="p-4 border border-dashed border-muted-foreground/30 rounded text-center text-muted-foreground">
+                      Column layout ({section.config?.layout || '2-col-50-50'})
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+            
+            {sections.length === 0 && (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">
+                  This page is empty. Use the page builder to add content.
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // If this is a new section-based flow, render it differently
+  if (isNewSectionFlow) {
+    return renderSectionBasedFlow();
+  }
 
   return (
     <div className="min-h-screen bg-background">
