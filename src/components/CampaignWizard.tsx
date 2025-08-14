@@ -33,6 +33,7 @@ interface WizardData {
   };
   flow: {
     name: string;
+    selectedTemplate: any;
   };
 }
 
@@ -49,7 +50,8 @@ const CampaignWizard = ({ currentBrand, onComplete, onCancel }: CampaignWizardPr
       qr_code_count: 100
     },
     flow: {
-      name: ''
+      name: '',
+      selectedTemplate: null
     }
   });
   const [isProcessing, setIsProcessing] = useState(false);
@@ -68,7 +70,7 @@ const CampaignWizard = ({ currentBrand, onComplete, onCancel }: CampaignWizardPr
       case 2:
         return wizardData.batch.name.trim() !== '' && wizardData.batch.qr_code_count > 0;
       case 3:
-        return wizardData.flow.name.trim() !== '';
+        return wizardData.flow.name.trim() !== '' && wizardData.flow.selectedTemplate !== null;
       default:
         return false;
     }

@@ -179,29 +179,38 @@ export type Database = {
       flows: {
         Row: {
           base_url: string | null
-          campaign_id: string
+          campaign_id: string | null
           created_at: string
+          created_by: string | null
           flow_config: Json | null
           id: string
+          is_template: boolean | null
           name: string
+          template_category: string | null
           updated_at: string
         }
         Insert: {
           base_url?: string | null
-          campaign_id: string
+          campaign_id?: string | null
           created_at?: string
+          created_by?: string | null
           flow_config?: Json | null
           id?: string
+          is_template?: boolean | null
           name: string
+          template_category?: string | null
           updated_at?: string
         }
         Update: {
           base_url?: string | null
-          campaign_id?: string
+          campaign_id?: string | null
           created_at?: string
+          created_by?: string | null
           flow_config?: Json | null
           id?: string
+          is_template?: boolean | null
           name?: string
+          template_category?: string | null
           updated_at?: string
         }
         Relationships: [
