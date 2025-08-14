@@ -4,7 +4,10 @@ import { Card, CardContent } from '@/components/ui/card';
 import { 
   Image, 
   Minus, 
-  Type
+  Type,
+  Columns,
+  Columns2,
+  Columns3
 } from 'lucide-react';
 
 interface ComponentPaletteProps {
@@ -29,6 +32,12 @@ const sectionTypes = [
     icon: Minus,
     title: 'Divider',
     description: 'Add visual separators'
+  },
+  {
+    type: 'column',
+    icon: Columns2,
+    title: 'Column Layout',
+    description: 'Create multi-column sections'
   }
 ];
 

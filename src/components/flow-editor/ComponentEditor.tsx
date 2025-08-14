@@ -5,6 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Slider } from '@/components/ui/slider';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Settings } from 'lucide-react';
 
 interface SectionData {
@@ -12,6 +13,7 @@ interface SectionData {
   type: string;
   order: number;
   config: any;
+  children?: SectionData[][];
 }
 
 interface ComponentEditorProps {
@@ -162,6 +164,52 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
     </div>
   );
 
+  const renderColumnEditor = () => (
+    <div className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="layout">Column Layout</Label>
+        <Select 
+          value={config.layout || '2-col-50-50'} 
+          onValueChange={(value) => updateConfig('layout', value)}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Select layout" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="1-col">Single Column</SelectItem>
+            <SelectItem value="2-col-50-50">Two Columns (50/50)</SelectItem>
+            <SelectItem value="2-col-33-67">Two Columns (33/67)</SelectItem>
+            <SelectItem value="2-col-67-33">Two Columns (67/33)</SelectItem>
+            <SelectItem value="3-col">Three Columns</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="gap">Column Gap: {config.gap || 4}</Label>
+        <Slider
+          value={[config.gap || 4]}
+          onValueChange={(value) => updateConfig('gap', value[0])}
+          min={0}
+          max={12}
+          step={1}
+          className="w-full"
+        />
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="backgroundColor">Background Color</Label>
+        <Input
+          id="backgroundColor"
+          type="color"
+          value={config.backgroundColor || '#ffffff'}
+          onChange={(e) => updateConfig('backgroundColor', e.target.value)}
+          className="h-8"
+        />
+      </div>
+    </div>
+  );
+
   const renderEditor = () => {
     switch (section.type) {
       case 'text':
@@ -170,6 +218,8 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
         return renderImageEditor();
       case 'divider':
         return renderDividerEditor();
+      case 'column':
+        return renderColumnEditor();
       default:
         return (
           <div className="text-center py-4 text-muted-foreground">

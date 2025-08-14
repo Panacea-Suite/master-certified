@@ -51,6 +51,7 @@ interface SectionData {
   type: string;
   order: number;
   config: any;
+  children?: SectionData[][];
 }
 
 export const FlowEditor: React.FC<FlowEditorProps> = ({
@@ -99,27 +100,48 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
     setActiveId(null);
   }, []);
 
-  const handleAddSection = (sectionType: string, position?: number) => {
+  const handleAddSection = (sectionType: string, position?: number, parentId?: string, columnIndex?: number) => {
     const insertIndex = position !== undefined ? position : sections.length;
     
     const newSection: SectionData = {
       id: `${sectionType}-${Date.now()}`,
       type: sectionType,
       order: insertIndex,
-      config: getDefaultConfig(sectionType)
+      config: getDefaultConfig(sectionType),
+      children: sectionType === 'column' ? [] : undefined
     };
 
-    // Insert at specific position and reorder all sections
-    const updatedSections = [...sections];
-    updatedSections.splice(insertIndex, 0, newSection);
+    if (parentId && columnIndex !== undefined) {
+      // Adding to a column
+      setSections(prev => prev.map(section => {
+        if (section.id === parentId) {
+          if (!section.children) {
+            section.children = [];
+          }
+          const updatedChildren = [...section.children];
+          // Ensure the column array exists and is properly typed
+          if (!Array.isArray(updatedChildren[columnIndex])) {
+            updatedChildren[columnIndex] = [];
+          }
+          updatedChildren[columnIndex] = [...updatedChildren[columnIndex], newSection];
+          return { ...section, children: updatedChildren };
+        }
+        return section;
+      }));
+    } else {
+      // Adding to main sections
+      const updatedSections = [...sections];
+      updatedSections.splice(insertIndex, 0, newSection);
+      
+      // Reorder all sections based on their new positions
+      const reorderedSections = updatedSections.map((section, index) => ({
+        ...section,
+        order: index
+      }));
+      
+      setSections(reorderedSections);
+    }
     
-    // Reorder all sections based on their new positions
-    const reorderedSections = updatedSections.map((section, index) => ({
-      ...section,
-      order: index
-    }));
-    
-    setSections(reorderedSections);
     setSelectedSection(newSection);
     toast.success('Section added to page');
   };
@@ -229,10 +251,16 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
         thickness: 1,
         color: '#e5e7eb',
         padding: 4
+      },
+      column: {
+        layout: '2-col-50-50',
+        gap: 4,
+        padding: 4,
+        backgroundColor: 'transparent'
       }
     };
 
-    return configs[sectionType as keyof typeof configs] || {};
+    return configs[sectionType as keyof typeof configs] || { padding: 4 };
   };
 
   const activeSection = sections.find(s => s.id === activeId);
@@ -289,13 +317,14 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                       {sections
                         .sort((a, b) => a.order - b.order)
                         .map((section) => (
-                          <PageSection
-                            key={section.id}
-                            section={section}
-                            isSelected={selectedSection?.id === section.id}
-                            onSelect={() => setSelectedSection(section)}
-                            onDelete={() => handleDeleteSection(section.id)}
-                          />
+              <PageSection
+                key={section.id}
+                section={section}
+                isSelected={selectedSection?.id === section.id}
+                onSelect={() => setSelectedSection(section)}
+                onDelete={() => handleDeleteSection(section.id)}
+                onAddSection={handleAddSection}
+              />
                         ))}
                     </div>
                   </SortableContext>

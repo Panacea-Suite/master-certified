@@ -6,13 +6,14 @@ interface SectionData {
   type: string;
   order: number;
   config: any;
+  children?: SectionData[][];
 }
 
 interface MobilePreviewProps {
   sections: SectionData[];
   selectedSectionId?: string;
   onSelectSection?: (section: SectionData) => void;
-  onAddSection?: (sectionType: string, position: number) => void;
+  onAddSection?: (sectionType: string, position?: number, parentId?: string, columnIndex?: number) => void;
 }
 
 export const MobilePreview: React.FC<MobilePreviewProps> = ({ 
@@ -117,6 +118,7 @@ export const MobilePreview: React.FC<MobilePreviewProps> = ({
                 isSelected={section.id === selectedSectionId}
                 onSelect={() => onSelectSection?.(section)}
                 onDelete={() => {}}
+                onAddSection={onAddSection}
                 isPreview={true}
               />
               

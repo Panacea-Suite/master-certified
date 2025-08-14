@@ -3,12 +3,14 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { ColumnDropZone } from './ColumnDropZone';
 import { 
   GripVertical, 
   Trash2, 
   Image as ImageIcon,
   Type,
-  Minus
+  Minus,
+  Columns2
 } from 'lucide-react';
 
 interface SectionData {
@@ -16,6 +18,7 @@ interface SectionData {
   type: string;
   order: number;
   config: any;
+  children?: SectionData[][];
 }
 
 interface PageSectionProps {
@@ -23,13 +26,15 @@ interface PageSectionProps {
   isSelected: boolean;
   onSelect: () => void;
   onDelete: () => void;
+  onAddSection?: (sectionType: string, position?: number, parentId?: string, columnIndex?: number) => void;
   isPreview?: boolean;
 }
 
 const sectionIcons = {
   text: Type,
   image: ImageIcon,
-  divider: Minus
+  divider: Minus,
+  column: Columns2
 };
 
 export const PageSection: React.FC<PageSectionProps> = ({
@@ -37,6 +42,7 @@ export const PageSection: React.FC<PageSectionProps> = ({
   isSelected,
   onSelect,
   onDelete,
+  onAddSection,
   isPreview = false
 }) => {
   const {
@@ -122,12 +128,103 @@ export const PageSection: React.FC<PageSectionProps> = ({
           </div>
         );
         
+      case 'column':
+        return (
+          <div 
+            className={`column-section ${paddingClass}`}
+            style={{ backgroundColor: config.backgroundColor || 'transparent' }}
+          >
+            <div 
+              className={`grid gap-${config.gap || 4} ${getColumnGridClass(config.layout)}`}
+            >
+              {getColumnCount(config.layout) === 1 && (
+                <ColumnDropZone 
+                  columnIndex={0}
+                  sections={Array.isArray(section.children?.[0]) ? section.children[0] : []}
+                  onAddSection={onAddSection}
+                  parentId={section.id}
+                />
+              )}
+              {getColumnCount(config.layout) === 2 && (
+                <>
+                  <ColumnDropZone 
+                    columnIndex={0}
+                    sections={Array.isArray(section.children?.[0]) ? section.children[0] : []}
+                    onAddSection={onAddSection}
+                    parentId={section.id}
+                  />
+                  <ColumnDropZone 
+                    columnIndex={1}
+                    sections={Array.isArray(section.children?.[1]) ? section.children[1] : []}
+                    onAddSection={onAddSection}
+                    parentId={section.id}
+                  />
+                </>
+              )}
+              {getColumnCount(config.layout) === 3 && (
+                <>
+                  <ColumnDropZone 
+                    columnIndex={0}
+                    sections={Array.isArray(section.children?.[0]) ? section.children[0] : []}
+                    onAddSection={onAddSection}
+                    parentId={section.id}
+                  />
+                  <ColumnDropZone 
+                    columnIndex={1}
+                    sections={Array.isArray(section.children?.[1]) ? section.children[1] : []}
+                    onAddSection={onAddSection}
+                    parentId={section.id}
+                  />
+                  <ColumnDropZone 
+                    columnIndex={2}
+                    sections={Array.isArray(section.children?.[2]) ? section.children[2] : []}
+                    onAddSection={onAddSection}
+                    parentId={section.id}
+                  />
+                </>
+              )}
+            </div>
+          </div>
+        );
+        
       default:
         return (
           <div className={paddingClass}>
             <p className="text-muted-foreground">Unknown section type</p>
           </div>
         );
+    }
+  };
+
+  const getColumnGridClass = (layout: string) => {
+    switch (layout) {
+      case '1-col':
+        return 'grid-cols-1';
+      case '2-col-50-50':
+        return 'grid-cols-2';
+      case '2-col-33-67':
+        return 'grid-cols-[1fr_2fr]';
+      case '2-col-67-33':
+        return 'grid-cols-[2fr_1fr]';
+      case '3-col':
+        return 'grid-cols-3';
+      default:
+        return 'grid-cols-2';
+    }
+  };
+
+  const getColumnCount = (layout: string) => {
+    switch (layout) {
+      case '1-col':
+        return 1;
+      case '2-col-50-50':
+      case '2-col-33-67':
+      case '2-col-67-33':
+        return 2;
+      case '3-col':
+        return 3;
+      default:
+        return 2;
     }
   };
 
@@ -187,6 +284,7 @@ export const PageSection: React.FC<PageSectionProps> = ({
             {section.type === 'text' && (config.content ? `"${config.content.substring(0, 30)}..."` : 'No content')}
             {section.type === 'image' && (config.imageUrl ? 'Image set' : 'No image')}
             {section.type === 'divider' && `${config.width || 100}% width`}
+            {section.type === 'column' && `${config.layout || '2-col-50-50'} layout`}
           </div>
         </div>
       </Card>
