@@ -83,20 +83,26 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
     if (templateToEdit && 'pages' in templateToEdit) {
       // Convert FlowTemplateData pages to PageData format
       const prebuiltTemplate = templateToEdit as any;
-      return prebuiltTemplate.pages.map((page: any, index: number) => ({
-        id: page.id,
-        type: page.type,
-        name: page.name,
-        sections: page.sections.map((section: any, sectionIndex: number) => ({
-          id: section.id,
-          type: section.type,
-          order: sectionIndex,
-          config: section.config
-        })),
-        settings: {},
-        isMandatory: false,
-        order: index
-      }));
+      return prebuiltTemplate.pages.map((page: any, index: number) => {
+        // Determine if page should be mandatory based on type
+        const mandatoryPageTypes = ['store_selection', 'authentication', 'purchase_details', 'thank_you'];
+        const isMandatory = mandatoryPageTypes.includes(page.type);
+        
+        return {
+          id: page.id,
+          type: page.type,
+          name: page.name,
+          sections: page.sections.map((section: any, sectionIndex: number) => ({
+            id: section.id,
+            type: section.type,
+            order: sectionIndex,
+            config: section.config
+          })),
+          settings: {},
+          isMandatory,
+          order: index
+        };
+      });
     }
     
     if (templateToEdit?.flow_config?.pages) {
