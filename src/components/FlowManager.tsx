@@ -458,9 +458,44 @@ const FlowManager = () => {
         <FlowEditor
           isOpen={true}
           onClose={closeModals}
-          onSave={() => {
-            fetchFlows(); // Refresh the flows list
-            closeModals();
+          onSave={async (pageData) => {
+            console.log('FlowManager onSave called with:', pageData);
+            try {
+              // Update the existing flow with the new data
+              const { error } = await supabase
+                .from('flows')
+                .update({
+                  name: pageData.name,
+                  flow_config: pageData.flow_config,
+                })
+                .eq('id', selectedFlow.id);
+
+              if (error) {
+                console.error('Error updating flow:', error);
+                toast({
+                  title: "Error",
+                  description: "Failed to save page changes",
+                  variant: "destructive",
+                });
+                return;
+              }
+
+              console.log('Page saved successfully');
+              toast({
+                title: "Success", 
+                description: "Page changes saved successfully",
+              });
+              
+              fetchFlows(); // Refresh the flows list
+              closeModals();
+            } catch (error) {
+              console.error('Error in onSave:', error);
+              toast({
+                title: "Error",
+                description: "Failed to save page changes",
+                variant: "destructive",
+              });
+            }
           }}
           templateToEdit={selectedFlow ? convertFlowToTemplate(selectedFlow) : null}
         />

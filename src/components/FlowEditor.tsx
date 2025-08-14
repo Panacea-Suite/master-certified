@@ -182,6 +182,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
     setIsSaving(true);
     
      try {
+       console.log('Starting to save page...');
      // Create page configuration
       let pageConfig = {
         sections: sections.sort((a, b) => a.order - b.order),
@@ -271,6 +272,9 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-7xl max-h-[95vh] overflow-hidden p-0">
+        <DialogHeader className="sr-only">
+          <DialogTitle>Page Builder</DialogTitle>
+        </DialogHeader>
         <div className="flex h-[95vh]">
           {/* Left Panel - Component Palette */}
           <div className="w-80 border-r bg-muted/30 p-4 overflow-y-auto">
