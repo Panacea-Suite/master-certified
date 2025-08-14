@@ -100,21 +100,26 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
   }, []);
 
   const handleAddSection = (sectionType: string, position?: number) => {
+    const insertIndex = position !== undefined ? position : sections.length;
+    
     const newSection: SectionData = {
       id: `${sectionType}-${Date.now()}`,
       type: sectionType,
-      order: position !== undefined ? position : sections.length,
+      order: insertIndex,
       config: getDefaultConfig(sectionType)
     };
 
-    if (position !== undefined) {
-      // Insert at specific position and reorder
-      const updatedSections = [...sections];
-      updatedSections.splice(position, 0, newSection);
-      setSections(updatedSections.map((section, index) => ({ ...section, order: index })));
-    } else {
-      setSections(prev => [...prev, newSection]);
-    }
+    // Insert at specific position and reorder all sections
+    const updatedSections = [...sections];
+    updatedSections.splice(insertIndex, 0, newSection);
+    
+    // Reorder all sections based on their new positions
+    const reorderedSections = updatedSections.map((section, index) => ({
+      ...section,
+      order: index
+    }));
+    
+    setSections(reorderedSections);
     setSelectedSection(newSection);
     toast.success('Section added to page');
   };

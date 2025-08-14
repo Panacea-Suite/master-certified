@@ -25,15 +25,25 @@ export const MobilePreview: React.FC<MobilePreviewProps> = ({
 
   const handleDragOver = (e: React.DragEvent, index: number) => {
     e.preventDefault();
+    e.stopPropagation();
     setDragOverIndex(index);
   };
 
-  const handleDragLeave = () => {
-    setDragOverIndex(null);
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    // Only clear drag over if we're leaving the entire drop zone
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const x = e.clientX;
+    const y = e.clientY;
+    
+    if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) {
+      setDragOverIndex(null);
+    }
   };
 
   const handleDrop = (e: React.DragEvent, index: number) => {
     e.preventDefault();
+    e.stopPropagation();
     const sectionType = e.dataTransfer.getData('text/plain');
     if (sectionType && onAddSection) {
       onAddSection(sectionType, index);
