@@ -104,6 +104,7 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
         
         // Check if the loaded image has transparency (for PNG files)
         if (file.type === 'image/png') {
+          console.log("Checking PNG for transparency...");
           const tempCanvas = document.createElement('canvas');
           const tempCtx = tempCanvas.getContext('2d');
           if (tempCtx) {
@@ -114,10 +115,13 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
             const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
             const hasAlpha = imageData.data.some((_, index) => index % 4 === 3 && imageData.data[index] < 255);
             
+            console.log("PNG transparency check result:", hasAlpha);
+            
             if (hasAlpha) {
+              console.log("Setting transparent background for canvas");
               setHasTransparentBackground(true);
-              // Set canvas background to null/undefined to show CSS checkerboard
-              canvas.backgroundColor = undefined;
+              // Try different approaches to make canvas background transparent
+              canvas.backgroundColor = null;
               canvas.renderAll();
               toast.success("PNG with transparency loaded!");
             }
@@ -345,8 +349,10 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
       // Replace the current image with the processed one
       fabricCanvas.remove(originalImage);
       
-      // Set background to undefined to show CSS checkerboard pattern
-      fabricCanvas.backgroundColor = undefined;
+      // Set background to null to show CSS checkerboard pattern
+      console.log("Setting canvas background to null for removed background");
+      fabricCanvas.backgroundColor = null;
+      fabricCanvas.renderAll();
       
       // Scale and position the new image
       const canvasWidth = canvasSize.width;
@@ -520,12 +526,15 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
             )}
             <canvas
               ref={canvasRef}
-              className={`border border-border rounded shadow-lg max-w-full max-h-full`}
+              className={`border border-border rounded shadow-lg max-w-full max-h-full ${
+                hasTransparentBackground ? 'transparent-canvas' : ''
+              }`}
               style={{
+                // Force transparent background to show checkerboard
+                backgroundColor: hasTransparentBackground ? 'rgba(0,0,0,0)' : '#ffffff',
                 backgroundImage: hasTransparentBackground 
                   ? 'repeating-conic-gradient(#808080 0% 25%, transparent 0% 50%) 50% / 20px 20px'
-                  : undefined,
-                backgroundColor: hasTransparentBackground ? 'transparent' : '#ffffff'
+                  : undefined
               }}
             />
           </div>

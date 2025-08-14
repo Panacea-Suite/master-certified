@@ -2,6 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Transparency Canvas Styles */
+.transparent-canvas {
+  /* Checkerboard background for transparent canvas elements */
+  background-image: repeating-conic-gradient(#d0d0d0 0% 25%, transparent 0% 50%) !important;
+  background-size: 20px 20px !important;
+}
+
 /* Certified Platform Traditional Design System
 All colors MUST be HSL.
 */
