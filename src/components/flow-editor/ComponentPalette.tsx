@@ -100,16 +100,17 @@ export const ComponentPalette: React.FC<ComponentPaletteProps> = ({ onAddCompone
               <CollapsibleTrigger asChild>
                 <Button 
                   variant="ghost" 
-                  className="w-full justify-between text-sm font-medium p-2 h-auto"
+                  className="w-full justify-between text-sm font-medium p-2 h-auto hover:bg-accent"
+                  onClick={() => toggleCategory(category.category)}
                 >
                   <div className="flex items-center gap-2">
                     <CategoryIcon className="h-4 w-4" />
                     {category.category}
                   </div>
                   {isOpen ? (
-                    <ChevronDown className="h-4 w-4" />
+                    <ChevronDown className="h-4 w-4 transition-transform" />
                   ) : (
-                    <ChevronRight className="h-4 w-4" />
+                    <ChevronRight className="h-4 w-4 transition-transform" />
                   )}
                 </Button>
               </CollapsibleTrigger>
