@@ -34,6 +34,7 @@ const CampaignManager = () => {
   const [newStores, setNewStores] = useState('');
   const [selectedBrandId, setSelectedBrandId] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [showCreateForm, setShowCreateForm] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -123,6 +124,7 @@ const CampaignManager = () => {
       setNewCampaignDescription('');
       setNewStores('');
       setSelectedBrandId('');
+      setShowCreateForm(false);
       toast({
         title: "Success",
         description: "Campaign created successfully",
@@ -169,71 +171,80 @@ const CampaignManager = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Campaign Management</h1>
+        <Button 
+          onClick={() => setShowCreateForm(!showCreateForm)}
+          variant={showCreateForm ? "outline" : "default"}
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          {showCreateForm ? 'Cancel' : 'Create New Campaign'}
+        </Button>
       </div>
 
-      {/* Create Campaign Form */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Create New Campaign</CardTitle>
-          <CardDescription>
-            Create a new campaign for a specific product line
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* Create Campaign Form - Conditionally Rendered */}
+      {showCreateForm && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Create New Campaign</CardTitle>
+            <CardDescription>
+              Create a new campaign for a specific product line
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="campaignName">Campaign Name</Label>
+                <Input
+                  id="campaignName"
+                  value={newCampaignName}
+                  onChange={(e) => setNewCampaignName(e.target.value)}
+                  placeholder="Enter campaign name"
+                />
+              </div>
+              <div>
+                <Label htmlFor="brandSelect">Brand</Label>
+                <Select value={selectedBrandId} onValueChange={setSelectedBrandId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a brand" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {brands.map((brand) => (
+                      <SelectItem key={brand.id} value={brand.id}>
+                        {brand.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
             <div>
-              <Label htmlFor="campaignName">Campaign Name</Label>
-              <Input
-                id="campaignName"
-                value={newCampaignName}
-                onChange={(e) => setNewCampaignName(e.target.value)}
-                placeholder="Enter campaign name"
+              <Label htmlFor="campaignDescription">Description (Optional)</Label>
+              <Textarea
+                id="campaignDescription"
+                value={newCampaignDescription}
+                onChange={(e) => setNewCampaignDescription(e.target.value)}
+                placeholder="Enter campaign description"
               />
             </div>
             <div>
-              <Label htmlFor="brandSelect">Brand</Label>
-              <Select value={selectedBrandId} onValueChange={setSelectedBrandId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a brand" />
-                </SelectTrigger>
-                <SelectContent>
-                  {brands.map((brand) => (
-                    <SelectItem key={brand.id} value={brand.id}>
-                      {brand.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label htmlFor="approvedStores">Approved Stores</Label>
+              <Textarea
+                id="approvedStores"
+                value={newStores}
+                onChange={(e) => setNewStores(e.target.value)}
+                placeholder="Enter approved store names, separated by commas (e.g., Store A, Store B, Store C)"
+                rows={3}
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                These stores will be available for customers to select during verification
+              </p>
             </div>
-          </div>
-          <div>
-            <Label htmlFor="campaignDescription">Description (Optional)</Label>
-            <Textarea
-              id="campaignDescription"
-              value={newCampaignDescription}
-              onChange={(e) => setNewCampaignDescription(e.target.value)}
-              placeholder="Enter campaign description"
-            />
-          </div>
-          <div>
-            <Label htmlFor="approvedStores">Approved Stores</Label>
-            <Textarea
-              id="approvedStores"
-              value={newStores}
-              onChange={(e) => setNewStores(e.target.value)}
-              placeholder="Enter approved store names, separated by commas (e.g., Store A, Store B, Store C)"
-              rows={3}
-            />
-            <p className="text-xs text-muted-foreground mt-1">
-              These stores will be available for customers to select during verification
-            </p>
-          </div>
-          <Button onClick={createCampaign}>
-            <Plus className="w-4 h-4 mr-2" />
-            Create Campaign
-          </Button>
-        </CardContent>
-      </Card>
+            <Button onClick={createCampaign}>
+              <Plus className="w-4 h-4 mr-2" />
+              Create Campaign
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Campaigns List */}
       <div className="grid gap-4">
