@@ -51,6 +51,7 @@ export const MobilePreview: React.FC<MobilePreviewProps> = ({
   const scaledHeight = deviceHeight * scale;
 
   const getLogoSizeClasses = (size: string) => {
+    console.log('Logo size requested:', size); // Debug log
     switch (size) {
       case 'small':
         return 'h-32 max-w-none w-auto';
