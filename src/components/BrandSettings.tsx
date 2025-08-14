@@ -123,19 +123,17 @@ const BrandSettings = () => {
 
       console.log('Upload successful:', uploadData);
 
-      // Get public URL with cache-busting parameter
+      // Get public URL (store clean URL in database)
       const { data: { publicUrl } } = supabase.storage
         .from('brand-logos')
         .getPublicUrl(fileName);
 
-      // Add cache-busting parameter to ensure fresh image loads
-      const cacheBustedUrl = `${publicUrl}?t=${Date.now()}`;
-      console.log('Generated public URL with cache-busting:', cacheBustedUrl);
+      console.log('Generated public URL:', publicUrl);
 
-      // Update brand with logo URL (store the cache-busted URL)
+      // Update brand with clean logo URL
       const { error: updateError } = await supabase
         .from('brands')
-        .update({ logo_url: cacheBustedUrl })
+        .update({ logo_url: publicUrl })
         .eq('id', brand.id);
 
       if (updateError) {
@@ -145,7 +143,8 @@ const BrandSettings = () => {
 
       console.log('Brand updated successfully');
 
-      setBrand({ ...brand, logo_url: cacheBustedUrl });
+      // Update state with clean URL, we'll apply cache-busting when displaying
+      setBrand({ ...brand, logo_url: publicUrl });
       setSelectedFile(null);
       toast({
         title: "Success",
@@ -285,9 +284,10 @@ const BrandSettings = () => {
             {brand.logo_url && (
               <div className="flex justify-center">
                 <img
-                  src={brand.logo_url}
+                  src={`${brand.logo_url}?t=${Date.now()}`}
                   alt="Brand Logo"
                   className="w-32 h-32 object-contain border rounded-lg"
+                  key={brand.logo_url} // Force re-render when URL changes
                 />
               </div>
             )}

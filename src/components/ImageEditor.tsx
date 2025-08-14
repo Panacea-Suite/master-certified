@@ -388,16 +388,65 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
   };
 
   const handleSave = () => {
-    if (!fabricCanvas) return;
+    if (!fabricCanvas) {
+      console.error("No fabric canvas available for save");
+      toast.error("Editor not ready. Please try again.");
+      return;
+    }
 
-    // Export canvas as blob
-    fabricCanvas.toCanvasElement().toBlob((blob) => {
-      if (blob) {
-        const editedFile = new File([blob], file.name, { type: "image/png" });
-        onSave(editedFile);
-        toast.success("Image saved successfully!");
+    console.log("Starting image save process...");
+    console.log("Canvas dimensions:", fabricCanvas.getWidth(), "x", fabricCanvas.getHeight());
+    console.log("Output dimensions:", outputWidth, "x", outputHeight);
+
+    try {
+      // Ensure canvas is properly rendered before export
+      fabricCanvas.renderAll();
+      
+      // Create canvas at desired output size
+      const outputCanvas = document.createElement('canvas');
+      outputCanvas.width = outputWidth;
+      outputCanvas.height = outputHeight;
+      const outputCtx = outputCanvas.getContext('2d');
+
+      if (!outputCtx) {
+        throw new Error('Could not get canvas context for output');
       }
-    }, "image/png", 1.0);
+
+      // Set background color if not transparent
+      if (!hasTransparentBackground) {
+        outputCtx.fillStyle = '#ffffff';
+        outputCtx.fillRect(0, 0, outputWidth, outputHeight);
+      }
+
+      // Get the fabric canvas as a regular canvas element
+      const fabricCanvasElement = fabricCanvas.toCanvasElement();
+      
+      // Scale and draw the fabric canvas onto the output canvas
+      outputCtx.drawImage(
+        fabricCanvasElement,
+        0, 0, fabricCanvasElement.width, fabricCanvasElement.height,
+        0, 0, outputWidth, outputHeight
+      );
+
+      console.log("Canvas export completed");
+
+      // Convert to blob with error handling
+      outputCanvas.toBlob((blob) => {
+        if (blob) {
+          console.log("Blob created successfully:", blob.size, "bytes");
+          const editedFile = new File([blob], file.name, { type: "image/png" });
+          onSave(editedFile);
+          toast.success("Image saved successfully!");
+        } else {
+          console.error("Failed to create blob from canvas");
+          toast.error("Failed to save image. Please try again.");
+        }
+      }, "image/png", 1.0);
+
+    } catch (error) {
+      console.error("Error during save process:", error);
+      toast.error("Failed to save image. Please try again.");
+    }
   };
 
   return (
