@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight, Home } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { MobilePreview } from './MobilePreview';
 import { PageData } from './PageManager';
+import { TemplateStyleProvider } from '@/components/TemplateStyleProvider';
 
 export interface DeviceSpec {
   name: string;
@@ -37,6 +38,12 @@ interface FlowPreviewProps {
     backgroundColor: string;
     logoSize: string;
   };
+  templateId?: string;
+  brandColors?: {
+    primary: string;
+    secondary: string;
+    accent: string;
+  };
 }
 
 export const FlowPreview: React.FC<FlowPreviewProps> = ({
@@ -53,7 +60,9 @@ export const FlowPreview: React.FC<FlowPreviewProps> = ({
     logoUrl: '',
     backgroundColor: '#ffffff',
     logoSize: 'medium'
-  }
+  },
+  templateId,
+  brandColors
 }) => {
   const [selectedDevice, setSelectedDevice] = useState<DeviceSpec>(DEVICE_SPECS[0]); // Default to iPhone 14
   const currentPageIndex = pages.findIndex(p => p.id === currentPageId);
@@ -88,93 +97,95 @@ export const FlowPreview: React.FC<FlowPreviewProps> = ({
   }
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Header with Title and Device Selector */}
-      <div className="flex items-center justify-between p-4 border-b bg-background">
-        <h3 className="text-lg font-semibold">Flow Preview</h3>
-        <div className="flex items-center gap-4">
-          <Select
-            value={selectedDevice.name}
-            onValueChange={(value) => {
-              const device = DEVICE_SPECS.find(d => d.name === value);
-              if (device) setSelectedDevice(device);
-            }}
-          >
-            <SelectTrigger className="w-48">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent className="bg-background border z-50">
-              {DEVICE_SPECS.map((device) => (
-                <SelectItem key={device.name} value={device.name}>
-                  {device.displayName} ({device.width}×{device.height})
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      {/* Page Navigation */}
-      {pages.length > 1 && (
+    <TemplateStyleProvider templateId={templateId} brandColors={brandColors}>
+      <div className="flex flex-col h-full">
+        {/* Header with Title and Device Selector */}
         <div className="flex items-center justify-between p-4 border-b bg-background">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handlePrevPage}
-            disabled={currentPageIndex === 0}
-          >
-            <ChevronLeft className="h-4 w-4 mr-1" />
-            Previous
-          </Button>
-          
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">
-              Page {currentPageIndex + 1} of {pages.length}
-            </span>
-            <div className="flex gap-1">
-              {pages.map((_, index) => (
-                <div
-                  key={index}
-                  className={`w-2 h-2 rounded-full ${
-                    index === currentPageIndex ? 'bg-primary' : 'bg-muted'
-                  }`}
-                />
-              ))}
-            </div>
+          <h3 className="text-lg font-semibold">Flow Preview</h3>
+          <div className="flex items-center gap-4">
+            <Select
+              value={selectedDevice.name}
+              onValueChange={(value) => {
+                const device = DEVICE_SPECS.find(d => d.name === value);
+                if (device) setSelectedDevice(device);
+              }}
+            >
+              <SelectTrigger className="w-48">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-background border z-50">
+                {DEVICE_SPECS.map((device) => (
+                  <SelectItem key={device.name} value={device.name}>
+                    {device.displayName} ({device.width}×{device.height})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-          
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleNextPage}
-            disabled={currentPageIndex === pages.length - 1}
-          >
-            Next
-            <ChevronRight className="h-4 w-4 ml-1" />
-          </Button>
         </div>
-      )}
-      
-      {/* Mobile Preview */}
-      <div className="flex-1 flex items-center justify-center p-8">
-        <MobilePreview
-          sections={currentPage.sections.sort((a, b) => a.order - b.order)}
-          selectedSectionId={selectedSectionId}
-          onSelectSection={onSelectSection}
-          onAddSection={onAddSection}
-          backgroundColor={backgroundColor}
-          globalHeader={globalHeader}
-          deviceSpec={selectedDevice}
-        />
+
+        {/* Page Navigation */}
+        {pages.length > 1 && (
+          <div className="flex items-center justify-between p-4 border-b bg-background">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handlePrevPage}
+              disabled={currentPageIndex === 0}
+            >
+              <ChevronLeft className="h-4 w-4 mr-1" />
+              Previous
+            </Button>
+            
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">
+                Page {currentPageIndex + 1} of {pages.length}
+              </span>
+              <div className="flex gap-1">
+                {pages.map((_, index) => (
+                  <div
+                    key={index}
+                    className={`w-2 h-2 rounded-full ${
+                      index === currentPageIndex ? 'bg-primary' : 'bg-muted'
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleNextPage}
+              disabled={currentPageIndex === pages.length - 1}
+            >
+              Next
+              <ChevronRight className="h-4 w-4 ml-1" />
+            </Button>
+          </div>
+        )}
+        
+        {/* Mobile Preview */}
+        <div className="flex-1 flex items-center justify-center p-8">
+          <MobilePreview
+            sections={currentPage.sections.sort((a, b) => a.order - b.order)}
+            selectedSectionId={selectedSectionId}
+            onSelectSection={onSelectSection}
+            onAddSection={onAddSection}
+            backgroundColor={backgroundColor}
+            globalHeader={globalHeader}
+            deviceSpec={selectedDevice}
+          />
+        </div>
+        
+        {/* Current Page Info */}
+        <div className="p-4 border-t bg-muted/30 text-center">
+          <h4 className="font-medium text-sm">{currentPage.name}</h4>
+          <p className="text-xs text-muted-foreground capitalize">
+            {currentPage.type.replace('_', ' ')} • {currentPage.sections.length} sections
+          </p>
+        </div>
       </div>
-      
-      {/* Current Page Info */}
-      <div className="p-4 border-t bg-muted/30 text-center">
-        <h4 className="font-medium text-sm">{currentPage.name}</h4>
-        <p className="text-xs text-muted-foreground capitalize">
-          {currentPage.type.replace('_', ' ')} • {currentPage.sections.length} sections
-        </p>
-      </div>
-    </div>
+    </TemplateStyleProvider>
   );
 };

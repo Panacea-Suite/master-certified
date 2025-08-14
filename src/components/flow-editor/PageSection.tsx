@@ -4,6 +4,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ColumnDropZone } from './ColumnDropZone';
+import { useTemplateStyle } from '@/components/TemplateStyleProvider';
 import { 
   GripVertical, 
   Trash2, 
@@ -56,6 +57,8 @@ export const PageSection: React.FC<PageSectionProps> = ({
     isDragging,
   } = useSortable({ id: section.id });
 
+  const { getTemplateClasses, getBorderRadius, getShadowClass } = useTemplateStyle();
+
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
@@ -72,7 +75,7 @@ export const PageSection: React.FC<PageSectionProps> = ({
       case 'text':
         return (
           <div 
-            className={`text-section ${paddingClass}`}
+            className={`text-section ${paddingClass} ${getTemplateClasses('text')}`}
             style={{ 
               backgroundColor: config.backgroundColor || 'transparent',
               color: config.textColor || '#000000'
@@ -89,17 +92,17 @@ export const PageSection: React.FC<PageSectionProps> = ({
         
       case 'image':
         return (
-          <div className={`image-section ${paddingClass}`}>
+          <div className={`image-section ${paddingClass} ${getTemplateClasses('card')}`}>
             <div className="space-y-2">
               {config.imageUrl ? (
                 <img 
                   src={config.imageUrl} 
                   alt={config.alt || 'Section image'}
-                  className="w-full h-auto rounded-lg"
+                  className={`w-full h-auto ${getBorderRadius()}`}
                   style={{ maxHeight: config.height || 'auto' }}
                 />
               ) : (
-                <div className="w-full h-32 bg-muted rounded-lg flex items-center justify-center">
+                <div className={`w-full h-32 bg-muted ${getBorderRadius()} flex items-center justify-center`}>
                   <div className="text-center text-muted-foreground">
                     <ImageIcon className="h-8 w-8 mx-auto mb-2" />
                     <p className="text-sm">No image selected</p>

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { PageSection } from './PageSection';
 import { DeviceSpec } from './FlowPreview';
+import { useTemplateStyle } from '@/components/TemplateStyleProvider';
 
 interface SectionData {
   id: string;
@@ -42,6 +43,7 @@ export const MobilePreview: React.FC<MobilePreviewProps> = ({
   deviceSpec = { name: 'iphone14', displayName: 'iPhone 14', width: 390, height: 844 }
 }) => {
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const { getTemplateClasses, getBorderRadius, getShadowClass } = useTemplateStyle();
 
   // Calculate device dimensions and scaling
   const deviceWidth = deviceSpec.width;
@@ -198,7 +200,7 @@ export const MobilePreview: React.FC<MobilePreviewProps> = ({
       )}
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto" style={{ backgroundColor }}>
+      <div className={`flex-1 overflow-y-auto ${getTemplateClasses('section')}`} style={{ backgroundColor }}>
         {/* Drop zone at top */}
         <div
           className={`h-2 transition-all ${dragOverIndex === 0 ? 'h-8 bg-primary/20 border-y-2 border-dashed border-primary' : ''}`}

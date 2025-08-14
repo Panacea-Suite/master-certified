@@ -968,6 +968,8 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
               onAddSection={handleAddSection}
               backgroundColor={pageSettings.backgroundColor}
               globalHeader={globalHeader}
+              templateId={selectedTemplateId}
+              brandColors={brandData?.brand_colors}
             />
           </div>
 
