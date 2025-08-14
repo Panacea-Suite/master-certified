@@ -15,7 +15,7 @@ interface Flow {
   name: string;
   campaign_id?: string;
   flow_config?: any;
-  redirect_url: string;
+  base_url?: string;
   created_at: string;
   campaigns?: {
     name: string;
@@ -159,7 +159,7 @@ const FlowManager = () => {
         .insert([{
           name: newFlowName,
           campaign_id: campaignData.id,
-          redirect_url: `${window.location.origin}/flow/${campaignData.id}`,
+          base_url: `${window.location.origin}/flow/${campaignData.id}`,
           flow_config: flowConfig
         }])
         .select(`
@@ -226,7 +226,7 @@ const FlowManager = () => {
         .insert([{
           name: `${flow.name} (Copy)`,
           campaign_id: campaignData.id,
-          redirect_url: flow.redirect_url,
+          base_url: flow.base_url,
           flow_config: flow.flow_config
         }])
         .select(`
@@ -428,8 +428,8 @@ const FlowManager = () => {
                 <CardContent>
                   <div className="space-y-3">
                     <div className="text-sm">
-                      <span className="font-medium">Redirect URL:</span> 
-                      <span className="text-muted-foreground ml-1">{flow.redirect_url}</span>
+                      <span className="font-medium">Base URL:</span> 
+                      <span className="text-muted-foreground ml-1">{flow.base_url}</span>
                     </div>
                     
                     <div className="flex gap-2">

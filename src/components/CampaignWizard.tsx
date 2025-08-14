@@ -26,6 +26,7 @@ interface WizardData {
     name: string;
     description: string;
     approved_stores: string;
+    final_redirect_url: string;
   };
   batch: {
     name: string;
@@ -33,7 +34,6 @@ interface WizardData {
   };
   flow: {
     name: string;
-    redirect_url: string;
   };
 }
 
@@ -43,15 +43,15 @@ const CampaignWizard = ({ currentBrand, onComplete, onCancel }: CampaignWizardPr
     campaign: {
       name: '',
       description: '',
-      approved_stores: currentBrand?.approved_stores?.join(', ') || ''
+      approved_stores: currentBrand?.approved_stores?.join(', ') || '',
+      final_redirect_url: 'https://example.com'
     },
     batch: {
       name: '',
       qr_code_count: 100
     },
     flow: {
-      name: '',
-      redirect_url: 'https://example.com'
+      name: ''
     }
   });
   const [isProcessing, setIsProcessing] = useState(false);
@@ -70,7 +70,7 @@ const CampaignWizard = ({ currentBrand, onComplete, onCancel }: CampaignWizardPr
       case 2:
         return wizardData.batch.name.trim() !== '' && wizardData.batch.qr_code_count > 0;
       case 3:
-        return wizardData.flow.name.trim() !== '' && wizardData.flow.redirect_url.trim() !== '';
+        return wizardData.flow.name.trim() !== '' && wizardData.campaign.final_redirect_url.trim() !== '';
       default:
         return false;
     }
@@ -113,7 +113,8 @@ const CampaignWizard = ({ currentBrand, onComplete, onCancel }: CampaignWizardPr
           brand_id: currentBrand.id,
           approved_stores: wizardData.campaign.approved_stores 
             ? wizardData.campaign.approved_stores.split(',').map(s => s.trim()).filter(s => s)
-            : []
+            : [],
+          final_redirect_url: wizardData.campaign.final_redirect_url
         }])
         .select()
         .single();
@@ -142,14 +143,14 @@ const CampaignWizard = ({ currentBrand, onComplete, onCancel }: CampaignWizardPr
         .insert([{
           name: flowName,
           campaign_id: campaignData.id,
-          redirect_url: wizardData.flow.redirect_url,
+          base_url: `${window.location.origin}/flow/${campaignData.id}`,
           flow_config: {
             stages: [
               { title: 'Welcome', description: 'Customer scans QR code' },
-              { title: 'Registration', description: 'Customer enters details' },
-              { title: 'Verification', description: 'Email/SMS verification' },
-              { title: 'Information', description: 'Product information display' },
-              { title: 'Content', description: 'Testing docs & logistics' },
+              { title: 'Store Location', description: 'Where did you purchase this?' },
+              { title: 'Account Creation', description: 'Optional account setup' },
+              { title: 'Authentication', description: 'Product verification' },
+              { title: 'Content', description: 'Product information & docs' },
               { title: 'Completion', description: 'Thank you & redirect' }
             ]
           }
@@ -347,19 +348,19 @@ const CampaignWizard = ({ currentBrand, onComplete, onCancel }: CampaignWizardPr
               />
             </div>
             <div>
-              <Label htmlFor="redirectUrl">Redirect URL *</Label>
+              <Label htmlFor="finalRedirectUrl">Final Destination URL *</Label>
               <Input
-                id="redirectUrl"
+                id="finalRedirectUrl"
                 type="url"
-                value={wizardData.flow.redirect_url}
+                value={wizardData.campaign.final_redirect_url}
                 onChange={(e) => setWizardData({
                   ...wizardData,
-                  flow: { ...wizardData.flow, redirect_url: e.target.value }
+                  campaign: { ...wizardData.campaign, final_redirect_url: e.target.value }
                 })}
-                placeholder="https://example.com"
+                placeholder="https://your-website.com/landing"
               />
               <p className="text-xs text-muted-foreground mt-1">
-                Where customers will be redirected after completing the flow
+                Where customers will be redirected after completing the flow (managed through our system)
               </p>
             </div>
             <div className="p-4 bg-muted rounded-lg">
@@ -387,7 +388,7 @@ const CampaignWizard = ({ currentBrand, onComplete, onCancel }: CampaignWizardPr
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">6</span>
-                  <span>Completion - Thank you & redirect to {wizardData.flow.redirect_url}</span>
+                  <span>Completion - Thank you & redirect to {wizardData.campaign.final_redirect_url}</span>
                 </div>
               </div>
             </div>

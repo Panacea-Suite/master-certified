@@ -170,13 +170,31 @@ const BatchManager = () => {
       // Generate QR codes (placeholder for now)
       const batch = batches.find(b => b.id === batchId);
       if (batch) {
+        // Get the flow associated with this batch's campaign
+        const { data: campaignData } = await supabase
+          .from('campaigns')
+          .select(`
+            flows (
+              id
+            )
+          `)
+          .eq('id', batch.campaigns?.id)
+          .single();
+
+        const flowId = campaignData?.flows?.[0]?.id;
+
         const qrCodes = [];
         for (let i = 0; i < batch.qr_code_count; i++) {
-          const uniqueCode = `${batchId}-${Date.now()}-${i}`;
+          const uniqueCode = `${batchId.substring(0, 8)}-${Date.now()}-${String(i).padStart(3, '0')}`;
+          const managedUrl = `${window.location.origin}/qr/${uniqueCode}`;
+          const uniqueFlowUrl = flowId ? `${window.location.origin}/flow/${flowId}/${uniqueCode}` : null;
+          
           qrCodes.push({
             batch_id: batchId,
-            qr_url: `https://qr-api.com/generate?data=${uniqueCode}`,
-            unique_code: uniqueCode
+            flow_id: flowId,
+            qr_url: `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(managedUrl)}`,
+            unique_code: uniqueCode,
+            unique_flow_url: uniqueFlowUrl
           });
         }
 

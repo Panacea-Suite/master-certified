@@ -94,6 +94,7 @@ export type Database = {
           brand_id: string
           created_at: string
           description: string | null
+          final_redirect_url: string | null
           flow_settings: Json | null
           id: string
           name: string
@@ -104,6 +105,7 @@ export type Database = {
           brand_id: string
           created_at?: string
           description?: string | null
+          final_redirect_url?: string | null
           flow_settings?: Json | null
           id?: string
           name: string
@@ -114,6 +116,7 @@ export type Database = {
           brand_id?: string
           created_at?: string
           description?: string | null
+          final_redirect_url?: string | null
           flow_settings?: Json | null
           id?: string
           name?: string
@@ -175,30 +178,30 @@ export type Database = {
       }
       flows: {
         Row: {
+          base_url: string | null
           campaign_id: string
           created_at: string
           flow_config: Json | null
           id: string
           name: string
-          redirect_url: string
           updated_at: string
         }
         Insert: {
+          base_url?: string | null
           campaign_id: string
           created_at?: string
           flow_config?: Json | null
           id?: string
           name: string
-          redirect_url: string
           updated_at?: string
         }
         Update: {
+          base_url?: string | null
           campaign_id?: string
           created_at?: string
           flow_config?: Json | null
           id?: string
           name?: string
-          redirect_url?: string
           updated_at?: string
         }
         Relationships: [
@@ -260,28 +263,34 @@ export type Database = {
         Row: {
           batch_id: string
           created_at: string
+          flow_id: string | null
           id: string
           qr_url: string
           scans: number
           unique_code: string
+          unique_flow_url: string | null
           updated_at: string
         }
         Insert: {
           batch_id: string
           created_at?: string
+          flow_id?: string | null
           id?: string
           qr_url: string
           scans?: number
           unique_code: string
+          unique_flow_url?: string | null
           updated_at?: string
         }
         Update: {
           batch_id?: string
           created_at?: string
+          flow_id?: string | null
           id?: string
           qr_url?: string
           scans?: number
           unique_code?: string
+          unique_flow_url?: string | null
           updated_at?: string
         }
         Relationships: [
