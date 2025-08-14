@@ -706,11 +706,29 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                         <div className="space-y-2">
                           {globalHeader.logoUrl && (
                             <div className="flex justify-center">
-                              <img
-                                src={globalHeader.logoUrl}
-                                alt="Brand Logo"
-                                className="w-16 h-16 object-contain border rounded-lg"
-                              />
+                              <div 
+                                className="relative group cursor-pointer"
+                                onClick={() => {
+                                  // Convert URL to file for editing
+                                  fetch(globalHeader.logoUrl)
+                                    .then(res => res.blob())
+                                    .then(blob => {
+                                      const file = new File([blob], 'logo.png', { type: blob.type });
+                                      setSelectedLogoFile(file);
+                                      setShowImageEditor(true);
+                                    })
+                                    .catch(console.error);
+                                }}
+                              >
+                                <img
+                                  src={globalHeader.logoUrl}
+                                  alt="Brand Logo"
+                                  className="w-16 h-16 object-contain border rounded-lg"
+                                />
+                                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                                  <span className="text-white text-xs font-medium">Click to Edit</span>
+                                </div>
+                              </div>
                             </div>
                           )}
                           <div className="flex items-center justify-center w-full">
