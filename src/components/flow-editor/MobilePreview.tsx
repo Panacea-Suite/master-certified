@@ -68,9 +68,40 @@ export const MobilePreview: React.FC<MobilePreviewProps> = ({
 
   if (sections.length === 0) {
     return (
-      <div className="w-[375px] h-[667px] bg-white rounded-3xl shadow-xl border border-gray-200 flex items-center justify-center">
+      <div className="w-[375px] h-[667px] bg-white rounded-3xl shadow-xl border border-gray-200 flex flex-col">
+        {/* Status Bar */}
+        <div className="h-6 bg-black rounded-t-3xl flex items-center justify-center">
+          <div className="w-20 h-1 bg-white rounded-full"></div>
+        </div>
+
+        {/* Global Header with Brand Logo */}
+        {globalHeader.showHeader && (
+          <div 
+            className="p-4 border-b flex items-center justify-center"
+            style={{ backgroundColor: globalHeader.backgroundColor }}
+          >
+            {globalHeader.logoUrl ? (
+              <img 
+                src={globalHeader.logoUrl} 
+                alt={globalHeader.brandName}
+                className="h-8 max-w-24 object-contain"
+              />
+            ) : (
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
+                  <span className="text-primary font-bold text-sm">
+                    {globalHeader.brandName.charAt(0).toUpperCase()}
+                  </span>
+                </div>
+                <span className="font-medium text-sm">{globalHeader.brandName}</span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Empty Content */}
         <div 
-          className="text-center space-y-4 p-8 w-full h-full flex flex-col items-center justify-center border-2 border-dashed border-muted-foreground/30 rounded-3xl"
+          className="flex-1 text-center space-y-4 p-8 flex flex-col items-center justify-center border-2 border-dashed border-muted-foreground/30 m-4 rounded-2xl"
           style={{ backgroundColor }}
           onDragOver={(e) => {
             e.preventDefault();
@@ -93,6 +124,11 @@ export const MobilePreview: React.FC<MobilePreviewProps> = ({
               <div className="text-xs text-primary text-center pt-1">Drop here to add section</div>
             </div>
           )}
+        </div>
+
+        {/* Home Indicator */}
+        <div className="h-6 flex items-center justify-center">
+          <div className="w-32 h-1 bg-gray-300 rounded-full"></div>
         </div>
       </div>
     );
