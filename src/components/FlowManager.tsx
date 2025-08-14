@@ -7,7 +7,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Plus, Edit, Trash2, Eye, Settings, Copy, Smartphone } from 'lucide-react';
-import FlowBuilder from './FlowBuilder';
+import { FlowEditor } from './FlowEditor';
+import { FlowTemplateSelector } from './FlowTemplateSelector';
 import CustomerFlowExperience from './CustomerFlowExperience';
 
 interface Flow {
@@ -17,6 +18,8 @@ interface Flow {
   flow_config?: any;
   base_url?: string;
   created_at: string;
+  template_category?: string;
+  created_by?: string | null;
   campaigns?: {
     name: string;
   };
@@ -29,7 +32,9 @@ const FlowManager = () => {
   const [newFlowDescription, setNewFlowDescription] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [selectedFlowId, setSelectedFlowId] = useState<string | null>(null);
-  const [previewMode, setPreviewMode] = useState<'builder' | 'customer' | null>(null);
+  const [selectedFlow, setSelectedFlow] = useState<Flow | null>(null);
+  const [previewMode, setPreviewMode] = useState<'editor' | 'customer' | null>(null);
+  const [showTemplateSelector, setShowTemplateSelector] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -103,55 +108,10 @@ const FlowManager = () => {
 
       if (campaignError) throw campaignError;
 
-      // Create flow template with the new 5-stage structure
+      // Create flow template with empty sections for drag-and-drop editor
       const flowConfig = {
-        template: true,
-        version: "2.0",
-        stages: [
-          {
-            type: "landing",
-            title: "Welcome to Certified",
-            description: "Verify your product authenticity",
-            content: {
-              welcomeText: "Welcome to our product verification system",
-              features: ["Authentic product verification", "Access to product documentation", "Supply chain transparency"]
-            }
-          },
-          {
-            type: "store_location",
-            title: "Store Location",
-            description: "Where did you purchase this product?",
-            content: {
-              instruction: "Please select the store where you purchased this product"
-            }
-          },
-          {
-            type: "account_creation",
-            title: "Create Account",
-            description: "Optional: Create an account for full access",
-            optional: true,
-            content: {
-              benefits: ["Save verification history", "Access exclusive content", "Get product updates"]
-            }
-          },
-          {
-            type: "authentication",
-            title: "Verification",
-            description: "Checking product authenticity...",
-            content: {
-              authenticMessage: "✅ This product is authentic",
-              suspiciousMessage: "⚠️ This product requires verification"
-            }
-          },
-          {
-            type: "content",
-            title: "Product Information",
-            description: "Access detailed product information",
-            content: {
-              gatedMessage: "Create an account to view detailed product information"
-            }
-          }
-        ]
+        version: "3.0",
+        sections: [] // Empty sections array for new page builder
       };
 
       const { data, error } = await supabase
@@ -179,8 +139,8 @@ const FlowManager = () => {
         description: "Flow template created successfully",
       });
 
-      // Open the flow builder immediately
-      openFlowBuilder(data.id);
+      // Open the flow editor immediately
+      openFlowEditor(data);
     } catch (error) {
       console.error('Error creating flow template:', error);
       toast({
@@ -278,9 +238,14 @@ const FlowManager = () => {
     }
   };
 
-  const openFlowBuilder = (flowId: string) => {
-    setSelectedFlowId(flowId);
-    setPreviewMode('builder');
+  const openFlowEditor = (flow: Flow) => {
+    setSelectedFlow(flow);
+    setSelectedFlowId(flow.id);
+    setPreviewMode('editor');
+  };
+
+  const openTemplateSelector = () => {
+    setShowTemplateSelector(true);
   };
 
   const openCustomerPreview = (flowId: string) => {
@@ -290,7 +255,26 @@ const FlowManager = () => {
 
   const closeModals = () => {
     setSelectedFlowId(null);
+    setSelectedFlow(null);
     setPreviewMode(null);
+    setShowTemplateSelector(false);
+  };
+
+  const convertFlowToTemplate = (flow: Flow) => {
+    return {
+      id: flow.id,
+      name: flow.name,
+      template_category: flow.template_category || 'custom',
+      flow_config: flow.flow_config,
+      created_by: flow.created_by || null
+    };
+  };
+
+  const handleTemplateSelect = (template: any) => {
+    if (template) {
+      openFlowEditor(template);
+    }
+    setShowTemplateSelector(false);
   };
 
   if (isLoading) {
@@ -324,11 +308,14 @@ const FlowManager = () => {
             </div>
             <Button onClick={createNewTemplate} className="mb-0">
               <Plus className="w-4 h-4 mr-2" />
-              Create & Edit Template
+              Create New Page
+            </Button>
+            <Button onClick={openTemplateSelector} variant="outline" className="mb-0">
+              Choose from Templates
             </Button>
           </div>
           <p className="text-sm text-muted-foreground">
-            This will create a new template with the standard 5-stage flow structure and open the drag-and-drop editor.
+            Create a new page using our drag-and-drop editor, or choose from pre-built templates.
           </p>
         </CardContent>
       </Card>
@@ -375,17 +362,23 @@ const FlowManager = () => {
                         Campaign: {flow.campaigns?.name} • Created {new Date(flow.created_at).toLocaleDateString()}
                       </CardDescription>
                       
-                      {/* Flow Stages Preview */}
-                      <div className="mt-3">
-                        <div className="text-sm font-medium mb-2">Flow Structure:</div>
-                        <div className="flex gap-2 flex-wrap">
-                          {flow.flow_config?.stages?.map((stage: any, index: number) => (
-                            <div key={index} className="px-2 py-1 bg-muted rounded text-xs">
-                              {index + 1}. {stage.title}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
+                       {/* Page Sections Preview */}
+                       <div className="mt-3">
+                         <div className="text-sm font-medium mb-2">Page Sections:</div>
+                         <div className="flex gap-2 flex-wrap">
+                           {flow.flow_config?.sections?.length > 0 ? (
+                             flow.flow_config.sections.map((section: any, index: number) => (
+                               <div key={index} className="px-2 py-1 bg-muted rounded text-xs">
+                                 {section.type}
+                               </div>
+                             ))
+                           ) : (
+                             <div className="px-2 py-1 bg-muted rounded text-xs text-muted-foreground">
+                               No sections yet
+                             </div>
+                           )}
+                         </div>
+                       </div>
                     </div>
                     
                     {/* Action Buttons */}
@@ -406,14 +399,14 @@ const FlowManager = () => {
                       >
                         <Copy className="w-4 h-4" />
                       </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => openFlowBuilder(flow.id)}
-                        title="Edit with drag-and-drop editor"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </Button>
+                       <Button 
+                         variant="outline" 
+                         size="sm"
+                         onClick={() => openFlowEditor(flow)}
+                         title="Edit with drag-and-drop page editor"
+                       >
+                         <Edit className="w-4 h-4" />
+                       </Button>
                       <Button 
                         variant="destructive" 
                         size="sm"
@@ -433,15 +426,15 @@ const FlowManager = () => {
                     </div>
                     
                     <div className="flex gap-2">
-                      <Button 
-                        variant="default" 
-                        size="sm"
-                        onClick={() => openFlowBuilder(flow.id)}
-                        className="flex-1"
-                      >
-                        <Settings className="w-4 h-4 mr-2" />
-                        Edit Template
-                      </Button>
+                       <Button 
+                         variant="default" 
+                         size="sm"
+                         onClick={() => openFlowEditor(flow)}
+                         className="flex-1"
+                       >
+                         <Settings className="w-4 h-4 mr-2" />
+                         Edit Page
+                       </Button>
                       <Button 
                         variant="outline" 
                         size="sm"
@@ -460,12 +453,25 @@ const FlowManager = () => {
         )}
       </div>
 
-      {/* Flow Builder Modal */}
-      {previewMode === 'builder' && selectedFlowId && (
-        <div className="fixed inset-0 bg-background z-50 overflow-auto">
-          <FlowBuilder flowId={selectedFlowId} onClose={closeModals} />
-        </div>
+      {/* Flow Editor Modal */}
+      {previewMode === 'editor' && selectedFlow && (
+        <FlowEditor
+          isOpen={true}
+          onClose={closeModals}
+          onSave={() => {
+            fetchFlows(); // Refresh the flows list
+            closeModals();
+          }}
+          templateToEdit={selectedFlow ? convertFlowToTemplate(selectedFlow) : null}
+        />
       )}
+
+      {/* Template Selector Modal */}
+      <FlowTemplateSelector
+        isOpen={showTemplateSelector}
+        onClose={() => setShowTemplateSelector(false)}
+        onSelectTemplate={handleTemplateSelect}
+      />
 
       {/* Customer Preview Modal */}
       {previewMode === 'customer' && selectedFlowId && (
