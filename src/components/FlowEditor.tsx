@@ -267,6 +267,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
   const [showImageEditor, setShowImageEditor] = useState(false);
   const [selectedLogoFile, setSelectedLogoFile] = useState<File | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isEditingLogo, setIsEditingLogo] = useState(false);
   
   // Collapsible sections state
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({
@@ -715,7 +716,8 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                                     .then(blob => {
                                       const file = new File([blob], 'logo.png', { type: blob.type });
                                       setSelectedLogoFile(file);
-                                      setShowImageEditor(true);
+                                      setIsEditingLogo(true);
+                                      setSelectedSection(null); // Clear selected section
                                     })
                                     .catch(console.error);
                                 }}
@@ -749,7 +751,8 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                                   const file = e.target.files?.[0];
                                   if (file) {
                                     setSelectedLogoFile(file);
-                                    setShowImageEditor(true);
+                                    setIsEditingLogo(true);
+                                    setSelectedSection(null); // Clear selected section
                                   }
                                 }}
                               />
@@ -922,9 +925,43 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
             />
           </div>
 
-          {/* Right Panel - Section Properties */}
+          {/* Right Panel - Section Properties or Logo Editor */}
           <div className="w-80 border-l bg-muted/30 p-4 overflow-y-auto">
-            {selectedSection ? (
+            {isEditingLogo && selectedLogoFile ? (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-medium">Edit Logo</h4>
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => {
+                      setIsEditingLogo(false);
+                      setSelectedLogoFile(null);
+                    }}
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                  </Button>
+                </div>
+                <ImageEditor
+                  file={selectedLogoFile}
+                  onSave={(editedFile) => {
+                    // Convert file to data URL
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                      const dataUrl = e.target?.result as string;
+                      setGlobalHeader(prev => ({ ...prev, logoUrl: dataUrl }));
+                    };
+                    reader.readAsDataURL(editedFile);
+                    setIsEditingLogo(false);
+                    setSelectedLogoFile(null);
+                  }}
+                  onCancel={() => {
+                    setIsEditingLogo(false);
+                    setSelectedLogoFile(null);
+                  }}
+                />
+              </div>
+            ) : selectedSection ? (
               <ComponentEditor
                 section={selectedSection}
                 onUpdate={(config) => handleUpdateSection(selectedSection.id, config)}
@@ -942,28 +979,6 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
           </div>
         </div>
       </DialogContent>
-      
-      {/* Image Editor Modal */}
-      {showImageEditor && selectedLogoFile && (
-        <ImageEditor
-          file={selectedLogoFile}
-          onSave={(editedFile) => {
-            // Convert file to data URL
-            const reader = new FileReader();
-            reader.onload = (e) => {
-              const dataUrl = e.target?.result as string;
-              setGlobalHeader(prev => ({ ...prev, logoUrl: dataUrl }));
-            };
-            reader.readAsDataURL(editedFile);
-            setShowImageEditor(false);
-            setSelectedLogoFile(null);
-          }}
-          onCancel={() => {
-            setShowImageEditor(false);
-            setSelectedLogoFile(null);
-          }}
-        />
-      )}
     </Dialog>
   );
 };
