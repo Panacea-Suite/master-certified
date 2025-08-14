@@ -40,6 +40,7 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
   const [error, setError] = useState<string | null>(null);
   const [originalAspectRatio, setOriginalAspectRatio] = useState(1);
   const [isRemovingBackground, setIsRemovingBackground] = useState(false);
+  const [hasTransparentBackground, setHasTransparentBackground] = useState(false);
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -124,31 +125,24 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
     };
   }, [file]); // Removed canvasSize dependency to prevent recreation
 
-  const handleSizeChange = (newWidth: number, newHeight: number) => {
+  const handleImageSizeChange = (newWidth: number, newHeight: number) => {
     if (!originalImage || !fabricCanvas) return;
     
-    // Update state
-    setCanvasSize({ width: newWidth, height: newHeight });
+    // Update output size state only
     setOutputWidth(newWidth);
     setOutputHeight(newHeight);
     
-    // Update canvas dimensions without recreating
-    fabricCanvas.setDimensions({ width: newWidth, height: newHeight });
+    // Calculate scale factor for the image based on desired output size
+    const imageOriginalWidth = originalImage.width || 1;
+    const imageOriginalHeight = originalImage.height || 1;
     
-    // Scale image to fit new canvas size
-    const imageAspect = (originalImage.width || 1) / (originalImage.height || 1);
-    const canvasAspect = newWidth / newHeight;
-
-    let scaleFactor;
-    if (imageAspect > canvasAspect) {
-      scaleFactor = (newWidth * 0.8) / (originalImage.width || 1);
-    } else {
-      scaleFactor = (newHeight * 0.8) / (originalImage.height || 1);
-    }
-
+    // Scale the image to match the desired output dimensions
+    const scaleX = newWidth / imageOriginalWidth;
+    const scaleY = newHeight / imageOriginalHeight;
+    
     originalImage.set({
-      scaleX: scaleFactor,
-      scaleY: scaleFactor,
+      scaleX: scaleX,
+      scaleY: scaleY,
       originX: 'center',
       originY: 'center',
     });
@@ -167,7 +161,7 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
       newHeight = Math.max(32, Math.min(2048, newHeight));
     }
     
-    handleSizeChange(newWidth, newHeight);
+    handleImageSizeChange(newWidth, newHeight);
   };
 
   const handleHeightChange = (value: string) => {
@@ -180,7 +174,7 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
       newWidth = Math.max(32, Math.min(2048, newWidth));
     }
     
-    handleSizeChange(newWidth, newHeight);
+    handleImageSizeChange(newWidth, newHeight);
   };
 
   const handleRotationChange = (value: number[]) => {
@@ -197,7 +191,7 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
     setSelectedPreset(preset);
     const presetData = PRESET_SIZES.find(p => p.name === preset);
     if (presetData) {
-      handleSizeChange(presetData.width, presetData.height);
+      handleImageSizeChange(presetData.width, presetData.height);
     }
   };
 
@@ -320,6 +314,9 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
       // Replace the current image with the processed one
       fabricCanvas.remove(originalImage);
       
+      // Set transparent background to show checkered pattern
+      fabricCanvas.backgroundColor = 'transparent';
+      
       // Scale and position the new image
       const canvasWidth = canvasSize.width;
       const canvasHeight = canvasSize.height;
@@ -346,6 +343,7 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
       fabricCanvas.renderAll();
 
       setOriginalImage(newImage);
+      setHasTransparentBackground(true);
       toast.success("Background removed successfully!");
 
       // Clean up the temporary URL
@@ -403,7 +401,16 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
             )}
             <canvas
               ref={canvasRef}
-              className="border border-border rounded shadow-lg max-w-full max-h-full"
+              className={`border border-border rounded shadow-lg max-w-full max-h-full ${
+                hasTransparentBackground 
+                  ? 'bg-transparent' 
+                  : ''
+              }`}
+              style={{
+                backgroundImage: hasTransparentBackground 
+                  ? 'repeating-conic-gradient(#808080 0% 25%, transparent 0% 50%) 50% / 20px 20px'
+                  : undefined
+              }}
             />
           </div>
 
