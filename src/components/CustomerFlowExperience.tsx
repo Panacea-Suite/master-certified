@@ -395,7 +395,7 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
         {/* Global Header */}
         {globalHeader.showHeader && (brandLogo || globalHeader.brandName) && (
           <div 
-            className="sticky top-0 z-50 p-4 text-white text-center"
+            className="sticky top-0 z-50 h-16 flex items-center justify-center text-white"
             style={{ backgroundColor: globalHeader.backgroundColor }}
           >
             <div className="flex items-center justify-center gap-3">
@@ -403,10 +403,11 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
                 <img 
                   src={brandLogo} 
                   alt="Brand Logo"
-                  className={`${
-                    globalHeader.logoSize === 'small' ? 'h-6' :
-                    globalHeader.logoSize === 'large' ? 'h-12' : 'h-8'
-                  } object-contain`}
+                  className="object-contain"
+                  style={{ 
+                    height: globalHeader.logoSize === 'small' ? '50%' :
+                           globalHeader.logoSize === 'large' ? '90%' : '70%'
+                  }}
                 />
               )}
               {globalHeader.brandName && (

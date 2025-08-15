@@ -52,15 +52,15 @@ export const MobilePreview: React.FC<MobilePreviewProps> = ({
   const scaledWidth = deviceWidth * scale;
   const scaledHeight = deviceHeight * scale;
 
-  const getLogoSizeClasses = (size: string) => {
+  const getLogoSize = (size: string) => {
     switch (size) {
       case 'small':
-        return 'h-6 max-w-none w-auto';
+        return '50%'; // 50% of 64px header = 32px
       case 'large':
-        return 'h-12 max-w-none w-auto';
+        return '90%'; // 90% of 64px header = ~58px
       case 'medium':
       default:
-        return 'h-8 max-w-none w-auto';
+        return '70%'; // 70% of 64px header = ~45px
     }
   };
 
@@ -113,7 +113,8 @@ export const MobilePreview: React.FC<MobilePreviewProps> = ({
               <img 
                 src={globalHeader.logoUrl} 
                 alt={globalHeader.brandName}
-                className={`${getLogoSizeClasses(globalHeader.logoSize)} object-contain`}
+                className="object-contain"
+                style={{ height: getLogoSize(globalHeader.logoSize) }}
               />
             ) : (
               <div className="flex items-center gap-2">
@@ -183,7 +184,8 @@ export const MobilePreview: React.FC<MobilePreviewProps> = ({
             <img 
               src={globalHeader.logoUrl} 
               alt={globalHeader.brandName}
-              className={`${getLogoSizeClasses(globalHeader.logoSize)} object-contain`}
+              className="object-contain"
+              style={{ height: getLogoSize(globalHeader.logoSize) }}
             />
           ) : (
             <div className="flex items-center gap-2">
