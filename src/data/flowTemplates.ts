@@ -19,7 +19,7 @@ export interface FlowPage {
 
 export interface FlowSection {
   id: string;
-  type: 'header' | 'hero' | 'text' | 'image' | 'form' | 'card' | 'button' | 'features' | 'divider' | 'cta' | 'product_showcase';
+  type: 'header' | 'hero' | 'text' | 'image' | 'form' | 'card' | 'button' | 'features' | 'divider' | 'cta' | 'product_showcase' | 'store_selector';
   config: any;
 }
 
@@ -40,68 +40,165 @@ const CERTIFICATION_FLOW_PAGES: FlowPage[] = [
     type: 'welcome',
     sections: [
       {
-        id: 'hero-text',
-        type: 'hero',
+        id: 'hero-title',
+        type: 'text',
         config: {
-          title: 'Verify the authenticity and quality of this product',
+          content: 'Verify Your Product Authenticity',
+          fontSize: 28,
+          textColor: '#1a1a1a',
+          backgroundColor: 'transparent',
+          padding: 4,
+          align: 'center',
+          fontWeight: 'bold'
+        }
+      },
+      {
+        id: 'hero-subtitle',
+        type: 'text', 
+        config: {
+          content: 'Confirm the quality and authenticity of your purchase with our trusted certification process.',
+          fontSize: 16,
+          textColor: '#666666',
+          backgroundColor: 'transparent',
+          padding: 4,
           align: 'center'
         }
       },
       {
-        id: 'features',
-        type: 'features',
+        id: 'product-image',
+        type: 'image',
         config: {
-          items: [
-            'Authentic product verification',
-            'Quality assurance guarantee', 
-            'Warranty registration included',
-            'Trusted certification process'
-          ]
+          imageUrl: '',
+          alt: 'Product verification image',
+          caption: 'Your certified product',
+          height: '300',
+          padding: 4
+        }
+      },
+      {
+        id: 'features-title',
+        type: 'text',
+        config: {
+          content: 'What You Get:',
+          fontSize: 20,
+          textColor: '#1a1a1a',
+          backgroundColor: 'transparent',
+          padding: 4,
+          fontWeight: 'semibold'
+        }
+      },
+      {
+        id: 'feature-1',
+        type: 'text',
+        config: {
+          content: '✓ Authentic product verification',
+          fontSize: 16,
+          textColor: '#333333',
+          backgroundColor: 'transparent',
+          padding: 2
+        }
+      },
+      {
+        id: 'feature-2', 
+        type: 'text',
+        config: {
+          content: '✓ Quality assurance guarantee',
+          fontSize: 16,
+          textColor: '#333333',
+          backgroundColor: 'transparent',
+          padding: 2
+        }
+      },
+      {
+        id: 'feature-3',
+        type: 'text',
+        config: {
+          content: '✓ Warranty registration included',
+          fontSize: 16,
+          textColor: '#333333',
+          backgroundColor: 'transparent',
+          padding: 2
+        }
+      },
+      {
+        id: 'feature-4',
+        type: 'text',
+        config: {
+          content: '✓ Trusted certification process',
+          fontSize: 16,
+          textColor: '#333333',
+          backgroundColor: 'transparent',
+          padding: 2
         }
       },
       {
         id: 'cta-button',
-        type: 'cta',
+        type: 'text',
         config: {
-          text: 'Verify Now',
-          color: 'accent',
-          size: 'large'
+          content: 'Verify Now',
+          fontSize: 18,
+          textColor: '#ffffff',
+          backgroundColor: 'var(--accent)',
+          padding: 6,
+          align: 'center',
+          fontWeight: 'semibold',
+          borderRadius: '8px'
         }
       },
       {
         id: 'divider',
         type: 'divider',
         config: {
-          style: 'accent',
-          decorative: true
-        }
-      },
-      {
-        id: 'product-image',
-        type: 'product_showcase',
-        config: {
-          placeholder: true,
-          backgroundColor: 'primary',
-          caption: 'Your certified product'
+          width: 50,
+          thickness: 2,
+          color: 'var(--accent)',
+          padding: 4
         }
       }
     ]
   },
   {
     id: 'store-selection',
-    name: 'Store Selection',
+    name: 'Store Selection', 
     type: 'store_selection',
     sections: [
       {
-        id: 'store-selector',
-        type: 'form',
+        id: 'store-title',
+        type: 'text',
         config: {
-          title: 'Where did you purchase this product?',
-          subtitle: 'Select your store to continue',
-          fields: [
-            { name: 'store', type: 'select', label: 'Store Location', required: true, options: ['Best Buy', 'Amazon', 'Target', 'Walmart', 'Other'] }
-          ],
-          submitText: 'Continue'
+          content: 'Where did you purchase this product?',
+          fontSize: 24,
+          textColor: '#1a1a1a',
+          backgroundColor: 'transparent',
+          padding: 4,
+          align: 'center',
+          fontWeight: 'bold'
+        }
+      },
+      {
+        id: 'store-subtitle',
+        type: 'text',
+        config: {
+          content: 'Select your store location to continue with verification',
+          fontSize: 16,
+          textColor: '#666666',
+          backgroundColor: 'transparent',
+          padding: 4,
+          align: 'center'
+        }
+      },
+      {
+        id: 'store-selector',
+        type: 'store_selector',
+        config: {
+          label: 'Store Location',
+          placeholder: 'Choose where you purchased...',
+          storeOptions: 'Best Buy\nAmazon\nTarget\nWalmart\nOther Retailer',
+          backgroundColor: '#ffffff',
+          textColor: '#000000',
+          borderColor: '#e5e7eb',
+          focusBorderColor: '#3b82f6',
+          padding: 4
         }
       }
     ]
@@ -109,20 +206,31 @@ const CERTIFICATION_FLOW_PAGES: FlowPage[] = [
   {
     id: 'authentication',
     name: 'User Login',
-    type: 'authentication',
+    type: 'authentication', 
     sections: [
       {
-        id: 'auth-form',
-        type: 'form',
+        id: 'auth-title',
+        type: 'text',
         config: {
-          title: 'Create Account or Sign In',
-          subtitle: 'Register your product and access warranty services',
-          fields: [
-            { name: 'email', type: 'email', label: 'Email Address', required: true },
-            { name: 'password', type: 'password', label: 'Password', required: true }
-          ],
-          submitText: 'Continue',
-          alternateText: 'New user? Create account'
+          content: 'Create Account or Sign In',
+          fontSize: 24,
+          textColor: '#1a1a1a',
+          backgroundColor: 'transparent',
+          padding: 4,
+          align: 'center',
+          fontWeight: 'bold'
+        }
+      },
+      {
+        id: 'auth-subtitle',
+        type: 'text',
+        config: {
+          content: 'Register your product and access warranty services',
+          fontSize: 16,
+          textColor: '#666666',
+          backgroundColor: 'transparent',
+          padding: 4,
+          align: 'center'
         }
       }
     ]
@@ -133,17 +241,28 @@ const CERTIFICATION_FLOW_PAGES: FlowPage[] = [
     type: 'purchase_details',
     sections: [
       {
-        id: 'purchase-form',
-        type: 'form',
+        id: 'details-title',
+        type: 'text',
         config: {
-          title: 'Complete Your Registration',
-          subtitle: 'Provide purchase details for warranty coverage',
-          fields: [
-            { name: 'purchase_date', type: 'date', label: 'Purchase Date', required: true },
-            { name: 'serial_number', type: 'text', label: 'Serial Number (optional)', required: false },
-            { name: 'receipt', type: 'file', label: 'Upload Receipt (optional)', required: false }
-          ],
-          submitText: 'Complete Registration'
+          content: 'Complete Your Registration',
+          fontSize: 24,
+          textColor: '#1a1a1a',
+          backgroundColor: 'transparent',
+          padding: 4,
+          align: 'center',
+          fontWeight: 'bold'
+        }
+      },
+      {
+        id: 'details-subtitle',
+        type: 'text',
+        config: {
+          content: 'Provide purchase details for warranty coverage',
+          fontSize: 16,
+          textColor: '#666666',
+          backgroundColor: 'transparent',
+          padding: 4,
+          align: 'center'
         }
       }
     ]
@@ -154,12 +273,42 @@ const CERTIFICATION_FLOW_PAGES: FlowPage[] = [
     type: 'thank_you',
     sections: [
       {
-        id: 'success',
+        id: 'success-title',
         type: 'text',
         config: {
-          title: '✅ Registration Complete!',
+          content: '✅ Registration Complete!',
+          fontSize: 28,
+          textColor: '#16a34a',
+          backgroundColor: 'transparent',
+          padding: 4,
+          align: 'center',
+          fontWeight: 'bold'
+        }
+      },
+      {
+        id: 'success-message',
+        type: 'text',
+        config: {
           content: 'Your product has been successfully registered. You will receive a confirmation email with your warranty details.',
-          buttonText: 'Download Certificate'
+          fontSize: 16,
+          textColor: '#333333',
+          backgroundColor: 'transparent',
+          padding: 4,
+          align: 'center'
+        }
+      },
+      {
+        id: 'download-button',
+        type: 'text',
+        config: {
+          content: 'Download Certificate',
+          fontSize: 16,
+          textColor: '#ffffff',
+          backgroundColor: 'var(--primary)',
+          padding: 4,
+          align: 'center',
+          fontWeight: 'semibold',
+          borderRadius: '8px'
         }
       }
     ]
