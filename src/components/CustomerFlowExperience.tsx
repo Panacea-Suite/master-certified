@@ -379,7 +379,7 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
         style={{ backgroundColor }}
       >
         {/* Global Header */}
-        {globalHeader.showHeader && (
+        {globalHeader.showHeader && (globalHeader.logoUrl || globalHeader.brandName) && (
           <div 
             className="sticky top-0 z-50 p-4 text-white text-center"
             style={{ backgroundColor: globalHeader.backgroundColor }}
@@ -395,12 +395,14 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
                   } object-contain`}
                 />
               )}
-              <h1 className={`font-semibold ${
-                globalHeader.logoSize === 'small' ? 'text-lg' :
-                globalHeader.logoSize === 'large' ? 'text-2xl' : 'text-xl'
-              }`}>
-                {globalHeader.brandName}
-              </h1>
+              {globalHeader.brandName && (
+                <h1 className={`font-semibold ${
+                  globalHeader.logoSize === 'small' ? 'text-lg' :
+                  globalHeader.logoSize === 'large' ? 'text-2xl' : 'text-xl'
+                }`}>
+                  {globalHeader.brandName}
+                </h1>
+              )}
             </div>
           </div>
         )}
@@ -710,7 +712,7 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
         style={{ backgroundColor }}
       >
         {/* Global Header */}
-        {globalHeader.showHeader && (
+        {globalHeader.showHeader && (globalHeader.logoUrl || globalHeader.brandName) && (
           <div 
             className="sticky top-0 z-50 p-4 text-white text-center"
             style={{ backgroundColor: globalHeader.backgroundColor }}
@@ -726,12 +728,14 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
                   } object-contain`}
                 />
               )}
-              <h1 className={`font-semibold ${
-                globalHeader.logoSize === 'small' ? 'text-lg' :
-                globalHeader.logoSize === 'large' ? 'text-2xl' : 'text-xl'
-              }`}>
-                {globalHeader.brandName}
-              </h1>
+              {globalHeader.brandName && (
+                <h1 className={`font-semibold ${
+                  globalHeader.logoSize === 'small' ? 'text-lg' :
+                  globalHeader.logoSize === 'large' ? 'text-2xl' : 'text-xl'
+                }`}>
+                  {globalHeader.brandName}
+                </h1>
+              )}
             </div>
           </div>
         )}
