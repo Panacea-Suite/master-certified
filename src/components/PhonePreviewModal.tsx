@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { X } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import CustomerFlowExperience from './CustomerFlowExperience';
 
 interface PhonePreviewModalProps {
@@ -15,6 +15,32 @@ export const PhonePreviewModal: React.FC<PhonePreviewModalProps> = ({
   onClose,
   templateData
 }) => {
+  const [currentPageIndex, setCurrentPageIndex] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+
+  // Reset page index when modal opens or template changes
+  useEffect(() => {
+    if (isOpen) {
+      setCurrentPageIndex(0);
+      // Extract pages from template data to get total count
+      const { processTemplateData } = require('@/utils/templateProcessor');
+      try {
+        const processedTemplate = processTemplateData(templateData);
+        setTotalPages(processedTemplate.pages?.length || 0);
+      } catch (error) {
+        console.error('Error processing template for page count:', error);
+        setTotalPages(0);
+      }
+    }
+  }, [isOpen, templateData]);
+
+  const handlePreviousPage = () => {
+    setCurrentPageIndex(Math.max(0, currentPageIndex - 1));
+  };
+
+  const handleNextPage = () => {
+    setCurrentPageIndex(Math.min(totalPages - 1, currentPageIndex + 1));
+  };
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-fit p-0 bg-transparent border-none shadow-none">
@@ -42,6 +68,8 @@ export const PhonePreviewModal: React.FC<PhonePreviewModalProps> = ({
                   <CustomerFlowExperience
                     templateData={templateData}
                     qrCode="phone-preview"
+                    externalPageIndex={currentPageIndex}
+                    hideInternalNavigation={true}
                   />
                 </div>
               </div>
@@ -53,6 +81,49 @@ export const PhonePreviewModal: React.FC<PhonePreviewModalProps> = ({
             <div className="absolute -right-1 top-60 w-1 h-16 bg-gray-700 rounded-l-sm"></div>
             <div className="absolute -left-1 top-32 w-1 h-8 bg-gray-700 rounded-r-sm"></div>
           </div>
+          
+          {/* External Navigation Controls */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-4 mt-6">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handlePreviousPage}
+                disabled={currentPageIndex === 0}
+                className="bg-background"
+              >
+                <ChevronLeft className="h-4 w-4 mr-1" />
+                Previous
+              </Button>
+              
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">
+                  Page {currentPageIndex + 1} of {totalPages}
+                </span>
+                <div className="flex gap-1">
+                  {Array.from({ length: totalPages }, (_, index) => (
+                    <div
+                      key={index}
+                      className={`w-2 h-2 rounded-full ${
+                        index === currentPageIndex ? 'bg-primary' : 'bg-muted'
+                      }`}
+                    />
+                  ))}
+                </div>
+              </div>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleNextPage}
+                disabled={currentPageIndex === totalPages - 1}
+                className="bg-background"
+              >
+                Next
+                <ChevronRight className="h-4 w-4 ml-1" />
+              </Button>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>

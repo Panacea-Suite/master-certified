@@ -20,9 +20,11 @@ interface CustomerFlowExperienceProps {
   flowId?: string;
   qrCode?: string;
   templateData?: any; // For direct template preview
+  externalPageIndex?: number; // For external page navigation control
+  hideInternalNavigation?: boolean; // Hide internal navigation when controlled externally
 }
 
-const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId, qrCode, templateData }) => {
+const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId, qrCode, templateData, externalPageIndex, hideInternalNavigation }) => {
   const [currentStage, setCurrentStage] = useState(0);
   const [flow, setFlow] = useState<any>(null);
   const [campaign, setCampaign] = useState<any>(null);
@@ -53,7 +55,7 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
 
   useEffect(() => {
     fetchFlowData();
-  }, [flowId, templateData]);
+  }, [flowId, templateData, externalPageIndex]);
 
   const fetchFlowData = async () => {
     // If templateData is provided directly, use it instead of fetching
@@ -74,7 +76,8 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
         });
         
         setPages(processedTemplate.pages);
-        setCurrentPageIndex(0);
+        // Use external page index if provided, otherwise start at 0
+        setCurrentPageIndex(externalPageIndex ?? 0);
         
       } catch (error) {
         console.error('Error processing template data:', error);
@@ -155,7 +158,13 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
       setIsLoading(false);
     }
   };
-
+  
+  // Update page index when external control changes
+  React.useEffect(() => {
+    if (externalPageIndex !== undefined) {
+      setCurrentPageIndex(externalPageIndex);
+    }
+  }, [externalPageIndex]);
   const handleStoreSelection = (store: string) => {
     setUserInputs({ ...userInputs, selectedStore: store });
   };
@@ -377,8 +386,8 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
             {currentPage.sections.map((section: any) => renderTemplateSection(section))}
           </div>
           
-          {/* Navigation for multi-page templates */}
-          {pages.length > 1 && (
+          {/* Navigation for multi-page templates - only show if not externally controlled */}
+          {pages.length > 1 && !hideInternalNavigation && (
             <div className="flex justify-between items-center mt-8 pt-4 border-t">
               <Button
                 variant="outline"
