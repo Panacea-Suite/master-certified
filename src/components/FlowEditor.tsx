@@ -866,35 +866,6 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                 </CollapsibleContent>
               </Collapsible>
 
-              <Separator />
-              
-              {/* Design Template Section */}
-              <Collapsible open={!collapsedSections.designTemplate} onOpenChange={() => toggleSection('designTemplate')}>
-                <CollapsibleTrigger asChild>
-                  <Button variant="ghost" className="w-full justify-between text-sm font-medium p-2 h-auto hover:bg-accent">
-                    <span>Design Template</span>
-                    {collapsedSections.designTemplate ? (
-                      <ChevronRight className="h-4 w-4" />
-                    ) : (
-                      <ChevronDown className="h-4 w-4" />
-                    )}
-                  </Button>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="space-y-2 pt-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="w-full gap-2"
-                    onClick={() => setShowTemplateSelector(true)}
-                  >
-                    <Palette className="h-4 w-4" />
-                    Choose Template
-                  </Button>
-                </CollapsibleContent>
-              </Collapsible>
-
-              <Separator />
-              
               {/* Drag Sections */}
               <Collapsible open={!collapsedSections.components} onOpenChange={() => toggleSection('components')}>
                 <CollapsibleTrigger asChild>
@@ -1056,19 +1027,6 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
         </div>
       </DialogContent>
       
-      {/* Design Template Selector Dialog */}
-      <Dialog open={showTemplateSelector} onOpenChange={setShowTemplateSelector}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Choose Design Template</DialogTitle>
-          </DialogHeader>
-          <DesignTemplateSelector
-            selectedTemplateId={selectedTemplateId}
-            onTemplateSelect={handleTemplateSelect}
-            brandColors={brandData?.brand_colors}
-          />
-        </DialogContent>
-      </Dialog>
     </Dialog>
     </TemplateStyleProvider>
   );
