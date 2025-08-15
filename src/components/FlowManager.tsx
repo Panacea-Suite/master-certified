@@ -351,9 +351,15 @@ const FlowManager = () => {
           if (flowError) throw flowError;
 
           // Add to flows list and open editor
-          setFlows([newFlow, ...flows]);
-          openFlowEditor(newFlow);
+          setFlows(prevFlows => [newFlow, ...prevFlows]);
+          
+          // Make sure we set the selected flow properly
+          setSelectedFlow(newFlow);
+          setSelectedFlowId(newFlow.id);
+          setPreviewMode('editor');
 
+          console.log('Created new flow from template:', newFlow);
+          
           toast({
             title: "Success",
             description: "Flow created from template successfully",
@@ -558,10 +564,13 @@ const FlowManager = () => {
           brandData={brandData}
           onSave={async (pageData) => {
             console.log('FlowManager onSave called with:', pageData);
+            console.log('selectedFlow:', selectedFlow);
+            console.log('selectedFlow.id:', selectedFlow?.id);
+            
             try {
               // Check if we have a valid flow ID
               if (!selectedFlow?.id) {
-                console.error('No valid flow ID found for saving');
+                console.error('No valid flow ID found for saving. selectedFlow:', selectedFlow);
                 toast({
                   title: "Error",
                   description: "No valid flow ID found. Please try creating a new flow.",
