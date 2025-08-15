@@ -866,6 +866,8 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                 </CollapsibleContent>
               </Collapsible>
 
+              <Separator />
+              
               {/* Drag Sections */}
               <Collapsible open={!collapsedSections.components} onOpenChange={() => toggleSection('components')}>
                 <CollapsibleTrigger asChild>
