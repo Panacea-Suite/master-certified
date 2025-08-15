@@ -89,7 +89,7 @@ export function templateToFlowConfig(processedTemplate: ProcessedTemplateData, b
   // Use template's global header if provided, otherwise create default
   const defaultGlobalHeader = {
     showHeader: true,
-    brandName: brandData?.name || 'Logo',
+    brandName: brandData?.name || '',
     logoUrl: brandData?.logo_url || '',
     backgroundColor: brandData?.brand_colors?.primary || '#000000',
     logoSize: 'medium' as const
@@ -99,7 +99,7 @@ export function templateToFlowConfig(processedTemplate: ProcessedTemplateData, b
     ? {
         ...processedTemplate.globalHeader,
         // Override with brand data if available - prioritize brand data
-        brandName: brandData?.name || processedTemplate.globalHeader.brandName || 'Logo',
+        brandName: brandData?.name || processedTemplate.globalHeader.brandName || '',
         logoUrl: brandData?.logo_url || processedTemplate.globalHeader.logoUrl || '',
         backgroundColor: brandData?.brand_colors?.primary || processedTemplate.globalHeader.backgroundColor || '#000000'
       }
