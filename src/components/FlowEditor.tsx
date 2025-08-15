@@ -568,7 +568,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
         onSave(flowData);
       }
 
-      toast.success('Flow saved successfully');
+      // Don't show toast here - let the parent component handle notifications
     } catch (error) {
       console.error('Error saving flow:', error);
       toast.error('Failed to save flow');
