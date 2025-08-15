@@ -302,19 +302,33 @@ const FlowManager = () => {
             return;
           }
 
-          // Create a campaign for the new flow
-          const { data: campaignData, error: campaignError } = await supabase
+          // Check if there's already a campaign for this brand, or create one
+          let { data: existingCampaign } = await supabase
             .from('campaigns')
-            .insert([{
-              name: `${template.name} Campaign`,
-              description: `Campaign for ${template.name} flow`,
-              brand_id: fullBrandData.id,
-              approved_stores: ['Store A', 'Store B', 'Store C']
-            }])
             .select('id')
-            .single();
+            .eq('brand_id', fullBrandData.id)
+            .eq('name', `${template.name} Campaign`)
+            .maybeSingle();
 
-          if (campaignError) throw campaignError;
+          let campaignId;
+          if (existingCampaign) {
+            campaignId = existingCampaign.id;
+          } else {
+            // Create a new campaign for the template
+            const { data: campaignData, error: campaignError } = await supabase
+              .from('campaigns')
+              .insert([{
+                name: `${template.name} Campaign`,
+                description: `Campaign for ${template.name} flow`,
+                brand_id: fullBrandData.id,
+                approved_stores: ['Store A', 'Store B', 'Store C']
+              }])
+              .select('id')
+              .single();
+
+            if (campaignError) throw campaignError;
+            campaignId = campaignData.id;
+          }
 
           // Create the flow in the database
           const flowConfig = {
@@ -336,8 +350,8 @@ const FlowManager = () => {
             .from('flows')
             .insert([{
               name: template.name,
-              campaign_id: campaignData.id,
-              base_url: `${window.location.origin}/flow/${campaignData.id}`,
+              campaign_id: campaignId,
+              base_url: `${window.location.origin}/flow/${campaignId}`,
               flow_config: flowConfig
             }])
             .select(`
