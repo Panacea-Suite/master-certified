@@ -17,16 +17,19 @@ interface FlowContent {
 }
 
 interface CustomerFlowExperienceProps {
-  flowId: string;
-  qrCode: string;
+  flowId?: string;
+  qrCode?: string;
+  templateData?: any; // For direct template preview
 }
 
-const CustomerFlowExperience = ({ flowId, qrCode }: CustomerFlowExperienceProps) => {
+const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId, qrCode, templateData }) => {
   const [currentStage, setCurrentStage] = useState(0);
   const [flow, setFlow] = useState<any>(null);
   const [campaign, setCampaign] = useState<any>(null);
   const [content, setContent] = useState<FlowContent[]>([]);
-  const [isNewSectionFlow, setIsNewSectionFlow] = useState(false);
+  const [pages, setPages] = useState<any[]>([]);
+  const [currentPageIndex, setCurrentPageIndex] = useState(0);
+  const [error, setError] = useState<string | null>(null);
   const [userInputs, setUserInputs] = useState({
     selectedStore: '',
     email: '',
@@ -50,63 +53,107 @@ const CustomerFlowExperience = ({ flowId, qrCode }: CustomerFlowExperienceProps)
 
   useEffect(() => {
     fetchFlowData();
-  }, [flowId]);
+  }, [flowId, templateData]);
 
   const fetchFlowData = async () => {
+    // If templateData is provided directly, use it instead of fetching
+    if (templateData) {
+      try {
+        setIsLoading(true);
+        console.log('Using provided template data:', templateData);
+        
+        // Process template data using the unified processor
+        const { processTemplateData } = await import('@/utils/templateProcessor');
+        const processedTemplate = processTemplateData(templateData);
+        
+        // Set flow data from processed template
+        setFlow({
+          id: processedTemplate.id,
+          name: processedTemplate.name,
+          flow_config: {
+            pages: processedTemplate.pages,
+            designConfig: processedTemplate.designConfig
+          }
+        });
+        
+        setPages(processedTemplate.pages);
+        setCurrentPageIndex(0);
+        
+      } catch (error) {
+        console.error('Error processing template data:', error);
+        setError('Failed to process template data');
+      } finally {
+        setIsLoading(false);
+      }
+      return;
+    }
+
+    if (!flowId) return;
+
     try {
+      setIsLoading(true);
+      console.log('Fetching flow data for ID:', flowId);
+
+      // Fetch flow data
       const { data: flowData, error: flowError } = await supabase
         .from('flows')
-        .select(`
-          *,
-          campaigns (
-            *,
-            brands (
-              name,
-              logo_url,
-              brand_colors
-            )
-          )
-        `)
+        .select('*, campaigns(*), brands(*)')
         .eq('id', flowId)
         .single();
 
-      if (flowError) throw flowError;
+      if (flowError) {
+        console.error('Error fetching flow:', flowError);
+        throw flowError;
+      }
 
-      const { data: contentData, error: contentError } = await supabase
-        .from('flow_content')
-        .select('*')
-        .eq('flow_id', flowId)
-        .order('order_index');
+      if (!flowData) {
+        console.error('No flow data found');
+        return;
+      }
 
-      if (contentError) throw contentError;
-
+      console.log('Flow data:', flowData);
       setFlow(flowData);
       setCampaign(flowData.campaigns);
-      
-      // Check if flow uses new section-based structure
+
+      // Handle different flow configurations
       const flowConfig = flowData.flow_config as any;
-      if (flowConfig?.pages && Array.isArray(flowConfig.pages) && flowConfig.pages.length > 0) {
-        // Use new multi-page flow
-        console.log('Using new multi-page flow with pages:', flowConfig.pages);
-        setIsNewSectionFlow(true);
-        setContent([]); // Clear old content
-      } else if (flowConfig?.sections && Array.isArray(flowConfig.sections) && flowConfig.sections.length > 0) {
-        // Use new section-based flow
-        console.log('Using new section-based flow with sections:', flowConfig.sections);
-        setIsNewSectionFlow(true);
-        setContent([]); // Clear old content
+      if (flowConfig?.pages) {
+        console.log('Using multi-page flow configuration');
+        // Multi-page flow configuration
+        setPages(flowConfig.pages);
+        setCurrentPageIndex(0);
+      } else if (flowConfig?.sections) {
+        console.log('Using section-based flow configuration');
+        // Section-based flow configuration - create a single page
+        const singlePage = {
+          id: 'main-page',
+          name: 'Main Content',
+          type: 'content_display',
+          sections: flowConfig.sections,
+          settings: {}
+        };
+        setPages([singlePage]);
+        setCurrentPageIndex(0);
       } else {
-        // Use old flow_content table
-        setIsNewSectionFlow(false);
+        console.log('Using legacy flow configuration, fetching content');
+        // Legacy flow - fetch from flow_content table
+        const { data: contentData, error: contentError } = await supabase
+          .from('flow_content')
+          .select('*')
+          .eq('flow_id', flowId)
+          .order('order_index');
+
+        if (contentError) {
+          console.error('Error fetching content:', contentError);
+          throw contentError;
+        }
+
         setContent(contentData || []);
       }
+
     } catch (error) {
-      console.error('Error fetching flow data:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load verification flow",
-        variant: "destructive",
-      });
+      console.error('Error in fetchFlowData:', error);
+      setError('Failed to load flow data');
     } finally {
       setIsLoading(false);
     }
@@ -263,19 +310,31 @@ const CustomerFlowExperience = ({ flowId, qrCode }: CustomerFlowExperienceProps)
     );
   };
 
-  const renderMultiPageFlow = () => {
-    const flowConfig = flow?.flow_config as any;
-    const pages = flowConfig?.pages || [];
-    
-    if (!pages || pages.length === 0) return null;
+  const renderTemplateFlow = () => {
+    if (!pages || pages.length === 0) {
+      return (
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <div className="text-center">
+            <p className="text-muted-foreground">No template content available</p>
+          </div>
+        </div>
+      );
+    }
 
-    // Get the current page based on the current stage (for now, use first page)
-    const currentPageIndex = Math.min(currentStage, pages.length - 1);
-    const currentPage = pages[currentPageIndex];
+    // Get the current page
+    const currentPage = pages[Math.min(currentPageIndex, pages.length - 1)];
     
-    if (!currentPage?.sections) return null;
+    if (!currentPage?.sections) {
+      return (
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <div className="text-center">
+            <p className="text-muted-foreground">No sections found on this page</p>
+          </div>
+        </div>
+      );
+    }
 
-    const backgroundColor = flowConfig?.theme?.backgroundColor || '#ffffff';
+    const backgroundColor = flow?.flow_config?.theme?.backgroundColor || '#ffffff';
     
     return (
       <div 
@@ -286,31 +345,31 @@ const CustomerFlowExperience = ({ flowId, qrCode }: CustomerFlowExperienceProps)
           <div className="space-y-4">
             {currentPage.sections.map((section: any) => renderTemplateSection(section))}
           </div>
-        </div>
-      </div>
-    );
-  };
-
-  const renderSectionBasedFlow = () => {
-    const flowConfig = flow?.flow_config as any;
-    const sections = flowConfig?.sections || [];
-    
-    if (!sections || sections.length === 0) {
-      console.log('No sections found in flow config');
-      return null;
-    }
-    
-    const backgroundColor = flowConfig?.theme?.backgroundColor || '#ffffff';
-    
-    return (
-      <div 
-        className="min-h-screen"
-        style={{ backgroundColor }}
-      >
-        <div className="max-w-sm mx-auto px-4 py-6">
-          <div className="space-y-4">
-            {sections.map((section: any) => renderTemplateSection(section))}
-          </div>
+          
+          {/* Navigation for multi-page templates */}
+          {pages.length > 1 && (
+            <div className="flex justify-between items-center mt-8 pt-4 border-t">
+              <Button
+                variant="outline"
+                onClick={() => setCurrentPageIndex(Math.max(0, currentPageIndex - 1))}
+                disabled={currentPageIndex === 0}
+              >
+                Previous
+              </Button>
+              
+              <span className="text-sm text-muted-foreground">
+                {currentPageIndex + 1} of {pages.length}
+              </span>
+              
+              <Button
+                variant="outline"
+                onClick={() => setCurrentPageIndex(Math.min(pages.length - 1, currentPageIndex + 1))}
+                disabled={currentPageIndex === pages.length - 1}
+              >
+                Next
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -552,11 +611,40 @@ const CustomerFlowExperience = ({ flowId, qrCode }: CustomerFlowExperienceProps)
     }
   };
 
-  // Check if this is a multi-page flow, section-based flow, or legacy stage flow
-  if (flow?.flow_config?.pages) {
-    return renderMultiPageFlow();
-  } else if (isNewSectionFlow) {
-    return renderSectionBasedFlow();
+  // Show error state if there's an error
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-destructive">Error: {error}</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If templateData is provided or flow has template structure, use template flow
+  if (templateData || (flow?.flow_config?.pages && pages.length > 0)) {
+    return renderTemplateFlow();
+  }
+
+  // Check if this is a section-based flow
+  const flowConfig = flow?.flow_config as any;
+  if (flowConfig?.sections) {
+    const sections = flowConfig.sections;
+    const backgroundColor = flowConfig?.theme?.backgroundColor || '#ffffff';
+    
+    return (
+      <div 
+        className="min-h-screen"
+        style={{ backgroundColor }}
+      >
+        <div className="max-w-sm mx-auto px-4 py-6">
+          <div className="space-y-4">
+            {sections.map((section: any) => renderTemplateSection(section))}
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (

@@ -175,9 +175,21 @@ const TemplateManager: React.FC = () => {
   };
 
   const handleEditAsNew = (template: SystemTemplate | UserTemplate) => {
-    setEditTemplate(template);
-    setShowEditor(true);
-    setPreviewMode('template');
+    // Import and process template data using unified processor
+    import('@/utils/templateProcessor').then(({ processTemplateData }) => {
+      const processedTemplate = processTemplateData(template);
+      // Convert to template format that FlowEditor expects
+      const editorTemplate = {
+        ...template,
+        flow_config: {
+          pages: processedTemplate.pages,
+          designConfig: processedTemplate.designConfig
+        }
+      };
+      setEditTemplate(editorTemplate);
+      setShowEditor(true);
+      setPreviewMode('template');
+    });
   };
 
   const handlePreviewTemplate = (template: SystemTemplate | UserTemplate) => {
@@ -459,21 +471,10 @@ const TemplateManager: React.FC = () => {
 
       {/* Preview Modal */}
       {previewMode === 'customer' && previewTemplate && (
-        // Check if this is a flowTemplates.ts template (has 'pages' property)
-        'pages' in previewTemplate ? (
-          <TemplatePreview 
-            template={previewTemplate}
-            onClose={() => {
-              setPreviewTemplate(null);
-              setPreviewMode(null);
-            }}
-          />
-        ) : (
-          <CustomerFlowExperience
-            flowId={previewTemplate.id}
-            qrCode="preview-template"
-          />
-        )
+        <CustomerFlowExperience
+          templateData={previewTemplate}
+          qrCode="preview-template"
+        />
       )}
     </div>
   );

@@ -81,35 +81,17 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
   
   // Initialize pages from template or create mandatory pages with landing page
   const initializePages = (): PageData[] => {
-    // Handle pre-built templates from flowTemplates.ts
-    if (templateToEdit && 'pages' in templateToEdit) {
-      // Convert FlowTemplateData pages to PageData format
-      const prebuiltTemplate = templateToEdit as any;
-      return prebuiltTemplate.pages.map((page: any, index: number) => {
-        // Determine if page should be mandatory based on type
-        const mandatoryPageTypes = ['store_selection', 'authentication', 'purchase_details', 'thank_you'];
-        const isMandatory = mandatoryPageTypes.includes(page.type);
-        
-        return {
-          id: page.id,
-          type: page.type,
-          name: page.name,
-          sections: page.sections.map((section: any, sectionIndex: number) => ({
-            id: section.id,
-            type: section.type,
-            order: sectionIndex,
-            config: section.config
-          })),
-          settings: {},
-          isMandatory,
-          order: index
-        };
-      });
+    // Handle flow_config format for user templates (synchronous)
+    if (templateToEdit?.flow_config?.pages) {
+      return templateToEdit.flow_config.pages.map((page: any, index: number) => ({
+        ...page,
+        sections: page.sections || [],
+        settings: page.settings || {},
+        order: index
+      }));
     }
     
-    if (templateToEdit?.flow_config?.pages) {
-      return templateToEdit.flow_config.pages;
-    }
+    // For system templates, we'll process them in useEffect after component mounts
     
     // Create all pages including initial landing page and mandatory pages with default content
     const allPages: PageData[] = [
@@ -284,7 +266,51 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
   };
 
   const [pages, setPages] = useState<PageData[]>(initializePages());
-  const [currentPageId, setCurrentPageId] = useState<string>(pages[0]?.id || '');
+  const [currentPageId, setCurrentPageId] = useState<string>('');
+  
+  // Effect to handle template processing after component mounts
+  React.useEffect(() => {
+    if (templateToEdit && !templateToEdit.flow_config?.pages) {
+      // Use unified template processor for system templates
+      import('@/utils/templateProcessor').then(({ processTemplateData }) => {
+        try {
+          const processedTemplate = processTemplateData(templateToEdit);
+          console.log('Processed template for editor:', processedTemplate);
+          
+          // Convert processed pages to PageData format
+          const convertedPages = processedTemplate.pages.map((page: any, index: number) => {
+            const mandatoryPageTypes = ['store_selection', 'authentication', 'purchase_details', 'thank_you'];
+            const isMandatory = mandatoryPageTypes.includes(page.type);
+            
+            return {
+              id: page.id,
+              type: page.type,
+              name: page.name,
+              sections: page.sections?.map((section: any, sectionIndex: number) => ({
+                id: section.id,
+                type: section.type,
+                order: sectionIndex,
+                config: section.config
+              })) || [],
+              settings: page.settings || {},
+              isMandatory,
+              order: index
+            };
+          });
+          
+          // Update pages state after processing
+          setPages(convertedPages);
+          if (convertedPages.length > 0 && !currentPageId) {
+            setCurrentPageId(convertedPages[0].id);
+          }
+        } catch (error) {
+          console.error('Error processing template in editor:', error);
+        }
+      });
+    } else if (pages.length > 0 && !currentPageId) {
+      setCurrentPageId(pages[0].id);
+    }
+  }, [templateToEdit, currentPageId, pages.length]);
   const [pageSettings, setPageSettings] = useState({
     backgroundColor: templateToEdit?.flow_config?.theme?.backgroundColor || '#ffffff'
   });
