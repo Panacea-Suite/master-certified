@@ -285,7 +285,7 @@ const TemplateManager: React.FC = () => {
   const categories = ['all', ...Array.from(new Set(systemTemplates.map(t => t.category)))];
 
   const renderTemplateCard = (template: SystemTemplate | UserTemplate, isUserTemplate = false) => (
-    <Card key={template.id} className="group hover:shadow-lg transition-all duration-200">
+    <Card key={template.id} className="group hover:shadow-lg transition-all duration-200 relative">
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex-1">
@@ -294,9 +294,21 @@ const TemplateManager: React.FC = () => {
               {'description' in template ? template.description : template.template_description}
             </CardDescription>
           </div>
-          {!isUserTemplate && (
-            <Badge variant="secondary" className="ml-2">System</Badge>
-          )}
+          <div className="flex items-center gap-2">
+            {!isUserTemplate && (
+              <Badge variant="secondary">System</Badge>
+            )}
+            {isUserTemplate && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleDeleteUserTemplate(template.id)}
+                className="text-destructive hover:text-destructive h-8 w-8 p-0"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
         </div>
         
         {/* Tags */}
@@ -342,17 +354,6 @@ const TemplateManager: React.FC = () => {
             <Edit3 className="h-4 w-4 mr-2" />
             Edit as New
           </Button>
-          
-          {isUserTemplate && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleDeleteUserTemplate(template.id)}
-              className="text-destructive hover:text-destructive"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          )}
         </div>
       </CardContent>
     </Card>
