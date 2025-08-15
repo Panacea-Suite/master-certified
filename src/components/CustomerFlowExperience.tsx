@@ -8,6 +8,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { CheckCircle, XCircle, ArrowRight, ArrowLeft, Shield, FileText, Package, Truck } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
+// Cache-busting utility
+const withCacheBust = (url: string, seed?: string | number): string => {
+  if (!url) return url;
+  const timestamp = seed || Date.now();
+  const separator = url.includes('?') ? '&' : '?';
+  return `${url}${separator}cb=${timestamp}`;
+};
+
 interface FlowContent {
   id: string;
   content_type: string;
@@ -367,7 +375,10 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
     const backgroundColor = flow?.flow_config?.theme?.backgroundColor || '#ffffff';
     
     // Get brand logo from brand settings (single source of truth)
-    const brandLogo = brandData?.logo_url || campaign?.brands?.logo_url;
+    const brandLogo = withCacheBust(
+      brandData?.logo_url || campaign?.brands?.logo_url,
+      brandData?.updated_at
+    );
     
     const globalHeader = flow?.flow_config?.globalHeader || {
       showHeader: true,
@@ -453,7 +464,7 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
           <div className="text-center space-y-6">
             {campaign?.brands?.logo_url && (
               <img 
-                src={campaign.brands.logo_url} 
+                src={withCacheBust(campaign.brands.logo_url, brandData?.updated_at)} 
                 alt={campaign.brands.name}
                 className="h-16 mx-auto object-contain"
               />
