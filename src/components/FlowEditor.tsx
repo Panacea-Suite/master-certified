@@ -34,6 +34,7 @@ import { PageManager, PageData } from './flow-editor/PageManager';
 import { Smartphone, Save, ArrowLeft, Upload, ChevronDown, ChevronRight, Palette } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 import { DesignTemplateSelector } from './DesignTemplateSelector';
 import { TemplateStyleProvider } from './TemplateStyleProvider';
 import { BrandColorPicker } from '@/components/ui/brand-color-picker';
@@ -74,6 +75,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
   templateToEdit,
   brandData
 }) => {
+  const { user } = useAuth();
   const [selectedDevice, setSelectedDevice] = useState<DeviceSpec>(DEVICE_SPECS[0]); // Default to iPhone 14
   const [flowName, setFlowName] = useState(
     (templateToEdit && 'name' in templateToEdit) ? templateToEdit.name : 'Untitled Flow'
@@ -274,8 +276,12 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
       // Use unified template processor for system templates with brand data
       Promise.all([
         import('@/utils/templateProcessor'),
-        // Fetch brand data for proper template processing
-        supabase.from('brands').select('*').maybeSingle()
+        // Fetch user's brand data for proper template processing
+        user ? supabase
+          .from('brands')
+          .select('*')
+          .eq('user_id', user.id)
+          .maybeSingle() : Promise.resolve({ data: null })
       ]).then(([{ processTemplateData, templateToFlowConfig }, { data: brandDataFromDB }]) => {
         try {
           const processedTemplate = processTemplateData(templateToEdit);
@@ -283,9 +289,11 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
           
           // Use brandData prop first, then fallback to DB data
           const activeBrandData = brandData || brandDataFromDB;
+          console.log('Active brand data in FlowEditor:', activeBrandData);
           
           // Get the flow config with proper brand data integration
           const flowConfig = templateToFlowConfig(processedTemplate, activeBrandData);
+          console.log('Flow config with brand data:', flowConfig);
           
           // Convert processed pages to PageData format
           const convertedPages = processedTemplate.pages.map((page: any, index: number) => {
@@ -310,6 +318,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
           
           // Update global header state with processed template data
           if (flowConfig.globalHeader) {
+            console.log('Setting global header with logo URL:', flowConfig.globalHeader.logoUrl);
             setGlobalHeader({
               showHeader: flowConfig.globalHeader.showHeader,
               brandName: flowConfig.globalHeader.brandName,
