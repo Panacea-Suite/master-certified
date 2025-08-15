@@ -283,7 +283,35 @@ const FlowManager = () => {
 
   const handleTemplateSelect = (template: any) => {
     if (template) {
-      openFlowEditor(template);
+      // Check if this is a pre-built template (has 'pages' property) or database template
+      if ('pages' in template) {
+        // Pre-built template from flowTemplates.ts - convert to expected format
+        const convertedTemplate = {
+          id: template.id,
+          name: template.name,
+          template_category: template.category,
+          created_at: new Date().toISOString(),
+          flow_config: {
+            pages: template.pages,
+            design_template_id: null,
+            globalHeader: {
+              showHeader: true,
+              brandName: brandData?.name || 'Brand',
+              logoUrl: brandData?.logo_url || '',
+              backgroundColor: brandData?.brand_colors?.primary || '#3b82f6',
+              logoSize: 'medium'
+            },
+            theme: {
+              backgroundColor: '#ffffff'
+            }
+          },
+          created_by: null
+        };
+        openFlowEditor(convertedTemplate);
+      } else {
+        // Database template - use as is
+        openFlowEditor(template);
+      }
     }
     setShowTemplateSelector(false);
   };
