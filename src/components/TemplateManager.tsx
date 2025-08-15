@@ -223,9 +223,38 @@ const TemplateManager: React.FC = () => {
     }
   };
 
-  const handlePreviewTemplate = (template: SystemTemplate | UserTemplate) => {
-    setPreviewTemplate(template);
-    setPreviewMode('customer');
+  const handlePreviewTemplate = async (template: SystemTemplate | UserTemplate) => {
+    try {
+      // Fetch user's brand data first (same as handleEditAsNew)
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          title: "Authentication Error",
+          description: "You must be logged in to preview templates",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const { data: brandData } = await supabase
+        .from('brands')
+        .select('id, name, logo_url, brand_colors')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      console.log('Brand data fetched for preview:', brandData);
+
+      setPreviewTemplate(template);
+      setBrandData(brandData); // Store brand data for preview
+      setPreviewMode('customer');
+    } catch (error) {
+      console.error('Error in handlePreviewTemplate:', error);
+      toast({
+        title: "Error",
+        description: "Failed to prepare template for preview",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleDeleteUserTemplate = async (templateId: string) => {
@@ -509,8 +538,10 @@ const TemplateManager: React.FC = () => {
           onClose={() => {
             setPreviewTemplate(null);
             setPreviewMode(null);
+            setBrandData(null);
           }}
           templateData={previewTemplate}
+          brandData={brandData}
         />
       )}
     </div>

@@ -8,11 +8,13 @@ interface PhonePreviewModalProps {
   isOpen: boolean;
   onClose: () => void;
   templateData: any;
+  brandData?: any;
 }
 export const PhonePreviewModal: React.FC<PhonePreviewModalProps> = ({
   isOpen,
   onClose,
-  templateData
+  templateData,
+  brandData
 }) => {
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
@@ -55,7 +57,7 @@ export const PhonePreviewModal: React.FC<PhonePreviewModalProps> = ({
                 
                 {/* Screen content */}
                 <div className="w-[390px] h-[844px] overflow-hidden relative">
-                  <CustomerFlowExperience templateData={templateData} qrCode="phone-preview" externalPageIndex={currentPageIndex} hideInternalNavigation={true} />
+                  <CustomerFlowExperience templateData={templateData} brandData={brandData} qrCode="phone-preview" externalPageIndex={currentPageIndex} hideInternalNavigation={true} />
                 </div>
               </div>
             </div>

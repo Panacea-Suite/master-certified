@@ -20,11 +20,12 @@ interface CustomerFlowExperienceProps {
   flowId?: string;
   qrCode?: string;
   templateData?: any; // For direct template preview
+  brandData?: any; // For provided brand data from parent
   externalPageIndex?: number; // For external page navigation control
   hideInternalNavigation?: boolean; // Hide internal navigation when controlled externally
 }
 
-const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId, qrCode, templateData, externalPageIndex, hideInternalNavigation }) => {
+const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId, qrCode, templateData, brandData, externalPageIndex, hideInternalNavigation }) => {
   const [currentStage, setCurrentStage] = useState(0);
   const [flow, setFlow] = useState<any>(null);
   const [campaign, setCampaign] = useState<any>(null);
@@ -55,7 +56,7 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
 
   useEffect(() => {
     fetchFlowData();
-  }, [flowId, templateData, externalPageIndex]);
+  }, [flowId, templateData, brandData, externalPageIndex]);
 
   const fetchFlowData = async () => {
     // If templateData is provided directly, use it instead of fetching
@@ -64,16 +65,20 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
         setIsLoading(true);
         console.log('Using provided template data:', templateData);
         
-        // Fetch brand data for template processing
-        let brandData = null;
-        try {
-          const { data: brand } = await supabase
-            .from('brands')
-            .select('*')
-            .maybeSingle();
-          brandData = brand;
-        } catch (error) {
-          console.log('No brand data available for template processing');
+        // Use provided brand data or fetch if not provided
+        let finalBrandData = brandData;
+        if (!finalBrandData) {
+          try {
+            const { data: brand } = await supabase
+              .from('brands')
+              .select('*')
+              .maybeSingle();
+            finalBrandData = brand;
+          } catch (error) {
+            console.log('No brand data available for template processing');
+          }
+        } else {
+          console.log('Using provided brand data for preview:', finalBrandData);
         }
         
         // Process template data using the unified processor
@@ -84,7 +89,7 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
         setFlow({
           id: processedTemplate.id,
           name: processedTemplate.name,
-          flow_config: templateToFlowConfig(processedTemplate, brandData)
+          flow_config: templateToFlowConfig(processedTemplate, finalBrandData)
         });
         
         setPages(processedTemplate.pages);
