@@ -63,17 +63,14 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
         console.log('Using provided template data:', templateData);
         
         // Process template data using the unified processor
-        const { processTemplateData } = await import('@/utils/templateProcessor');
+        const { processTemplateData, templateToFlowConfig } = await import('@/utils/templateProcessor');
         const processedTemplate = processTemplateData(templateData);
         
-        // Set flow data from processed template
+        // Set flow data from processed template with proper flow_config
         setFlow({
           id: processedTemplate.id,
           name: processedTemplate.name,
-          flow_config: {
-            pages: processedTemplate.pages,
-            designConfig: processedTemplate.designConfig
-          }
+          flow_config: templateToFlowConfig(processedTemplate)
         });
         
         setPages(processedTemplate.pages);
@@ -335,12 +332,46 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
     }
 
     const backgroundColor = flow?.flow_config?.theme?.backgroundColor || '#ffffff';
+    const globalHeader = flow?.flow_config?.globalHeader || {
+      showHeader: true,
+      brandName: 'Brand',
+      logoUrl: '',
+      backgroundColor: '#3b82f6',
+      logoSize: 'medium'
+    };
     
     return (
       <div 
         className="min-h-screen"
         style={{ backgroundColor }}
       >
+        {/* Global Header */}
+        {globalHeader.showHeader && (
+          <div 
+            className="sticky top-0 z-50 p-4 text-white text-center"
+            style={{ backgroundColor: globalHeader.backgroundColor }}
+          >
+            <div className="flex items-center justify-center gap-3">
+              {globalHeader.logoUrl && (
+                <img 
+                  src={globalHeader.logoUrl} 
+                  alt="Brand Logo"
+                  className={`${
+                    globalHeader.logoSize === 'small' ? 'h-6' :
+                    globalHeader.logoSize === 'large' ? 'h-12' : 'h-8'
+                  } object-contain`}
+                />
+              )}
+              <h1 className={`font-semibold ${
+                globalHeader.logoSize === 'small' ? 'text-lg' :
+                globalHeader.logoSize === 'large' ? 'text-2xl' : 'text-xl'
+              }`}>
+                {globalHeader.brandName}
+              </h1>
+            </div>
+          </div>
+        )}
+        
         <div className="max-w-sm mx-auto px-4 py-6">
           <div className="space-y-4">
             {currentPage.sections.map((section: any) => renderTemplateSection(section))}
@@ -632,12 +663,46 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
   if (flowConfig?.sections) {
     const sections = flowConfig.sections;
     const backgroundColor = flowConfig?.theme?.backgroundColor || '#ffffff';
+    const globalHeader = flowConfig?.globalHeader || {
+      showHeader: true,
+      brandName: 'Brand',
+      logoUrl: '',
+      backgroundColor: '#3b82f6',
+      logoSize: 'medium'
+    };
     
     return (
       <div 
         className="min-h-screen"
         style={{ backgroundColor }}
       >
+        {/* Global Header */}
+        {globalHeader.showHeader && (
+          <div 
+            className="sticky top-0 z-50 p-4 text-white text-center"
+            style={{ backgroundColor: globalHeader.backgroundColor }}
+          >
+            <div className="flex items-center justify-center gap-3">
+              {globalHeader.logoUrl && (
+                <img 
+                  src={globalHeader.logoUrl} 
+                  alt="Brand Logo"
+                  className={`${
+                    globalHeader.logoSize === 'small' ? 'h-6' :
+                    globalHeader.logoSize === 'large' ? 'h-12' : 'h-8'
+                  } object-contain`}
+                />
+              )}
+              <h1 className={`font-semibold ${
+                globalHeader.logoSize === 'small' ? 'text-lg' :
+                globalHeader.logoSize === 'large' ? 'text-2xl' : 'text-xl'
+              }`}>
+                {globalHeader.brandName}
+              </h1>
+            </div>
+          </div>
+        )}
+        
         <div className="max-w-sm mx-auto px-4 py-6">
           <div className="space-y-4">
             {sections.map((section: any) => renderTemplateSection(section))}
