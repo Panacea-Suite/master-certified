@@ -281,36 +281,94 @@ const FlowManager = () => {
     };
   };
 
-  const handleTemplateSelect = (template: any) => {
+  const handleTemplateSelect = async (template: any) => {
     if (template) {
-      // Check if this is a pre-built template (has 'pages' property) or database template
-      if ('pages' in template) {
-        // Pre-built template from flowTemplates.ts - convert to expected format
-        const convertedTemplate = {
-          id: crypto.randomUUID(), // Generate a proper UUID for the new flow
-          name: template.name,
-          template_category: template.category,
-          created_at: new Date().toISOString(),
-          flow_config: {
+      try {
+        // Check if this is a pre-built template (has 'pages' property) or database template
+        if ('pages' in template) {
+          // Pre-built template from flowTemplates.ts - create a new flow in the database
+          const { data: fullBrandData } = await supabase
+            .from('brands')
+            .select('id, name, logo_url, brand_colors')
+            .limit(1)
+            .maybeSingle();
+
+          if (!fullBrandData) {
+            toast({
+              title: "Error",
+              description: "Please create a brand first before using templates",
+              variant: "destructive",
+            });
+            return;
+          }
+
+          // Create a campaign for the new flow
+          const { data: campaignData, error: campaignError } = await supabase
+            .from('campaigns')
+            .insert([{
+              name: `${template.name} Campaign`,
+              description: `Campaign for ${template.name} flow`,
+              brand_id: fullBrandData.id,
+              approved_stores: ['Store A', 'Store B', 'Store C']
+            }])
+            .select('id')
+            .single();
+
+          if (campaignError) throw campaignError;
+
+          // Create the flow in the database
+          const flowConfig = {
             pages: template.pages,
             design_template_id: null,
             globalHeader: {
               showHeader: true,
-              brandName: brandData?.name || 'Brand',
-              logoUrl: brandData?.logo_url || '',
-              backgroundColor: brandData?.brand_colors?.primary || '#3b82f6',
+              brandName: fullBrandData?.name || 'Brand',
+              logoUrl: fullBrandData?.logo_url || '',
+              backgroundColor: (fullBrandData?.brand_colors as any)?.primary || '#3b82f6',
               logoSize: 'medium'
             },
             theme: {
               backgroundColor: '#ffffff'
             }
-          },
-          created_by: null
-        };
-        openFlowEditor(convertedTemplate);
-      } else {
-        // Database template - use as is
-        openFlowEditor(template);
+          };
+
+          const { data: newFlow, error: flowError } = await supabase
+            .from('flows')
+            .insert([{
+              name: template.name,
+              campaign_id: campaignData.id,
+              base_url: `${window.location.origin}/flow/${campaignData.id}`,
+              flow_config: flowConfig
+            }])
+            .select(`
+              *,
+              campaigns (
+                name
+              )
+            `)
+            .single();
+
+          if (flowError) throw flowError;
+
+          // Add to flows list and open editor
+          setFlows([newFlow, ...flows]);
+          openFlowEditor(newFlow);
+
+          toast({
+            title: "Success",
+            description: "Flow created from template successfully",
+          });
+        } else {
+          // Database template - use as is
+          openFlowEditor(template);
+        }
+      } catch (error) {
+        console.error('Error creating flow from template:', error);
+        toast({
+          title: "Error",
+          description: "Failed to create flow from template",
+          variant: "destructive",
+        });
       }
     }
     setShowTemplateSelector(false);
@@ -501,6 +559,17 @@ const FlowManager = () => {
           onSave={async (pageData) => {
             console.log('FlowManager onSave called with:', pageData);
             try {
+              // Check if we have a valid flow ID
+              if (!selectedFlow?.id) {
+                console.error('No valid flow ID found for saving');
+                toast({
+                  title: "Error",
+                  description: "No valid flow ID found. Please try creating a new flow.",
+                  variant: "destructive",
+                });
+                return;
+              }
+
               // Update the existing flow with the new data
               const { error } = await supabase
                 .from('flows')
