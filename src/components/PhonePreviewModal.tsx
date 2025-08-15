@@ -3,6 +3,7 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import CustomerFlowExperience from './CustomerFlowExperience';
+import { processTemplateData } from '@/utils/templateProcessor';
 
 interface PhonePreviewModalProps {
   isOpen: boolean;
@@ -23,7 +24,6 @@ export const PhonePreviewModal: React.FC<PhonePreviewModalProps> = ({
     if (isOpen) {
       setCurrentPageIndex(0);
       // Extract pages from template data to get total count
-      const { processTemplateData } = require('@/utils/templateProcessor');
       try {
         const processedTemplate = processTemplateData(templateData);
         setTotalPages(processedTemplate.pages?.length || 0);
