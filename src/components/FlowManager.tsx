@@ -287,7 +287,7 @@ const FlowManager = () => {
       if ('pages' in template) {
         // Pre-built template from flowTemplates.ts - convert to expected format
         const convertedTemplate = {
-          id: template.id,
+          id: crypto.randomUUID(), // Generate a proper UUID for the new flow
           name: template.name,
           template_category: template.category,
           created_at: new Date().toISOString(),
