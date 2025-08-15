@@ -44,6 +44,7 @@ interface FlowPreviewProps {
     secondary: string;
     accent: string;
   };
+  deviceSpec?: DeviceSpec;
 }
 
 export const FlowPreview: React.FC<FlowPreviewProps> = ({
@@ -62,9 +63,10 @@ export const FlowPreview: React.FC<FlowPreviewProps> = ({
     logoSize: 'medium'
   },
   templateId,
-  brandColors
+  brandColors,
+  deviceSpec = DEVICE_SPECS[0]
 }) => {
-  const [selectedDevice, setSelectedDevice] = useState<DeviceSpec>(DEVICE_SPECS[0]); // Default to iPhone 14
+  
   const currentPageIndex = pages.findIndex(p => p.id === currentPageId);
   const currentPage = pages[currentPageIndex];
 
@@ -99,72 +101,46 @@ export const FlowPreview: React.FC<FlowPreviewProps> = ({
   return (
     <TemplateStyleProvider templateId={templateId} brandColors={brandColors}>
       <div className="flex flex-col h-full">
-        {/* Header with Title, Device Selector, and Page Navigation */}
-        <div className="flex items-center justify-between p-4 border-b bg-background">
-          <h3 className="text-lg font-semibold">Flow Preview</h3>
-          <div className="flex items-center gap-4">
-            {/* Page Navigation - only show if multiple pages */}
-            {pages.length > 1 && (
-              <>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handlePrevPage}
-                  disabled={currentPageIndex === 0}
-                >
-                  <ChevronLeft className="h-4 w-4 mr-1" />
-                  Previous
-                </Button>
-                
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">
-                    Page {currentPageIndex + 1} of {pages.length}
-                  </span>
-                  <div className="flex gap-1">
-                    {pages.map((_, index) => (
-                      <div
-                        key={index}
-                        className={`w-2 h-2 rounded-full ${
-                          index === currentPageIndex ? 'bg-primary' : 'bg-muted'
-                        }`}
-                      />
-                    ))}
-                  </div>
-                </div>
-                
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleNextPage}
-                  disabled={currentPageIndex === pages.length - 1}
-                >
-                  Next
-                  <ChevronRight className="h-4 w-4 ml-1" />
-                </Button>
-              </>
-            )}
-            
-            {/* Device Selector */}
-            <Select
-              value={selectedDevice.name}
-              onValueChange={(value) => {
-                const device = DEVICE_SPECS.find(d => d.name === value);
-                if (device) setSelectedDevice(device);
-              }}
+        {/* Header with Page Navigation */}
+        {pages.length > 1 && (
+          <div className="flex items-center justify-between p-4 border-b bg-background">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handlePrevPage}
+              disabled={currentPageIndex === 0}
             >
-              <SelectTrigger className="w-48">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-background border z-50">
-                {DEVICE_SPECS.map((device) => (
-                  <SelectItem key={device.name} value={device.name}>
-                    {device.displayName} ({device.width}×{device.height})
-                  </SelectItem>
+              <ChevronLeft className="h-4 w-4 mr-1" />
+              Previous
+            </Button>
+            
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">
+                Page {currentPageIndex + 1} of {pages.length}
+              </span>
+              <div className="flex gap-1">
+                {pages.map((_, index) => (
+                  <div
+                    key={index}
+                    className={`w-2 h-2 rounded-full ${
+                      index === currentPageIndex ? 'bg-primary' : 'bg-muted'
+                    }`}
+                  />
                 ))}
-              </SelectContent>
-            </Select>
+              </div>
+            </div>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleNextPage}
+              disabled={currentPageIndex === pages.length - 1}
+            >
+              Next
+              <ChevronRight className="h-4 w-4 ml-1" />
+            </Button>
           </div>
-        </div>
+        )}
         
         {/* Mobile Preview */}
         <div className="flex-1 flex items-center justify-center p-8">
@@ -175,7 +151,7 @@ export const FlowPreview: React.FC<FlowPreviewProps> = ({
             onAddSection={onAddSection}
             backgroundColor={backgroundColor}
             globalHeader={globalHeader}
-            deviceSpec={selectedDevice}
+            deviceSpec={deviceSpec}
           />
         </div>
         

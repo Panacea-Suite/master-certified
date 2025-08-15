@@ -27,7 +27,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ImageEditor } from '@/components/ImageEditor';
 import { ComponentPalette } from './flow-editor/ComponentPalette';
-import { FlowPreview } from './flow-editor/FlowPreview';
+import { FlowPreview, DEVICE_SPECS, DeviceSpec } from './flow-editor/FlowPreview';
 import { PageSection } from './flow-editor/PageSection';
 import { ComponentEditor } from './flow-editor/ComponentEditor';
 import { PageManager, PageData } from './flow-editor/PageManager';
@@ -73,6 +73,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
   templateToEdit,
   brandData
 }) => {
+  const [selectedDevice, setSelectedDevice] = useState<DeviceSpec>(DEVICE_SPECS[0]); // Default to iPhone 14
   const [flowName, setFlowName] = useState(
     (templateToEdit && 'name' in templateToEdit) ? templateToEdit.name : 'Untitled Flow'
   );
@@ -953,10 +954,30 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                   <Smartphone className="h-5 w-5 text-primary" />
                   <h3 className="font-semibold">Flow Preview</h3>
                 </div>
-                <Button onClick={handleSave} disabled={isSaving}>
-                  <Save className="h-4 w-4 mr-2" />
-                  {isSaving ? 'Saving...' : 'Save Flow'}
-                </Button>
+                <div className="flex items-center gap-4">
+                  <Select
+                    value={selectedDevice.name}
+                    onValueChange={(value) => {
+                      const device = DEVICE_SPECS.find(d => d.name === value);
+                      if (device) setSelectedDevice(device);
+                    }}
+                  >
+                    <SelectTrigger className="w-48">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-background border z-50">
+                      {DEVICE_SPECS.map((device) => (
+                        <SelectItem key={device.name} value={device.name}>
+                          {device.displayName} ({device.width}×{device.height})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button onClick={handleSave} disabled={isSaving}>
+                    <Save className="h-4 w-4 mr-2" />
+                    {isSaving ? 'Saving...' : 'Save Flow'}
+                  </Button>
+                </div>
               </div>
             </div>
             
@@ -971,6 +992,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
               globalHeader={globalHeader}
               templateId={selectedTemplateId}
               brandColors={brandData?.brand_colors}
+              deviceSpec={selectedDevice}
             />
           </div>
 
