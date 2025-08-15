@@ -19,7 +19,7 @@ export interface FlowPage {
 
 export interface FlowSection {
   id: string;
-  type: 'header' | 'hero' | 'text' | 'image' | 'form' | 'card' | 'button' | 'features' | 'divider';
+  type: 'header' | 'hero' | 'text' | 'image' | 'form' | 'card' | 'button' | 'features' | 'divider' | 'cta' | 'product_showcase';
   config: any;
 }
 
@@ -40,13 +40,57 @@ const CERTIFICATION_FLOW_PAGES: FlowPage[] = [
     type: 'welcome',
     sections: [
       {
-        id: 'hero',
+        id: 'header',
+        type: 'header',
+        config: {
+          logo: true,
+          backgroundColor: 'primary'
+        }
+      },
+      {
+        id: 'hero-text',
         type: 'hero',
         config: {
-          title: 'Product Certification',
-          subtitle: 'Verify your authentic product',
-          description: 'Scan your QR code to verify authenticity and register your product warranty.',
-          buttonText: 'Start Verification'
+          title: 'Verify the authenticity and quality of this product',
+          align: 'center'
+        }
+      },
+      {
+        id: 'features',
+        type: 'features',
+        config: {
+          items: [
+            'Authentic product verification',
+            'Quality assurance guarantee', 
+            'Warranty registration included',
+            'Trusted certification process'
+          ]
+        }
+      },
+      {
+        id: 'cta-button',
+        type: 'cta',
+        config: {
+          text: 'Verify Now',
+          color: 'secondary',
+          size: 'large'
+        }
+      },
+      {
+        id: 'divider',
+        type: 'divider',
+        config: {
+          style: 'accent',
+          decorative: true
+        }
+      },
+      {
+        id: 'product-image',
+        type: 'product_showcase',
+        config: {
+          placeholder: true,
+          backgroundColor: 'primary',
+          caption: 'Your certified product'
         }
       }
     ]

@@ -12,7 +12,11 @@ import {
   Type,
   Minus,
   Columns2,
-  ChevronDown
+  ChevronDown,
+  Layout,
+  CheckCircle,
+  MousePointer,
+  Package
 } from 'lucide-react';
 
 interface SectionData {
@@ -37,7 +41,12 @@ const sectionIcons = {
   image: ImageIcon,
   store_selector: ChevronDown,
   divider: Minus,
-  column: Columns2
+  column: Columns2,
+  header: Layout,
+  hero: Type,
+  features: CheckCircle,
+  cta: MousePointer,
+  product_showcase: Package
 };
 
 export const PageSection: React.FC<PageSectionProps> = ({
@@ -72,6 +81,85 @@ export const PageSection: React.FC<PageSectionProps> = ({
 
   const renderSectionContent = () => {
     switch (section.type) {
+      case 'header':
+        return (
+          <div className={`header-section ${paddingClass} ${section.config?.backgroundColor === 'primary' ? 'bg-primary' : 'bg-background'}`}>
+            {section.config?.logo && (
+              <div className="flex justify-center">
+                <div className="w-16 h-16 bg-background/20 rounded-lg flex items-center justify-center">
+                  <span className="text-white font-bold">LOGO</span>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+
+      case 'hero':
+        return (
+          <div className={`hero-section ${paddingClass} ${section.config?.align === 'center' ? 'text-center' : ''}`}>
+            {section.config?.title && (
+              <h1 className="text-2xl font-bold text-foreground mb-2">
+                {section.config.title}
+              </h1>
+            )}
+            {section.config?.subtitle && (
+              <h2 className="text-lg font-medium text-muted-foreground mb-2">
+                {section.config.subtitle}
+              </h2>
+            )}
+            {section.config?.description && (
+              <p className="text-sm text-muted-foreground">
+                {section.config.description}
+              </p>
+            )}
+          </div>
+        );
+
+      case 'features':
+        return (
+          <div className={`features-section ${paddingClass}`}>
+            <div className="space-y-3">
+              {section.config?.items?.map((item: string, index: number) => (
+                <div key={index} className="flex items-center gap-3">
+                  <CheckCircle className="w-5 h-5 text-primary flex-shrink-0" />
+                  <span className="text-sm text-foreground">{item}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+
+      case 'cta':
+        return (
+          <div className={`cta-section ${paddingClass} flex justify-center`}>
+            <button className={`px-6 py-3 rounded-lg font-medium transition-colors ${
+              section.config?.color === 'secondary' ? 'bg-secondary text-secondary-foreground hover:bg-secondary/90' : 'bg-primary text-primary-foreground hover:bg-primary/90'
+            } ${
+              section.config?.size === 'large' ? 'text-lg px-8 py-4' : ''
+            }`}>
+              {section.config?.text || 'Click here'}
+            </button>
+          </div>
+        );
+
+      case 'product_showcase':
+        return (
+          <div className={`product-showcase-section ${paddingClass}`}>
+            <div className={`p-6 rounded-lg ${section.config?.backgroundColor === 'primary' ? 'bg-primary/10' : 'bg-muted'}`}>
+              <div className="flex justify-center">
+                <div className="w-32 h-32 bg-muted border-2 border-dashed border-muted-foreground/30 rounded-lg flex items-center justify-center">
+                  <Package className="w-12 h-12 text-muted-foreground" />
+                </div>
+              </div>
+              {section.config?.caption && (
+                <p className="text-center text-sm text-muted-foreground mt-3">
+                  {section.config.caption}
+                </p>
+              )}
+            </div>
+          </div>
+        );
+
       case 'text':
         return (
           <div 
@@ -336,6 +424,11 @@ export const PageSection: React.FC<PageSectionProps> = ({
           </div>
           
           <div className="text-xs text-muted-foreground pl-6">
+            {section.type === 'header' && (config.logo ? 'Logo header' : 'Header section')}
+            {section.type === 'hero' && (config.title ? `"${config.title.substring(0, 30)}..."` : 'Hero section')}
+            {section.type === 'features' && `${config.items?.length || 0} features`}
+            {section.type === 'cta' && (config.text || 'CTA button')}
+            {section.type === 'product_showcase' && (config.caption || 'Product showcase')}
             {section.type === 'text' && (config.content ? `"${config.content.substring(0, 30)}..."` : 'No content')}
             {section.type === 'image' && (config.imageUrl ? 'Image set' : 'No image')}
             {section.type === 'store_selector' && (config.label || 'Store selector')}
