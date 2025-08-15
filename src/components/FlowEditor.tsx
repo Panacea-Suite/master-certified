@@ -949,12 +949,12 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
           {/* Center Panel - Flow Preview */}
           <div className="flex-1 flex flex-col bg-gray-50">
             <div className="p-4 bg-white border-b">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
+              <div className="flex items-center">
+                <div className="flex items-center gap-2 flex-1">
                   <Smartphone className="h-5 w-5 text-primary" />
                   <h3 className="font-semibold">Flow Preview</h3>
                 </div>
-                <div className="flex items-center justify-center flex-1 px-4">
+                <div className="flex justify-center flex-1">
                   <Select
                     value={selectedDevice.name}
                     onValueChange={(value) => {
@@ -974,10 +974,12 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                     </SelectContent>
                   </Select>
                 </div>
-                <Button onClick={handleSave} disabled={isSaving}>
-                  <Save className="h-4 w-4 mr-2" />
-                  {isSaving ? 'Saving...' : 'Save Flow'}
-                </Button>
+                <div className="flex justify-end flex-1">
+                  <Button onClick={handleSave} disabled={isSaving}>
+                    <Save className="h-4 w-4 mr-2" />
+                    {isSaving ? 'Saving...' : 'Save Flow'}
+                  </Button>
+                </div>
               </div>
             </div>
             
