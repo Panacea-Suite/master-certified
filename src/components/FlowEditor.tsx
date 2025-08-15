@@ -291,7 +291,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
     showHeader: templateToEdit?.flow_config?.globalHeader?.showHeader ?? true,
     brandName: templateToEdit?.flow_config?.globalHeader?.brandName || brandData?.name || 'Brand',
     logoUrl: templateToEdit?.flow_config?.globalHeader?.logoUrl || brandData?.logo_url || '',
-    backgroundColor: templateToEdit?.flow_config?.globalHeader?.backgroundColor || '#ffffff',
+    backgroundColor: templateToEdit?.flow_config?.globalHeader?.backgroundColor || brandData?.brand_colors?.primary || '#3b82f6',
     logoSize: templateToEdit?.flow_config?.globalHeader?.logoSize || 'medium'
   });
   const [selectedSection, setSelectedSection] = useState<SectionData | null>(null);

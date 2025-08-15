@@ -64,7 +64,7 @@ const CERTIFICATION_FLOW_PAGES: FlowPage[] = [
         type: 'cta',
         config: {
           text: 'Verify Now',
-          color: 'secondary',
+          color: 'accent',
           size: 'large'
         }
       },
