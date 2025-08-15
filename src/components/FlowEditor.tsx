@@ -282,12 +282,12 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
         .eq('user_id', user.id)
         .maybeSingle();
 
-      // Update global header with fresh brand data
+      // Update global header with fresh brand data (always use brand logo_url as source of truth)
       if (freshBrandData) {
         setGlobalHeader(prev => ({
           ...prev,
           brandName: freshBrandData.name || prev.brandName,
-          logoUrl: freshBrandData.logo_url || prev.logoUrl,
+          logoUrl: freshBrandData.logo_url || '', // Always use brand's logo_url, ignore flow config
           backgroundColor: (freshBrandData.brand_colors as any)?.primary || prev.backgroundColor
         }));
 
@@ -347,13 +347,13 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
             };
           });
           
-          // Update global header state with processed template data
+          // Update global header state with processed template data (but always use brand logo)
           if (flowConfig.globalHeader) {
-            console.log('Setting global header with logo URL:', flowConfig.globalHeader.logoUrl);
+            console.log('Setting global header with brand logo URL:', activeBrandData?.logo_url);
             setGlobalHeader({
               showHeader: flowConfig.globalHeader.showHeader,
               brandName: flowConfig.globalHeader.brandName,
-              logoUrl: flowConfig.globalHeader.logoUrl,
+              logoUrl: activeBrandData?.logo_url || '', // Always use brand's logo_url
               backgroundColor: flowConfig.globalHeader.backgroundColor,
               logoSize: flowConfig.globalHeader.logoSize
             });
@@ -385,7 +385,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
   const [globalHeader, setGlobalHeader] = useState({
     showHeader: templateToEdit?.flow_config?.globalHeader?.showHeader ?? true,
     brandName: templateToEdit?.flow_config?.globalHeader?.brandName || brandData?.name || 'Brand',
-    logoUrl: templateToEdit?.flow_config?.globalHeader?.logoUrl || brandData?.logo_url || '',
+    logoUrl: brandData?.logo_url || '', // Always use brand's logo_url, ignore flow config
     backgroundColor: templateToEdit?.flow_config?.globalHeader?.backgroundColor || brandData?.brand_colors?.primary || '#3b82f6',
     logoSize: templateToEdit?.flow_config?.globalHeader?.logoSize || 'medium'
   });

@@ -246,35 +246,76 @@ const BrandSettings = () => {
       // List all files in the brand-logos bucket
       const { data: files, error: listError } = await supabase.storage
         .from('brand-logos')
-        .list('', { limit: 1000 });
+        .list('', { limit: 1000, sortBy: { column: 'name', order: 'asc' } });
 
       if (listError) throw listError;
 
       if (!files || files.length === 0) {
         toast({
           title: "Info",
-          description: "No old logo files found to clean up",
+          description: "No files found in logo storage",
         });
         return;
       }
 
-      // Find files to delete (exclude current logo)
-      const currentLogoPath = brand.logo_url ? 
-        new URL(brand.logo_url).pathname.split('/').slice(-2).join('/') : null;
-      
-      const filesToDelete = files
-        .filter(file => file.name !== '.emptyFolderPlaceholder')
-        .map(file => file.name)
-        .filter(fileName => {
-          // Don't delete current logo
-          if (currentLogoPath && fileName.includes(currentLogoPath.split('/')[1])) {
-            return false;
+      // Get all file paths recursively
+      const getAllFiles = async (prefix = '') => {
+        const { data: items } = await supabase.storage
+          .from('brand-logos')
+          .list(prefix, { limit: 1000 });
+        
+        let allFiles = [];
+        for (const item of items || []) {
+          if (item.name === '.emptyFolderPlaceholder') continue;
+          
+          const fullPath = prefix ? `${prefix}/${item.name}` : item.name;
+          
+          if (item.metadata && item.metadata.size === null) {
+            // This is a folder, recurse into it
+            const subFiles = await getAllFiles(fullPath);
+            allFiles.push(...subFiles);
+          } else {
+            // This is a file
+            allFiles.push(fullPath);
           }
-          // Delete files that contain "AniVatio" or look like old logos
-          return fileName.toLowerCase().includes('anivatio') || 
-                 fileName.toLowerCase().includes('logo') ||
-                 fileName.match(/\.(jpg|jpeg|png|gif|webp)$/i);
-        });
+        }
+        return allFiles;
+      };
+
+      const allFiles = await getAllFiles();
+      console.log('All files found:', allFiles);
+
+      // Find current brand logo file path
+      let currentLogoPath = null;
+      if (brand.logo_url) {
+        try {
+          const url = new URL(brand.logo_url);
+          const pathSegments = url.pathname.split('/').slice(1); // Remove empty first element
+          // Path should be like: storage/v1/object/public/brand-logos/brand-id/logo.ext
+          if (pathSegments.length >= 5) {
+            currentLogoPath = pathSegments.slice(4).join('/'); // Get brand-id/logo.ext
+          }
+        } catch (error) {
+          console.log('Could not parse logo URL:', error);
+        }
+      }
+      console.log('Current logo path:', currentLogoPath);
+
+      // Find files to delete (exclude current logo)
+      const filesToDelete = allFiles.filter(filePath => {
+        // Don't delete current logo
+        if (currentLogoPath && filePath === currentLogoPath) {
+          return false;
+        }
+        
+        // Delete files that contain "anivatio" (case insensitive) or look like old logos
+        const fileName = filePath.toLowerCase();
+        return fileName.includes('anivatio') || 
+               fileName.includes('logo') ||
+               fileName.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i);
+      });
+
+      console.log('Files to delete:', filesToDelete);
 
       if (filesToDelete.length === 0) {
         toast({
@@ -289,11 +330,14 @@ const BrandSettings = () => {
         .from('brand-logos')
         .remove(filesToDelete);
 
-      if (deleteError) throw deleteError;
+      if (deleteError) {
+        console.error('Delete error:', deleteError);
+        throw deleteError;
+      }
 
       toast({
         title: "Success",
-        description: `Cleaned up ${filesToDelete.length} old logo files`,
+        description: `Cleaned up ${filesToDelete.length} old logo files including AniVatio logo`,
       });
 
     } catch (error: any) {
