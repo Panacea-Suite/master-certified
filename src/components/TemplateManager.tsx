@@ -317,9 +317,9 @@ const TemplateManager: React.FC = () => {
             variant="outline"
             size="sm"
             onClick={() => handlePreviewTemplate(template)}
-            className="flex-1 min-w-[100px]"
+            className="flex-1 min-w-[110px] px-3 py-2"
           >
-            <Eye className="h-4 w-4 mr-1" />
+            <Eye className="h-4 w-4 mr-2" />
             Preview
           </Button>
           
@@ -327,9 +327,9 @@ const TemplateManager: React.FC = () => {
             variant="default"
             size="sm"
             onClick={() => handleUseTemplate(template)}
-            className="flex-1 min-w-[100px]"
+            className="flex-1 min-w-[120px] px-3 py-2"
           >
-            <Copy className="h-4 w-4 mr-1" />
+            <Copy className="h-4 w-4 mr-2" />
             Use Template
           </Button>
           
@@ -337,9 +337,9 @@ const TemplateManager: React.FC = () => {
             variant="outline"
             size="sm"
             onClick={() => handleEditAsNew(template)}
-            className="flex-1 min-w-[100px]"
+            className="flex-1 min-w-[120px] px-3 py-2"
           >
-            <Edit3 className="h-4 w-4 mr-1" />
+            <Edit3 className="h-4 w-4 mr-2" />
             Edit as New
           </Button>
           
