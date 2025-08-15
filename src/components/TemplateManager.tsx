@@ -9,6 +9,7 @@ import { Copy, Edit3, Eye, Plus, Search, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { FlowEditor } from './FlowEditor';
 import CustomerFlowExperience from './CustomerFlowExperience';
+import TemplatePreview from './TemplatePreview';
 import { FLOW_TEMPLATES } from '@/data/flowTemplates';
 import { useFlowManager } from '@/hooks/useFlowManager';
 
@@ -180,19 +181,6 @@ const TemplateManager: React.FC = () => {
   };
 
   const handlePreviewTemplate = (template: SystemTemplate | UserTemplate) => {
-    // Check if this is a flowTemplates.ts template (non-UUID id)
-    const isFlowTemplate = typeof template.id === 'string' && !template.id.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
-    
-    if (isFlowTemplate) {
-      // For flowTemplates.ts templates, show a message that preview is not available
-      toast({
-        title: "Preview Unavailable",
-        description: "Preview is only available for database templates. Use 'Edit as New' to view and customize this template.",
-        variant: "default",
-      });
-      return;
-    }
-    
     setPreviewTemplate(template);
     setPreviewMode('customer');
   };
@@ -447,12 +435,23 @@ const TemplateManager: React.FC = () => {
         />
       )}
 
-      {/* Customer Preview Modal */}
+      {/* Preview Modal */}
       {previewMode === 'customer' && previewTemplate && (
-        <CustomerFlowExperience
-          flowId={previewTemplate.id}
-          qrCode="preview-template"
-        />
+        // Check if this is a flowTemplates.ts template (has 'pages' property)
+        'pages' in previewTemplate ? (
+          <TemplatePreview 
+            template={previewTemplate}
+            onClose={() => {
+              setPreviewTemplate(null);
+              setPreviewMode(null);
+            }}
+          />
+        ) : (
+          <CustomerFlowExperience
+            flowId={previewTemplate.id}
+            qrCode="preview-template"
+          />
+        )
       )}
     </div>
   );
