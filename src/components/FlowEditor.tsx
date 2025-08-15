@@ -556,7 +556,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
 
         onSave(flowData);
       } else {
-        // Creating new flow from scratch
+        // Creating new template from scratch
         const flowData = {
           name: flowName,
           flow_config: flowConfig,

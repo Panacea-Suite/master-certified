@@ -214,25 +214,46 @@ const TemplateManager: React.FC = () => {
 
       if (!brandData) {
         toast({
-          title: "No Brand Found",
+          title: "No Brand Found", 
           description: "Please create a brand first",
           variant: "destructive",
         });
         return;
       }
 
-      // Create as template
-      const templateConfig = {
-        ...flowData,
-        is_template: true
-      };
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast({
+          title: "Authentication Error",
+          description: "You must be logged in to save templates",
+          variant: "destructive",
+        });
+        return;
+      }
 
-      await createFlowAtomic(
-        flowData.name || 'Custom Template',
-        brandData.id,
-        templateConfig,
-        `${flowData.name || 'Custom Template'} Campaign`
-      );
+      // Create template directly in flows table (not using createFlowAtomic)
+      // This ensures we create a user template, not a system template
+      const { data: newTemplate, error: insertError } = await supabase
+        .from('flows')
+        .insert({
+          name: flowData.name || 'Custom Template',
+          flow_config: flowData.flow_config,
+          is_template: true,
+          is_system_template: false, // Explicitly set as user template
+          template_category: flowData.template_category || 'custom',
+          template_description: flowData.description || `Custom template based on ${editTemplate?.name || 'system template'}`,
+          template_tags: flowData.template_tags || [],
+          created_by: user.id,
+          campaign_id: null // Templates don't need campaigns
+        })
+        .select()
+        .single();
+
+      if (insertError) {
+        throw new Error(`Failed to save template: ${insertError.message}`);
+      }
 
       setShowEditor(false);
       setEditTemplate(null);
@@ -240,7 +261,7 @@ const TemplateManager: React.FC = () => {
 
       toast({
         title: "Success",
-        description: "Template saved successfully",
+        description: "Template saved to your templates successfully",
       });
     } catch (error) {
       console.error('Error saving template:', error);
