@@ -76,6 +76,18 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
   brandData
 }) => {
   const { user } = useAuth();
+
+  // Ensure new logo images show up immediately by cache-busting the URL
+  const withCacheBust = (url?: string, version?: string | number) => {
+    if (!url) return '';
+    try {
+      const u = new URL(url);
+      u.searchParams.set('v', String(version ?? Date.now()));
+      return u.toString();
+    } catch {
+      return `${url}${url.includes('?') ? '&' : '?'}v=${version ?? Date.now()}`;
+    }
+  };
   const [selectedDevice, setSelectedDevice] = useState<DeviceSpec>(DEVICE_SPECS[0]); // Default to iPhone 14
   const [flowName, setFlowName] = useState(
     (templateToEdit && 'name' in templateToEdit) ? templateToEdit.name : 'Untitled Flow'
@@ -287,7 +299,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
         setGlobalHeader(prev => ({
           ...prev,
           brandName: freshBrandData.name || prev.brandName,
-          logoUrl: freshBrandData.logo_url || '', // Always use brand's logo_url, ignore flow config
+          logoUrl: withCacheBust(freshBrandData.logo_url || '', freshBrandData.updated_at || Date.now()),
           backgroundColor: (freshBrandData.brand_colors as any)?.primary || prev.backgroundColor
         }));
 
@@ -301,7 +313,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                   ...section,
                   config: {
                     ...section.config,
-                    imageUrl: freshBrandData.logo_url
+                    imageUrl: withCacheBust(freshBrandData.logo_url, freshBrandData.updated_at || Date.now())
                   }
                 };
               }
@@ -353,7 +365,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
             setGlobalHeader({
               showHeader: flowConfig.globalHeader.showHeader,
               brandName: flowConfig.globalHeader.brandName,
-              logoUrl: activeBrandData?.logo_url || '', // Always use brand's logo_url
+              logoUrl: withCacheBust(activeBrandData?.logo_url || '', (activeBrandData as any)?.updated_at || Date.now()),
               backgroundColor: flowConfig.globalHeader.backgroundColor,
               logoSize: flowConfig.globalHeader.logoSize
             });
@@ -385,7 +397,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
   const [globalHeader, setGlobalHeader] = useState({
     showHeader: templateToEdit?.flow_config?.globalHeader?.showHeader ?? true,
     brandName: templateToEdit?.flow_config?.globalHeader?.brandName || brandData?.name || 'Brand',
-    logoUrl: brandData?.logo_url || '', // Always use brand's logo_url, ignore flow config
+    logoUrl: withCacheBust(brandData?.logo_url || '', (brandData as any)?.updated_at || Date.now()),
     backgroundColor: templateToEdit?.flow_config?.globalHeader?.backgroundColor || brandData?.brand_colors?.primary || '#3b82f6',
     logoSize: templateToEdit?.flow_config?.globalHeader?.logoSize || 'medium'
   });

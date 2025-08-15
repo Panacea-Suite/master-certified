@@ -258,32 +258,30 @@ const BrandSettings = () => {
         return;
       }
 
-      // Get all file paths recursively
-      const getAllFiles = async (prefix = '') => {
+      // Get all file paths recursively starting from this brand folder
+      const getAllFiles = async (prefix: string): Promise<string[]> => {
         const { data: items } = await supabase.storage
           .from('brand-logos')
-          .list(prefix, { limit: 1000 });
+          .list(prefix, { limit: 1000, sortBy: { column: 'name', order: 'asc' } });
         
-        let allFiles = [];
+        const allFiles: string[] = [];
         for (const item of items || []) {
           if (item.name === '.emptyFolderPlaceholder') continue;
-          
           const fullPath = prefix ? `${prefix}/${item.name}` : item.name;
-          
-          if (item.metadata && item.metadata.size === null) {
-            // This is a folder, recurse into it
+          // Supabase returns folders with no id; files have an id
+          // @ts-ignore - SDK types may vary across versions
+          if (!item.id) {
             const subFiles = await getAllFiles(fullPath);
             allFiles.push(...subFiles);
           } else {
-            // This is a file
             allFiles.push(fullPath);
           }
         }
         return allFiles;
       };
 
-      const allFiles = await getAllFiles();
-      console.log('All files found:', allFiles);
+      const allFiles = await getAllFiles(brand.id);
+      console.log('All files found under brand folder:', allFiles);
 
       // Find current brand logo file path
       let currentLogoPath = null;
@@ -301,18 +299,17 @@ const BrandSettings = () => {
       }
       console.log('Current logo path:', currentLogoPath);
 
-      // Find files to delete (exclude current logo)
+      // Find files to delete (only within this brand folder, exclude current logo)
       const filesToDelete = allFiles.filter(filePath => {
         // Don't delete current logo
         if (currentLogoPath && filePath === currentLogoPath) {
           return false;
         }
-        
-        // Delete files that contain "anivatio" (case insensitive) or look like old logos
-        const fileName = filePath.toLowerCase();
-        return fileName.includes('anivatio') || 
-               fileName.includes('logo') ||
-               fileName.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i);
+        // Only delete files in this brand's folder
+        if (!filePath.startsWith(`${brand.id}/`)) {
+          return false;
+        }
+        return true;
       });
 
       console.log('Files to delete:', filesToDelete);
