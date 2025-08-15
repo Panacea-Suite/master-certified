@@ -44,82 +44,132 @@ const TemplatePreview: React.FC<TemplatePreviewProps> = ({ template, onClose }) 
   };
 
   const renderSection = (section: any) => {
+    const config = section.config || {};
+    
     switch (section.type) {
       case 'text':
-        const textStyle = section.content?.style || 'p';
-        const text = section.content?.text || 'Sample text content';
-        
-        if (textStyle === 'h1') {
-          return <h1 key={section.id} className="text-4xl font-bold text-center mb-6">{text}</h1>;
-        }
-        if (textStyle === 'h2') {
-          return <h2 key={section.id} className="text-2xl font-semibold mb-4">{text}</h2>;
-        }
-        if (textStyle === 'h3') {
-          return <h3 key={section.id} className="text-xl font-medium mb-3">{text}</h3>;
-        }
-        return <p key={section.id} className="text-muted-foreground mb-4">{text}</p>;
-
-      case 'form':
         return (
-          <div key={section.id} className="space-y-4">
-            {section.content?.fields?.map((field: any, index: number) => (
-              <div key={field.id || index} className="space-y-2">
-                <Label htmlFor={field.id}>{field.label}</Label>
-                {field.type === 'select' ? (
-                  <Select value={userInputs.selectedStore} onValueChange={(value) => 
-                    setUserInputs(prev => ({ ...prev, selectedStore: value }))
-                  }>
-                    <SelectTrigger>
-                      <SelectValue placeholder={field.placeholder || 'Select an option'} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {field.options?.map((option: string, optIndex: number) => (
-                        <SelectItem key={optIndex} value={option}>
-                          {option}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                ) : (
-                  <Input
-                    id={field.id}
-                    type={field.type || 'text'}
-                    placeholder={field.placeholder || ''}
-                    value={field.id === 'email' ? userInputs.email : 
-                           field.id === 'firstName' ? userInputs.firstName :
-                           field.id === 'lastName' ? userInputs.lastName : ''}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      if (field.id === 'email') {
-                        setUserInputs(prev => ({ ...prev, email: value }));
-                      } else if (field.id === 'firstName') {
-                        setUserInputs(prev => ({ ...prev, firstName: value }));
-                      } else if (field.id === 'lastName') {
-                        setUserInputs(prev => ({ ...prev, lastName: value }));
-                      }
-                    }}
-                  />
-                )}
-              </div>
-            ))}
+          <div 
+            key={section.id}
+            className="text-section p-4"
+            style={{ 
+              backgroundColor: config.backgroundColor || 'transparent',
+              color: config.textColor || 'inherit'
+            }}
+          >
+            <div 
+              className="prose prose-sm max-w-none"
+              style={{ fontSize: `${config.fontSize || 16}px` }}
+            >
+              {config.content || 'Sample text content'}
+            </div>
+          </div>
+        );
+
+      case 'store_selector':
+        const storeOptions = config.storeOptions ? config.storeOptions.split('\n').filter(option => option.trim()) : ['Downtown Location', 'Mall Branch', 'Airport Store'];
+        return (
+          <div key={section.id} className="store-selector-section p-4">
+            <div className="space-y-2">
+              {config.label && (
+                <Label className="block text-sm font-medium">
+                  {config.label}
+                </Label>
+              )}
+              <Select value={userInputs.selectedStore} onValueChange={(value) => 
+                setUserInputs(prev => ({ ...prev, selectedStore: value }))
+              }>
+                <SelectTrigger>
+                  <SelectValue placeholder={config.placeholder || 'Choose a store...'} />
+                </SelectTrigger>
+                <SelectContent>
+                  {storeOptions.map((option, index) => (
+                    <SelectItem key={index} value={option}>
+                      {option}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        );
+
+      case 'divider':
+        return (
+          <div key={section.id} className="divider-section p-4">
+            <hr 
+              className="border-0"
+              style={{
+                height: `${config.thickness || 1}px`,
+                backgroundColor: config.color || '#e5e7eb',
+                width: `${config.width || 100}%`,
+                margin: '0 auto'
+              }}
+            />
           </div>
         );
 
       case 'image':
         return (
-          <div key={section.id} className="flex justify-center mb-6">
-            <div className="w-32 h-32 bg-muted rounded-lg flex items-center justify-center">
-              <Package className="h-16 w-16 text-muted-foreground" />
-            </div>
+          <div key={section.id} className="image-section p-4">
+            {config.imageUrl ? (
+              <div className="space-y-2">
+                <img 
+                  src={config.imageUrl} 
+                  alt={config.alt || 'Section image'}
+                  className="w-full h-auto rounded"
+                  style={{ maxHeight: config.height || 'auto' }}
+                />
+                {config.caption && (
+                  <p className="text-sm text-muted-foreground text-center">
+                    {config.caption}
+                  </p>
+                )}
+              </div>
+            ) : (
+              <div className="flex justify-center mb-6">
+                <div className="w-32 h-32 bg-muted rounded-lg flex items-center justify-center">
+                  <Package className="h-16 w-16 text-muted-foreground" />
+                </div>
+              </div>
+            )}
+          </div>
+        );
+
+      case 'form':
+        return (
+          <div key={section.id} className="space-y-4 p-4">
+            {config.fields?.map((field: any, index: number) => (
+              <div key={field.id || index} className="space-y-2">
+                <Label htmlFor={field.id}>{field.label}</Label>
+                <Input
+                  id={field.id}
+                  type={field.type || 'text'}
+                  placeholder={field.placeholder || ''}
+                  value={field.id === 'email' ? userInputs.email : 
+                         field.id === 'firstName' ? userInputs.firstName :
+                         field.id === 'lastName' ? userInputs.lastName : ''}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (field.id === 'email') {
+                      setUserInputs(prev => ({ ...prev, email: value }));
+                    } else if (field.id === 'firstName') {
+                      setUserInputs(prev => ({ ...prev, firstName: value }));
+                    } else if (field.id === 'lastName') {
+                      setUserInputs(prev => ({ ...prev, lastName: value }));
+                    }
+                  }}
+                />
+              </div>
+            ))}
           </div>
         );
 
       case 'button':
         return (
-          <div key={section.id} className="flex justify-center">
+          <div key={section.id} className="flex justify-center p-4">
             <Button className="w-full max-w-xs">
-              {section.content?.text || 'Action Button'}
+              {config.text || 'Action Button'}
             </Button>
           </div>
         );
@@ -128,7 +178,7 @@ const TemplatePreview: React.FC<TemplatePreviewProps> = ({ template, onClose }) 
         return (
           <div key={section.id} className="p-4 bg-muted rounded-lg">
             <p className="text-sm text-muted-foreground">
-              {section.type} section - {section.content?.text || 'Content preview'}
+              {section.type} section - {config.content || 'Content preview'}
             </p>
           </div>
         );
@@ -153,7 +203,7 @@ const TemplatePreview: React.FC<TemplatePreviewProps> = ({ template, onClose }) 
         <div className="px-6 py-3 border-b bg-muted/50">
           <div className="flex items-center justify-between text-sm">
             <span>Page {currentPageIndex + 1} of {template.pages.length}</span>
-            <Badge variant="outline">{currentPage?.title || 'Untitled Page'}</Badge>
+            <Badge variant="outline">{currentPage?.name || currentPage?.title || 'Untitled Page'}</Badge>
           </div>
           <div className="mt-2 w-full bg-muted rounded-full h-2">
             <div 
@@ -174,7 +224,7 @@ const TemplatePreview: React.FC<TemplatePreviewProps> = ({ template, onClose }) 
                 {currentPageIndex === 3 && <CheckCircle className="h-12 w-12 text-primary" />}
                 {currentPageIndex >= 4 && <Truck className="h-12 w-12 text-primary" />}
               </div>
-              <CardTitle className="text-2xl">{currentPage?.title || 'Page Title'}</CardTitle>
+              <CardTitle className="text-2xl">{currentPage?.name || currentPage?.title || 'Page Title'}</CardTitle>
               {currentPage?.description && (
                 <CardDescription>{currentPage.description}</CardDescription>
               )}
