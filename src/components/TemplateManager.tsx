@@ -41,6 +41,7 @@ const TemplateManager: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [previewTemplate, setPreviewTemplate] = useState<any>(null);
   const [editTemplate, setEditTemplate] = useState<any>(null);
+  const [brandData, setBrandData] = useState<any>(null);
   const [showEditor, setShowEditor] = useState(false);
   const [previewMode, setPreviewMode] = useState<'template' | 'customer' | null>(null);
 
@@ -174,10 +175,31 @@ const TemplateManager: React.FC = () => {
     }
   };
 
-  const handleEditAsNew = (template: SystemTemplate | UserTemplate) => {
-    // Import and process template data using unified processor
-    import('@/utils/templateProcessor').then(({ processTemplateData }) => {
+  const handleEditAsNew = async (template: SystemTemplate | UserTemplate) => {
+    try {
+      // Fetch user's brand data first
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          title: "Authentication Error",
+          description: "You must be logged in to edit templates",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const { data: brandData } = await supabase
+        .from('brands')
+        .select('id, name, logo_url, brand_colors')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      console.log('Brand data fetched for edit as new:', brandData);
+
+      // Import and process template data using unified processor
+      const { processTemplateData } = await import('@/utils/templateProcessor');
       const processedTemplate = processTemplateData(template);
+      
       // Convert to template format that FlowEditor expects
       const editorTemplate = {
         ...template,
@@ -186,10 +208,19 @@ const TemplateManager: React.FC = () => {
           designConfig: processedTemplate.designConfig
         }
       };
+      
       setEditTemplate(editorTemplate);
+      setBrandData(brandData); // Pass brand data to FlowEditor
       setShowEditor(true);
       setPreviewMode('template');
-    });
+    } catch (error) {
+      console.error('Error in handleEditAsNew:', error);
+      toast({
+        title: "Error",
+        description: "Failed to prepare template for editing",
+        variant: "destructive",
+      });
+    }
   };
 
   const handlePreviewTemplate = (template: SystemTemplate | UserTemplate) => {
@@ -463,9 +494,11 @@ const TemplateManager: React.FC = () => {
           onClose={() => {
             setShowEditor(false);
             setEditTemplate(null);
+            setBrandData(null);
           }}
           onSave={handleEditorSave}
           templateToEdit={editTemplate}
+          brandData={brandData}
         />
       )}
 
