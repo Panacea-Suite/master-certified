@@ -85,7 +85,12 @@ const CustomerFlowExperience = ({ flowId, qrCode }: CustomerFlowExperienceProps)
       
       // Check if flow uses new section-based structure
       const flowConfig = flowData.flow_config as any;
-      if (flowConfig?.sections && Array.isArray(flowConfig.sections) && flowConfig.sections.length > 0) {
+      if (flowConfig?.pages && Array.isArray(flowConfig.pages) && flowConfig.pages.length > 0) {
+        // Use new multi-page flow
+        console.log('Using new multi-page flow with pages:', flowConfig.pages);
+        setIsNewSectionFlow(true);
+        setContent([]); // Clear old content
+      } else if (flowConfig?.sections && Array.isArray(flowConfig.sections) && flowConfig.sections.length > 0) {
         // Use new section-based flow
         console.log('Using new section-based flow with sections:', flowConfig.sections);
         setIsNewSectionFlow(true);
@@ -162,6 +167,154 @@ const CustomerFlowExperience = ({ flowId, qrCode }: CustomerFlowExperienceProps)
       </div>
     );
   }
+
+  const renderTemplateSection = (section: any) => {
+    const paddingClass = `p-${section.config?.padding || 4}`;
+    
+    return (
+      <div key={section.id} className={paddingClass}>
+        {section.type === 'text' && (
+          <div 
+            style={{ 
+              backgroundColor: section.config?.backgroundColor || 'transparent',
+              color: section.config?.textColor || '#000000'
+            }}
+            className={`rounded ${section.config?.align === 'center' ? 'text-center' : ''}`}
+          >
+            <div 
+              style={{ 
+                fontSize: `${section.config?.fontSize || 16}px`,
+                fontWeight: section.config?.fontWeight || 'normal'
+              }}
+            >
+              {section.config?.content || 'No content'}
+            </div>
+          </div>
+        )}
+        
+        {section.type === 'image' && (
+          <div className="space-y-2">
+            {section.config?.imageUrl ? (
+              <img 
+                src={section.config.imageUrl} 
+                alt={section.config?.alt || 'Section image'}
+                className="w-full h-auto rounded-lg"
+                style={{ maxHeight: section.config?.height || 'auto' }}
+              />
+            ) : (
+              <div className="w-full h-32 bg-muted rounded-lg flex items-center justify-center">
+                <p className="text-muted-foreground">No image</p>
+              </div>
+            )}
+            {section.config?.caption && (
+              <p className="text-sm text-muted-foreground text-center">
+                {section.config.caption}
+              </p>
+            )}
+          </div>
+        )}
+        
+        {section.type === 'store_selector' && (
+          <div className="space-y-2">
+            {section.config?.label && (
+              <label className="block text-sm font-medium">
+                {section.config.label}
+              </label>
+            )}
+            <select
+              className="w-full px-3 py-2 text-sm rounded-md border bg-background"
+              value={userInputs.selectedStore}
+              onChange={(e) => handleStoreSelection(e.target.value)}
+            >
+              <option value="">{section.config?.placeholder || 'Choose a store...'}</option>
+              {campaign?.approved_stores?.map((store: string) => (
+                <option key={store} value={store}>{store}</option>
+              ))}
+            </select>
+          </div>
+        )}
+        
+        {section.type === 'divider' && (
+          <hr 
+            className="border-0"
+            style={{
+              height: `${section.config?.thickness || 1}px`,
+              backgroundColor: section.config?.color || '#e5e7eb',
+              width: `${section.config?.width || 100}%`,
+              margin: '0 auto'
+            }}
+          />
+        )}
+        
+        {section.type === 'column' && (
+          <div 
+            className="grid grid-cols-2"
+            style={{ 
+              gap: `${(section.config?.gap || 4) * 0.25}rem`,
+              backgroundColor: section.config?.backgroundColor || 'transparent'
+            }}
+          >
+            <div className="p-4 border border-dashed border-muted-foreground/30 rounded text-center text-muted-foreground">
+              Column layout ({section.config?.layout || '2-col-50-50'})
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const renderMultiPageFlow = () => {
+    const flowConfig = flow?.flow_config as any;
+    const pages = flowConfig?.pages || [];
+    
+    if (!pages || pages.length === 0) return null;
+
+    // Get the current page based on the current stage (for now, use first page)
+    const currentPageIndex = Math.min(currentStage, pages.length - 1);
+    const currentPage = pages[currentPageIndex];
+    
+    if (!currentPage?.sections) return null;
+
+    const backgroundColor = flowConfig?.theme?.backgroundColor || '#ffffff';
+    
+    return (
+      <div 
+        className="min-h-screen"
+        style={{ backgroundColor }}
+      >
+        <div className="max-w-sm mx-auto px-4 py-6">
+          <div className="space-y-4">
+            {currentPage.sections.map((section: any) => renderTemplateSection(section))}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderSectionBasedFlow = () => {
+    const flowConfig = flow?.flow_config as any;
+    const sections = flowConfig?.sections || [];
+    
+    if (!sections || sections.length === 0) {
+      console.log('No sections found in flow config');
+      return null;
+    }
+    
+    const backgroundColor = flowConfig?.theme?.backgroundColor || '#ffffff';
+    
+    return (
+      <div 
+        className="min-h-screen"
+        style={{ backgroundColor }}
+      >
+        <div className="max-w-sm mx-auto px-4 py-6">
+          <div className="space-y-4">
+            {sections.map((section: any) => renderTemplateSection(section))}
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   const renderStageContent = () => {
     const stage = stages[currentStage];
@@ -397,199 +550,6 @@ const CustomerFlowExperience = ({ flowId, qrCode }: CustomerFlowExperienceProps)
       default:
         return null;
     }
-  };
-
-  const renderMultiPageFlow = () => {
-    const flowConfig = flow?.flow_config as any;
-    const pages = flowConfig?.pages || [];
-    
-    // For now, render the first page's sections (landing page)
-    const firstPage = pages[0];
-    if (!firstPage?.sections) return null;
-
-    const backgroundColor = flowConfig?.theme?.backgroundColor || '#ffffff';
-    
-    return (
-      <div 
-        className="min-h-screen"
-        style={{ backgroundColor }}
-      >
-        <div className="max-w-sm mx-auto px-4 py-6">
-          <div className="space-y-4">
-            {firstPage.sections.map((section: any) => (
-              <div key={section.id} className={`p-${section.config?.padding || 4}`}>
-                {section.type === 'text' && (
-                  <div 
-                    style={{ 
-                      backgroundColor: section.config?.backgroundColor || 'transparent',
-                      color: section.config?.textColor || '#000000'
-                    }}
-                    className="p-4 rounded"
-                  >
-                    <div 
-                      style={{ fontSize: `${section.config?.fontSize || 16}px` }}
-                    >
-                      {section.config?.content || 'No content'}
-                    </div>
-                  </div>
-                )}
-                
-                {section.type === 'image' && (
-                  <div className="space-y-2">
-                    {section.config?.imageUrl ? (
-                      <img 
-                        src={section.config.imageUrl} 
-                        alt={section.config?.alt || 'Section image'}
-                        className="w-full h-auto rounded-lg"
-                        style={{ maxHeight: section.config?.height || 'auto' }}
-                      />
-                    ) : (
-                      <div className="w-full h-32 bg-muted rounded-lg flex items-center justify-center">
-                        <p className="text-muted-foreground">No image</p>
-                      </div>
-                    )}
-                    {section.config?.caption && (
-                      <p className="text-sm text-muted-foreground text-center">
-                        {section.config.caption}
-                      </p>
-                    )}
-                  </div>
-                )}
-                
-                {section.type === 'divider' && (
-                  <hr 
-                    className="border-0"
-                    style={{
-                      height: `${section.config?.thickness || 1}px`,
-                      backgroundColor: section.config?.color || '#e5e7eb',
-                      width: `${section.config?.width || 100}%`,
-                      margin: '0 auto'
-                    }}
-                  />
-                )}
-                
-                {section.type === 'column' && (
-                  <div 
-                    className="grid"
-                    style={{ 
-                      gap: `${(section.config?.gap || 4) * 0.25}rem`,
-                      backgroundColor: section.config?.backgroundColor || 'transparent'
-                    }}
-                  >
-                    {/* Column rendering logic can be added here */}
-                    <div className="p-4 border border-dashed border-muted-foreground/30 rounded text-center text-muted-foreground">
-                      Column layout ({section.config?.layout || '2-col-50-50'})
-                    </div>
-                  </div>
-                )}
-              </div>
-            ))}
-            
-            {firstPage.sections.length === 0 && (
-              <div className="text-center py-8">
-                <p className="text-muted-foreground">
-                  This page is empty. Use the page builder to add content.
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  const renderSectionBasedFlow = () => {
-    const flowConfig = flow?.flow_config as any;
-    const sections = flowConfig?.sections || [];
-    const backgroundColor = flowConfig?.theme?.backgroundColor || '#ffffff';
-    
-    return (
-      <div 
-        className="min-h-screen"
-        style={{ backgroundColor }}
-      >
-        <div className="max-w-sm mx-auto px-4 py-6">
-          <div className="space-y-4">
-            {sections.map((section: any) => (
-              <div key={section.id} className={`p-${section.config?.padding || 4}`}>
-                {section.type === 'text' && (
-                  <div 
-                    style={{ 
-                      backgroundColor: section.config?.backgroundColor || 'transparent',
-                      color: section.config?.textColor || '#000000'
-                    }}
-                    className="p-4 rounded"
-                  >
-                    <div 
-                      style={{ fontSize: `${section.config?.fontSize || 16}px` }}
-                    >
-                      {section.config?.content || 'No content'}
-                    </div>
-                  </div>
-                )}
-                
-                {section.type === 'image' && (
-                  <div className="space-y-2">
-                    {section.config?.imageUrl ? (
-                      <img 
-                        src={section.config.imageUrl} 
-                        alt={section.config?.alt || 'Section image'}
-                        className="w-full h-auto rounded-lg"
-                        style={{ maxHeight: section.config?.height || 'auto' }}
-                      />
-                    ) : (
-                      <div className="w-full h-32 bg-muted rounded-lg flex items-center justify-center">
-                        <p className="text-muted-foreground">No image</p>
-                      </div>
-                    )}
-                    {section.config?.caption && (
-                      <p className="text-sm text-muted-foreground text-center">
-                        {section.config.caption}
-                      </p>
-                    )}
-                  </div>
-                )}
-                
-                {section.type === 'divider' && (
-                  <hr 
-                    className="border-0"
-                    style={{
-                      height: `${section.config?.thickness || 1}px`,
-                      backgroundColor: section.config?.color || '#e5e7eb',
-                      width: `${section.config?.width || 100}%`,
-                      margin: '0 auto'
-                    }}
-                  />
-                )}
-                
-                {section.type === 'column' && (
-                  <div 
-                    className="grid"
-                    style={{ 
-                      gap: `${(section.config?.gap || 4) * 0.25}rem`,
-                      backgroundColor: section.config?.backgroundColor || 'transparent'
-                    }}
-                  >
-                    {/* Column rendering logic can be added here */}
-                    <div className="p-4 border border-dashed border-muted-foreground/30 rounded text-center text-muted-foreground">
-                      Column layout ({section.config?.layout || '2-col-50-50'})
-                    </div>
-                  </div>
-                )}
-              </div>
-            ))}
-            
-            {sections.length === 0 && (
-              <div className="text-center py-8">
-                <p className="text-muted-foreground">
-                  This page is empty. Use the page builder to add content.
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    );
   };
 
   // Check if this is a multi-page flow, section-based flow, or legacy stage flow
