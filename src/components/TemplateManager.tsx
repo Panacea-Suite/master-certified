@@ -65,29 +65,32 @@ const TemplateManager: React.FC = () => {
         tags: []
       }));
 
-      // Load system templates from database
+      // Load system templates from database (if any)
       const { data: dbSystemTemplates } = await supabase
         .from('flows')
         .select('*')
         .eq('is_system_template', true);
 
       if (dbSystemTemplates) {
-        const dbSystemTemps = dbSystemTemplates.map(template => ({
-          id: template.id,
-          name: template.name,
-          description: template.template_description || 'System template',
-          category: 'database',
-          pages: [],
-          designConfig: {
-            backgroundStyle: 'solid' as const,
-            colorScheme: 'primary' as const,
-            borderStyle: 'rounded' as const,
-            dividerStyle: 'line' as const,
-            cardStyle: 'elevated' as const,
-            spacing: 'comfortable' as const
-          },
-          tags: template.template_tags || []
-        }));
+        const dbSystemTemps = dbSystemTemplates.map(template => {
+          const flowConfig = template.flow_config as any;
+          return {
+            id: template.id,
+            name: template.name,
+            description: template.template_description || 'System template',
+            category: template.template_category || 'database',
+            pages: flowConfig?.pages || [],
+            designConfig: flowConfig?.designConfig || {
+              backgroundStyle: 'solid' as const,
+              colorScheme: 'primary' as const,
+              borderStyle: 'rounded' as const,
+              dividerStyle: 'line' as const,
+              cardStyle: 'elevated' as const,
+              spacing: 'comfortable' as const
+            },
+            tags: template.template_tags || []
+          };
+        });
         systemTemps.push(...dbSystemTemps);
       }
 
@@ -177,6 +180,19 @@ const TemplateManager: React.FC = () => {
   };
 
   const handlePreviewTemplate = (template: SystemTemplate | UserTemplate) => {
+    // Check if this is a flowTemplates.ts template (non-UUID id)
+    const isFlowTemplate = typeof template.id === 'string' && !template.id.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
+    
+    if (isFlowTemplate) {
+      // For flowTemplates.ts templates, show a message that preview is not available
+      toast({
+        title: "Preview Unavailable",
+        description: "Preview is only available for database templates. Use 'Edit as New' to view and customize this template.",
+        variant: "default",
+      });
+      return;
+    }
+    
     setPreviewTemplate(template);
     setPreviewMode('customer');
   };
