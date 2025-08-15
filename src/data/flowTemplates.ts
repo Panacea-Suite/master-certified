@@ -342,7 +342,7 @@ export const FLOW_TEMPLATES: FlowTemplateData[] = [
     },
     globalHeader: {
       showHeader: true,
-      brandName: 'Logo',
+      brandName: '',
       logoUrl: '',
       backgroundColor: '#000000',
       logoSize: 'medium'
