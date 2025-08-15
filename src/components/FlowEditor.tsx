@@ -36,6 +36,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { DesignTemplateSelector } from './DesignTemplateSelector';
 import { TemplateStyleProvider } from './TemplateStyleProvider';
+import { BrandColorPicker } from '@/components/ui/brand-color-picker';
 
 interface FlowTemplate {
   id: string;
@@ -826,16 +827,13 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                         </Select>
                       </div>
                       
-                      <div>
-                        <Label htmlFor="headerBg">Header Background</Label>
-                        <Input
-                          id="headerBg"
-                          type="color"
-                          value={globalHeader.backgroundColor}
-                          onChange={(e) => setGlobalHeader(prev => ({ ...prev, backgroundColor: e.target.value }))}
-                          className="h-8"
-                        />
-                      </div>
+                      <BrandColorPicker
+                        label="Header Background"
+                        value={globalHeader.backgroundColor}
+                        onChange={(color) => setGlobalHeader(prev => ({ ...prev, backgroundColor: color }))}
+                        brandColors={brandData?.brand_colors}
+                        id="headerBg"
+                      />
                     </>
                   )}
                 </CollapsibleContent>
@@ -856,13 +854,12 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                   </Button>
                 </CollapsibleTrigger>
                 <CollapsibleContent className="space-y-2 pt-2">
-                  <Label htmlFor="backgroundColor">Background Color</Label>
-                  <Input
-                    id="backgroundColor"
-                    type="color"
+                  <BrandColorPicker
+                    label="Background Color"
                     value={pageSettings.backgroundColor}
-                    onChange={(e) => setPageSettings(prev => ({ ...prev, backgroundColor: e.target.value }))}
-                    className="h-8"
+                    onChange={(color) => setPageSettings(prev => ({ ...prev, backgroundColor: color }))}
+                    brandColors={brandData?.brand_colors}
+                    id="backgroundColor"
                   />
                 </CollapsibleContent>
               </Collapsible>
@@ -1038,6 +1035,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
               <ComponentEditor
                 section={selectedSection}
                 onUpdate={(config) => handleUpdateSection(selectedSection.id, config)}
+                brandColors={brandData?.brand_colors}
               />
             ) : (
               <div className="text-center py-8 text-muted-foreground">

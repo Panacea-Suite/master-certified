@@ -9,6 +9,7 @@ import { Separator } from '@/components/ui/separator';
 import { Slider } from '@/components/ui/slider';
 import { Trash2, Upload, Edit2, Settings } from 'lucide-react';
 import { ImageEditor } from '@/components/ImageEditor';
+import { BrandColorPicker } from '@/components/ui/brand-color-picker';
 
 interface SectionData {
   id: string;
@@ -21,9 +22,14 @@ interface SectionData {
 interface ComponentEditorProps {
   section: SectionData;
   onUpdate: (config: any) => void;
+  brandColors?: {
+    primary: string;
+    secondary: string;
+    accent: string;
+  } | null;
 }
 
-export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpdate }) => {
+export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpdate, brandColors }) => {
   const [showImageEditor, setShowImageEditor] = useState(false);
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
   const { config } = section;
@@ -58,24 +64,18 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
       </div>
       
       <div className="grid grid-cols-2 gap-2">
-        <div>
-          <Label className="text-xs">Background</Label>
-          <Input
-            type="color"
-            value={config.backgroundColor || '#ffffff'}
-            onChange={(e) => updateConfig('backgroundColor', e.target.value)}
-            className="h-8"
-          />
-        </div>
-        <div>
-          <Label className="text-xs">Text Color</Label>
-          <Input
-            type="color"
-            value={config.textColor || '#000000'}
-            onChange={(e) => updateConfig('textColor', e.target.value)}
-            className="h-8"
-          />
-        </div>
+        <BrandColorPicker
+          label="Background"
+          value={config.backgroundColor || '#ffffff'}
+          onChange={(color) => updateConfig('backgroundColor', color)}
+          brandColors={brandColors}
+        />
+        <BrandColorPicker
+          label="Text Color"
+          value={config.textColor || '#000000'}
+          onChange={(color) => updateConfig('textColor', color)}
+          brandColors={brandColors}
+        />
       </div>
     </div>
   );
@@ -215,16 +215,13 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
         />
       </div>
       
-      <div className="space-y-2">
-        <Label htmlFor="color">Color</Label>
-        <Input
-          id="color"
-          type="color"
-          value={config.color || '#e5e7eb'}
-          onChange={(e) => updateConfig('color', e.target.value)}
-          className="h-8"
-        />
-      </div>
+      <BrandColorPicker
+        label="Color"
+        value={config.color || '#e5e7eb'}
+        onChange={(color) => updateConfig('color', color)}
+        brandColors={brandColors}
+        id="color"
+      />
     </div>
   );
 
@@ -262,45 +259,33 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
       </div>
       
       <div className="grid grid-cols-2 gap-2">
-        <div>
-          <Label className="text-xs">Background</Label>
-          <Input
-            type="color"
-            value={config.backgroundColor || '#ffffff'}
-            onChange={(e) => updateConfig('backgroundColor', e.target.value)}
-            className="h-8"
-          />
-        </div>
-        <div>
-          <Label className="text-xs">Text Color</Label>
-          <Input
-            type="color"
-            value={config.textColor || '#000000'}
-            onChange={(e) => updateConfig('textColor', e.target.value)}
-            className="h-8"
-          />
-        </div>
+        <BrandColorPicker
+          label="Background"
+          value={config.backgroundColor || '#ffffff'}
+          onChange={(color) => updateConfig('backgroundColor', color)}
+          brandColors={brandColors}
+        />
+        <BrandColorPicker
+          label="Text Color"
+          value={config.textColor || '#000000'}
+          onChange={(color) => updateConfig('textColor', color)}
+          brandColors={brandColors}
+        />
       </div>
       
       <div className="grid grid-cols-2 gap-2">
-        <div>
-          <Label className="text-xs">Border</Label>
-          <Input
-            type="color"
-            value={config.borderColor || '#e5e7eb'}
-            onChange={(e) => updateConfig('borderColor', e.target.value)}
-            className="h-8"
-          />
-        </div>
-        <div>
-          <Label className="text-xs">Focus Border</Label>
-          <Input
-            type="color"
-            value={config.focusBorderColor || '#3b82f6'}
-            onChange={(e) => updateConfig('focusBorderColor', e.target.value)}
-            className="h-8"
-          />
-        </div>
+        <BrandColorPicker
+          label="Border"
+          value={config.borderColor || '#e5e7eb'}
+          onChange={(color) => updateConfig('borderColor', color)}
+          brandColors={brandColors}
+        />
+        <BrandColorPicker
+          label="Focus Border"
+          value={config.focusBorderColor || '#3b82f6'}
+          onChange={(color) => updateConfig('focusBorderColor', color)}
+          brandColors={brandColors}
+        />
       </div>
     </div>
   );
@@ -338,16 +323,13 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
         />
       </div>
       
-      <div className="space-y-2">
-        <Label htmlFor="backgroundColor">Background Color</Label>
-        <Input
-          id="backgroundColor"
-          type="color"
-          value={config.backgroundColor || '#ffffff'}
-          onChange={(e) => updateConfig('backgroundColor', e.target.value)}
-          className="h-8"
-        />
-      </div>
+      <BrandColorPicker
+        label="Background Color"
+        value={config.backgroundColor || '#ffffff'}
+        onChange={(color) => updateConfig('backgroundColor', color)}
+        brandColors={brandColors}
+        id="backgroundColor"
+      />
     </div>
   );
 
