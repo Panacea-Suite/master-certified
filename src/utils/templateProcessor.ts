@@ -11,6 +11,13 @@ export interface ProcessedTemplateData {
   designConfig: any;
   category?: string;
   tags?: string[];
+  globalHeader?: {
+    showHeader: boolean;
+    brandName: string;
+    logoUrl: string;
+    backgroundColor: string;
+    logoSize: 'small' | 'medium' | 'large';
+  };
 }
 
 /**
@@ -36,7 +43,8 @@ export function processTemplateData(template: any): ProcessedTemplateData {
       pages: template.pages,
       designConfig: template.designConfig || defaultDesignConfig,
       category: template.category,
-      tags: template.tags || []
+      tags: template.tags || [],
+      globalHeader: template.globalHeader
     };
   }
 
@@ -70,19 +78,32 @@ export function processTemplateData(template: any): ProcessedTemplateData {
 /**
  * Converts processed template data to flow configuration format for editor
  */
-export function templateToFlowConfig(processedTemplate: ProcessedTemplateData): any {
+export function templateToFlowConfig(processedTemplate: ProcessedTemplateData, brandData?: any): any {
+  // Use template's global header if provided, otherwise create default
+  const defaultGlobalHeader = {
+    showHeader: true,
+    brandName: brandData?.name || 'Logo',
+    logoUrl: brandData?.logo_url || '',
+    backgroundColor: brandData?.brand_colors?.primary || '#000000',
+    logoSize: 'medium' as const
+  };
+
+  const globalHeader = processedTemplate.globalHeader 
+    ? {
+        ...processedTemplate.globalHeader,
+        // Override with brand data if available
+        brandName: brandData?.name || processedTemplate.globalHeader.brandName || 'Logo',
+        logoUrl: brandData?.logo_url || processedTemplate.globalHeader.logoUrl || '',
+        backgroundColor: brandData?.brand_colors?.primary || processedTemplate.globalHeader.backgroundColor || '#000000'
+      }
+    : defaultGlobalHeader;
+
   return {
     pages: processedTemplate.pages,
     designConfig: processedTemplate.designConfig,
     theme: {
       backgroundColor: '#ffffff'
     },
-    globalHeader: {
-      showHeader: true,
-      brandName: 'Brand',
-      logoUrl: '',
-      backgroundColor: '#3b82f6',
-      logoSize: 'medium'
-    }
+    globalHeader
   };
 }

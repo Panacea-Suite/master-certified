@@ -8,6 +8,13 @@ export interface FlowTemplateData {
   icon: string;
   pages: FlowPage[];
   designConfig: DesignConfig;
+  globalHeader?: {
+    showHeader: boolean;
+    brandName: string;
+    logoUrl: string;
+    backgroundColor: string;
+    logoSize: 'small' | 'medium' | 'large';
+  };
 }
 
 export interface FlowPage {
@@ -332,6 +339,13 @@ export const FLOW_TEMPLATES: FlowTemplateData[] = [
       dividerStyle: 'line',
       cardStyle: 'bordered',
       spacing: 'comfortable'
+    },
+    globalHeader: {
+      showHeader: true,
+      brandName: 'Logo',
+      logoUrl: '',
+      backgroundColor: '#000000',
+      logoSize: 'medium'
     }
   }
 ];

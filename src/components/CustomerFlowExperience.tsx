@@ -64,15 +64,27 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
         setIsLoading(true);
         console.log('Using provided template data:', templateData);
         
+        // Fetch brand data for template processing
+        let brandData = null;
+        try {
+          const { data: brand } = await supabase
+            .from('brands')
+            .select('*')
+            .maybeSingle();
+          brandData = brand;
+        } catch (error) {
+          console.log('No brand data available for template processing');
+        }
+        
         // Process template data using the unified processor
         const { processTemplateData, templateToFlowConfig } = await import('@/utils/templateProcessor');
         const processedTemplate = processTemplateData(templateData);
         
-        // Set flow data from processed template with proper flow_config
+        // Set flow data from processed template with proper flow_config and brand data
         setFlow({
           id: processedTemplate.id,
           name: processedTemplate.name,
-          flow_config: templateToFlowConfig(processedTemplate)
+          flow_config: templateToFlowConfig(processedTemplate, brandData)
         });
         
         setPages(processedTemplate.pages);
