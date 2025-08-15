@@ -974,7 +974,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                 <div className="flex justify-end flex-1">
                   <Button onClick={handleSave} disabled={isSaving}>
                     <Save className="h-4 w-4 mr-2" />
-                    {isSaving ? 'Saving...' : 'Save Flow'}
+                    {isSaving ? 'Saving...' : templateToEdit ? 'Save my template' : 'Save Flow'}
                   </Button>
                 </div>
               </div>
