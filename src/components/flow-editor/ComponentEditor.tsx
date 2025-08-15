@@ -10,6 +10,7 @@ import { Slider } from '@/components/ui/slider';
 import { Trash2, Upload, Edit2, Settings } from 'lucide-react';
 import { ImageEditor } from '@/components/ImageEditor';
 import { BrandColorPicker } from '@/components/ui/brand-color-picker';
+import { supabase } from '@/integrations/supabase/client';
 
 interface SectionData {
   id: string;
@@ -371,14 +372,69 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
         {showImageEditor && selectedImageFile && (
           <ImageEditor
             file={selectedImageFile}
-            onSave={(editedFile) => {
-              // Convert file to data URL
-              const reader = new FileReader();
-              reader.onload = (e) => {
-                const dataUrl = e.target?.result as string;
-                updateConfig('imageUrl', dataUrl);
-              };
-              reader.readAsDataURL(editedFile);
+            onSave={async (editedFile) => {
+              // For logo images in global header, save to database instead of data URL
+              if (section.type === 'image' && section.config?.isLogo) {
+                try {
+                  // Upload to brand-logos bucket
+                  const { data: { user } } = await supabase.auth.getUser();
+                  if (!user) throw new Error('User not authenticated');
+
+                  // Get user's brand
+                  const { data: brand } = await supabase
+                    .from('brands')
+                    .select('*')
+                    .eq('user_id', user.id)
+                    .maybeSingle();
+
+                  if (!brand) throw new Error('No brand found');
+
+                  // Upload the edited logo
+                  const fileExt = editedFile.name.split('.').pop() || 'png';
+                  const fileName = `${brand.id}/logo.${fileExt}`;
+                  
+                  const { error: uploadError } = await supabase.storage
+                    .from('brand-logos')
+                    .upload(fileName, editedFile, { upsert: true });
+
+                  if (uploadError) throw uploadError;
+
+                  // Get public URL
+                  const { data: { publicUrl } } = supabase.storage
+                    .from('brand-logos')
+                    .getPublicUrl(fileName);
+
+                  // Update brand with new logo URL
+                  const { error: updateError } = await supabase
+                    .from('brands')
+                    .update({ logo_url: publicUrl })
+                    .eq('id', brand.id);
+
+                  if (updateError) throw updateError;
+
+                  // Update the component config with the new URL
+                  updateConfig('imageUrl', publicUrl);
+                  
+                } catch (error) {
+                  console.error('Failed to save logo to database:', error);
+                  // Fallback to data URL if database save fails
+                  const reader = new FileReader();
+                  reader.onload = (e) => {
+                    const dataUrl = e.target?.result as string;
+                    updateConfig('imageUrl', dataUrl);
+                  };
+                  reader.readAsDataURL(editedFile);
+                }
+              } else {
+                // For regular images, continue using data URLs
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                  const dataUrl = e.target?.result as string;
+                  updateConfig('imageUrl', dataUrl);
+                };
+                reader.readAsDataURL(editedFile);
+              }
+              
               setShowImageEditor(false);
               setSelectedImageFile(null);
             }}

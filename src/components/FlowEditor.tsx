@@ -290,6 +290,25 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
           logoUrl: freshBrandData.logo_url || prev.logoUrl,
           backgroundColor: (freshBrandData.brand_colors as any)?.primary || prev.backgroundColor
         }));
+
+        // Also update any logo images in sections to use the database URL
+        setPages(prevPages => 
+          prevPages.map(page => ({
+            ...page,
+            sections: page.sections.map(section => {
+              if (section.type === 'image' && section.config?.isLogo && freshBrandData.logo_url) {
+                return {
+                  ...section,
+                  config: {
+                    ...section.config,
+                    imageUrl: freshBrandData.logo_url
+                  }
+                };
+              }
+              return section;
+            })
+          }))
+        );
       }
 
       // Process template if needed
@@ -1089,14 +1108,60 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                 </div>
                 <ImageEditor
                   file={selectedLogoFile}
-                  onSave={(editedFile) => {
-                    // Convert file to data URL
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                      const dataUrl = e.target?.result as string;
-                      setGlobalHeader(prev => ({ ...prev, logoUrl: dataUrl }));
-                    };
-                    reader.readAsDataURL(editedFile);
+                  onSave={async (editedFile) => {
+                    try {
+                      // Upload logo to database instead of using data URL
+                      const { data: { user } } = await supabase.auth.getUser();
+                      if (!user) throw new Error('User not authenticated');
+
+                      // Get user's brand
+                      const { data: brand } = await supabase
+                        .from('brands')
+                        .select('*')
+                        .eq('user_id', user.id)
+                        .maybeSingle();
+
+                      if (!brand) throw new Error('No brand found');
+
+                      // Upload the edited logo
+                      const fileExt = editedFile.name.split('.').pop() || 'png';
+                      const fileName = `${brand.id}/logo.${fileExt}`;
+                      
+                      const { error: uploadError } = await supabase.storage
+                        .from('brand-logos')
+                        .upload(fileName, editedFile, { upsert: true });
+
+                      if (uploadError) throw uploadError;
+
+                      // Get public URL
+                      const { data: { publicUrl } } = supabase.storage
+                        .from('brand-logos')
+                        .getPublicUrl(fileName);
+
+                      // Update brand with new logo URL
+                      const { error: updateError } = await supabase
+                        .from('brands')
+                        .update({ logo_url: publicUrl })
+                        .eq('id', brand.id);
+
+                      if (updateError) throw updateError;
+
+                      // Update global header with the new URL from database
+                      setGlobalHeader(prev => ({ ...prev, logoUrl: publicUrl }));
+                      
+                      toast.success("Logo updated successfully!");
+                    } catch (error) {
+                      console.error('Failed to save logo:', error);
+                      toast.error('Failed to save logo to database');
+                      // Fallback to data URL if database save fails
+                      const reader = new FileReader();
+                      reader.onload = (e) => {
+                        const dataUrl = e.target?.result as string;
+                        setGlobalHeader(prev => ({ ...prev, logoUrl: dataUrl }));
+                      };
+                      reader.readAsDataURL(editedFile);
+                    }
+                    
                     setIsEditingLogo(false);
                     setSelectedLogoFile(null);
                   }}
