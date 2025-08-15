@@ -442,6 +442,10 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
       const cropWidth = cropRect.width || 0;
       const cropHeight = cropRect.height || 0;
       
+      // Temporarily hide the crop rectangle
+      cropRect.set({ visible: false });
+      fabricCanvas.renderAll();
+      
       // Create a new canvas for the cropped image
       const tempCanvas = document.createElement('canvas');
       tempCanvas.width = cropWidth;
@@ -452,7 +456,7 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
         throw new Error('Could not get canvas context');
       }
       
-      // Get the fabric canvas as an element and crop it
+      // Get the fabric canvas as an element (without the crop overlay)
       const fabricCanvasElement = fabricCanvas.toCanvasElement();
       
       // Draw the cropped area
