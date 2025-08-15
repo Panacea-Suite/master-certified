@@ -271,11 +271,21 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
   // Effect to handle template processing after component mounts
   React.useEffect(() => {
     if (templateToEdit && !templateToEdit.flow_config?.pages) {
-      // Use unified template processor for system templates
-      import('@/utils/templateProcessor').then(({ processTemplateData }) => {
+      // Use unified template processor for system templates with brand data
+      Promise.all([
+        import('@/utils/templateProcessor'),
+        // Fetch brand data for proper template processing
+        supabase.from('brands').select('*').maybeSingle()
+      ]).then(([{ processTemplateData, templateToFlowConfig }, { data: brandDataFromDB }]) => {
         try {
           const processedTemplate = processTemplateData(templateToEdit);
           console.log('Processed template for editor:', processedTemplate);
+          
+          // Use brandData prop first, then fallback to DB data
+          const activeBrandData = brandData || brandDataFromDB;
+          
+          // Get the flow config with proper brand data integration
+          const flowConfig = templateToFlowConfig(processedTemplate, activeBrandData);
           
           // Convert processed pages to PageData format
           const convertedPages = processedTemplate.pages.map((page: any, index: number) => {
@@ -298,6 +308,17 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
             };
           });
           
+          // Update global header state with processed template data
+          if (flowConfig.globalHeader) {
+            setGlobalHeader({
+              showHeader: flowConfig.globalHeader.showHeader,
+              brandName: flowConfig.globalHeader.brandName,
+              logoUrl: flowConfig.globalHeader.logoUrl,
+              backgroundColor: flowConfig.globalHeader.backgroundColor,
+              logoSize: flowConfig.globalHeader.logoSize
+            });
+          }
+          
           // Update pages state after processing
           setPages(convertedPages);
           if (convertedPages.length > 0 && !currentPageId) {
@@ -306,11 +327,13 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
         } catch (error) {
           console.error('Error processing template in editor:', error);
         }
+      }).catch(error => {
+        console.error('Error fetching brand data or processing template:', error);
       });
     } else if (pages.length > 0 && !currentPageId) {
       setCurrentPageId(pages[0].id);
     }
-  }, [templateToEdit, currentPageId, pages.length]);
+  }, [templateToEdit, currentPageId, pages.length, brandData]);
   const [pageSettings, setPageSettings] = useState({
     backgroundColor: templateToEdit?.flow_config?.theme?.backgroundColor || '#ffffff'
   });
