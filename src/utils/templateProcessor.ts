@@ -79,6 +79,13 @@ export function processTemplateData(template: any): ProcessedTemplateData {
  * Converts processed template data to flow configuration format for editor
  */
 export function templateToFlowConfig(processedTemplate: ProcessedTemplateData, brandData?: any): any {
+  console.log('templateToFlowConfig called with:', {
+    templateId: processedTemplate.id,
+    templateName: processedTemplate.name,
+    brandData: brandData,
+    templateGlobalHeader: processedTemplate.globalHeader
+  });
+
   // Use template's global header if provided, otherwise create default
   const defaultGlobalHeader = {
     showHeader: true,
@@ -91,14 +98,16 @@ export function templateToFlowConfig(processedTemplate: ProcessedTemplateData, b
   const globalHeader = processedTemplate.globalHeader 
     ? {
         ...processedTemplate.globalHeader,
-        // Override with brand data if available
+        // Override with brand data if available - prioritize brand data
         brandName: brandData?.name || processedTemplate.globalHeader.brandName || 'Logo',
         logoUrl: brandData?.logo_url || processedTemplate.globalHeader.logoUrl || '',
         backgroundColor: brandData?.brand_colors?.primary || processedTemplate.globalHeader.backgroundColor || '#000000'
       }
     : defaultGlobalHeader;
 
-  return {
+  console.log('Final globalHeader created:', globalHeader);
+
+  const flowConfig = {
     pages: processedTemplate.pages,
     designConfig: processedTemplate.designConfig,
     theme: {
@@ -106,4 +115,7 @@ export function templateToFlowConfig(processedTemplate: ProcessedTemplateData, b
     },
     globalHeader
   };
+
+  console.log('Final flow config:', flowConfig);
+  return flowConfig;
 }

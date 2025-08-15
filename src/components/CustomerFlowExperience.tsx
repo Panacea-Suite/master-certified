@@ -63,33 +63,40 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
     if (templateData) {
       try {
         setIsLoading(true);
-        console.log('Using provided template data:', templateData);
+        console.log('CustomerFlowExperience: Using provided template data:', templateData);
+        console.log('CustomerFlowExperience: Provided brand data:', brandData);
         
         // Use provided brand data or fetch if not provided
         let finalBrandData = brandData;
         if (!finalBrandData) {
           try {
+            console.log('CustomerFlowExperience: No brand data provided, fetching from database...');
             const { data: brand } = await supabase
               .from('brands')
               .select('*')
               .maybeSingle();
             finalBrandData = brand;
+            console.log('CustomerFlowExperience: Fetched brand data from DB:', finalBrandData);
           } catch (error) {
             console.log('No brand data available for template processing');
           }
         } else {
-          console.log('Using provided brand data for preview:', finalBrandData);
+          console.log('CustomerFlowExperience: Using provided brand data for preview:', finalBrandData);
         }
         
         // Process template data using the unified processor
         const { processTemplateData, templateToFlowConfig } = await import('@/utils/templateProcessor');
         const processedTemplate = processTemplateData(templateData);
+        console.log('CustomerFlowExperience: Processed template:', processedTemplate);
         
         // Set flow data from processed template with proper flow_config and brand data
+        const flowConfig = templateToFlowConfig(processedTemplate, finalBrandData);
+        console.log('CustomerFlowExperience: Final flow config:', flowConfig);
+        
         setFlow({
           id: processedTemplate.id,
           name: processedTemplate.name,
-          flow_config: templateToFlowConfig(processedTemplate, finalBrandData)
+          flow_config: flowConfig
         });
         
         setPages(processedTemplate.pages);
