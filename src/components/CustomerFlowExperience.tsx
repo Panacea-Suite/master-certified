@@ -365,10 +365,13 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
     }
 
     const backgroundColor = flow?.flow_config?.theme?.backgroundColor || '#ffffff';
+    
+    // Get brand logo from brand settings (single source of truth)
+    const brandLogo = brandData?.logo_url || campaign?.brands?.logo_url;
+    
     const globalHeader = flow?.flow_config?.globalHeader || {
       showHeader: true,
       brandName: '',
-      logoUrl: '',
       backgroundColor: '#3b82f6',
       logoSize: 'medium'
     };
@@ -379,15 +382,15 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
         style={{ backgroundColor }}
       >
         {/* Global Header */}
-        {globalHeader.showHeader && (globalHeader.logoUrl || globalHeader.brandName) && (
+        {globalHeader.showHeader && (brandLogo || globalHeader.brandName) && (
           <div 
             className="sticky top-0 z-50 p-4 text-white text-center"
             style={{ backgroundColor: globalHeader.backgroundColor }}
           >
             <div className="flex items-center justify-center gap-3">
-              {globalHeader.logoUrl && (
+              {brandLogo && (
                 <img 
-                  src={globalHeader.logoUrl} 
+                  src={brandLogo} 
                   alt="Brand Logo"
                   className={`${
                     globalHeader.logoSize === 'small' ? 'h-6' :

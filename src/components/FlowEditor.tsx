@@ -391,10 +391,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
   });
   const [selectedSection, setSelectedSection] = useState<SectionData | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
-  const [showImageEditor, setShowImageEditor] = useState(false);
-  const [selectedLogoFile, setSelectedLogoFile] = useState<File | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-  const [isEditingLogo, setIsEditingLogo] = useState(false);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(
     templateToEdit?.flow_config?.design_template_id || null
   );
@@ -835,72 +832,24 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                       </div>
                       
                       <div>
-                        <Label htmlFor="logoUrl">Logo URL (Optional)</Label>
-                        <Input
-                          id="logoUrl"
-                          type="url"
-                          value={globalHeader.logoUrl}
-                          onChange={(e) => setGlobalHeader(prev => ({ ...prev, logoUrl: e.target.value }))}
-                          placeholder="https://example.com/logo.png"
-                        />
-                      </div>
-
-                      <div>
-                        <Label htmlFor="logoUpload">Logo Image</Label>
+                        <Label>Brand Logo</Label>
                         <div className="space-y-2">
-                          {globalHeader.logoUrl && (
+                          {globalHeader.logoUrl ? (
                             <div className="flex justify-center">
-                              <div 
-                                className="relative group cursor-pointer"
-                                onClick={() => {
-                                  // Convert URL to file for editing
-                                  fetch(globalHeader.logoUrl)
-                                    .then(res => res.blob())
-                                    .then(blob => {
-                                      const file = new File([blob], 'logo.png', { type: blob.type });
-                                      setSelectedLogoFile(file);
-                                      setIsEditingLogo(true);
-                                      setSelectedSection(null); // Clear selected section
-                                    })
-                                    .catch(console.error);
-                                }}
-                              >
-                                <img
-                                  src={globalHeader.logoUrl}
-                                  alt="Brand Logo"
-                                  className="w-16 h-16 object-contain border rounded-lg"
-                                />
-                                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
-                                  <span className="text-white text-xs font-medium">Click to Edit</span>
-                                </div>
-                              </div>
+                              <img
+                                src={globalHeader.logoUrl}
+                                alt="Brand Logo"
+                                className="w-16 h-16 object-contain border rounded-lg"
+                              />
+                            </div>
+                          ) : (
+                            <div className="flex justify-center items-center w-full h-16 border-2 border-dashed border-muted-foreground/25 rounded-lg">
+                              <p className="text-xs text-muted-foreground">No logo uploaded</p>
                             </div>
                           )}
-                          <div className="flex items-center justify-center w-full">
-                            <label htmlFor="logoUpload" className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-muted-foreground/25 rounded-lg cursor-pointer hover:bg-muted/50">
-                              <div className="flex flex-col items-center justify-center">
-                                <Upload className="w-6 h-6 mb-2 text-muted-foreground" />
-                                <p className="text-xs text-muted-foreground text-center">
-                                  <span className="font-semibold">Click to upload & edit</span><br />
-                                  PNG, JPG (MAX. 5MB)
-                                </p>
-                              </div>
-                              <input
-                                id="logoUpload"
-                                type="file"
-                                className="hidden"
-                                accept="image/*"
-                                onChange={(e) => {
-                                  const file = e.target.files?.[0];
-                                  if (file) {
-                                    setSelectedLogoFile(file);
-                                    setIsEditingLogo(true);
-                                    setSelectedSection(null); // Clear selected section
-                                  }
-                                }}
-                              />
-                            </label>
-                          </div>
+                          <p className="text-xs text-muted-foreground text-center">
+                            Logo is managed in Brand Settings
+                          </p>
                         </div>
                       </div>
                       
@@ -1089,89 +1038,9 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
             />
           </div>
 
-          {/* Right Panel - Section Properties or Logo Editor */}
+          {/* Right Panel - Section Properties */}
           <div className="w-80 border-l bg-muted/30 p-4 overflow-y-auto">
-            {isEditingLogo && selectedLogoFile ? (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h4 className="font-medium">Edit Logo</h4>
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    onClick={() => {
-                      setIsEditingLogo(false);
-                      setSelectedLogoFile(null);
-                    }}
-                  >
-                    <ArrowLeft className="h-4 w-4" />
-                  </Button>
-                </div>
-                <ImageEditor
-                  file={selectedLogoFile}
-                  onSave={async (editedFile) => {
-                    try {
-                      // Upload logo to database instead of using data URL
-                      const { data: { user } } = await supabase.auth.getUser();
-                      if (!user) throw new Error('User not authenticated');
-
-                      // Get user's brand
-                      const { data: brand } = await supabase
-                        .from('brands')
-                        .select('*')
-                        .eq('user_id', user.id)
-                        .maybeSingle();
-
-                      if (!brand) throw new Error('No brand found');
-
-                      // Upload the edited logo
-                      const fileExt = editedFile.name.split('.').pop() || 'png';
-                      const fileName = `${brand.id}/logo.${fileExt}`;
-                      
-                      const { error: uploadError } = await supabase.storage
-                        .from('brand-logos')
-                        .upload(fileName, editedFile, { upsert: true });
-
-                      if (uploadError) throw uploadError;
-
-                      // Get public URL
-                      const { data: { publicUrl } } = supabase.storage
-                        .from('brand-logos')
-                        .getPublicUrl(fileName);
-
-                      // Update brand with new logo URL
-                      const { error: updateError } = await supabase
-                        .from('brands')
-                        .update({ logo_url: publicUrl })
-                        .eq('id', brand.id);
-
-                      if (updateError) throw updateError;
-
-                      // Update global header with the new URL from database
-                      setGlobalHeader(prev => ({ ...prev, logoUrl: publicUrl }));
-                      
-                      toast.success("Logo updated successfully!");
-                    } catch (error) {
-                      console.error('Failed to save logo:', error);
-                      toast.error('Failed to save logo to database');
-                      // Fallback to data URL if database save fails
-                      const reader = new FileReader();
-                      reader.onload = (e) => {
-                        const dataUrl = e.target?.result as string;
-                        setGlobalHeader(prev => ({ ...prev, logoUrl: dataUrl }));
-                      };
-                      reader.readAsDataURL(editedFile);
-                    }
-                    
-                    setIsEditingLogo(false);
-                    setSelectedLogoFile(null);
-                  }}
-                  onCancel={() => {
-                    setIsEditingLogo(false);
-                    setSelectedLogoFile(null);
-                  }}
-                />
-              </div>
-            ) : selectedSection ? (
+            {selectedSection ? (
               <ComponentEditor
                 section={selectedSection}
                 onUpdate={(config) => handleUpdateSection(selectedSection.id, config)}

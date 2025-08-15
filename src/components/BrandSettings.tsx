@@ -238,6 +238,76 @@ const BrandSettings = () => {
     }
   };
 
+  const handleCleanupOldLogos = async () => {
+    if (!brand) return;
+
+    setIsUploading(true);
+    try {
+      // List all files in the brand-logos bucket
+      const { data: files, error: listError } = await supabase.storage
+        .from('brand-logos')
+        .list('', { limit: 1000 });
+
+      if (listError) throw listError;
+
+      if (!files || files.length === 0) {
+        toast({
+          title: "Info",
+          description: "No old logo files found to clean up",
+        });
+        return;
+      }
+
+      // Find files to delete (exclude current logo)
+      const currentLogoPath = brand.logo_url ? 
+        new URL(brand.logo_url).pathname.split('/').slice(-2).join('/') : null;
+      
+      const filesToDelete = files
+        .filter(file => file.name !== '.emptyFolderPlaceholder')
+        .map(file => file.name)
+        .filter(fileName => {
+          // Don't delete current logo
+          if (currentLogoPath && fileName.includes(currentLogoPath.split('/')[1])) {
+            return false;
+          }
+          // Delete files that contain "AniVatio" or look like old logos
+          return fileName.toLowerCase().includes('anivatio') || 
+                 fileName.toLowerCase().includes('logo') ||
+                 fileName.match(/\.(jpg|jpeg|png|gif|webp)$/i);
+        });
+
+      if (filesToDelete.length === 0) {
+        toast({
+          title: "Info",
+          description: "No old logo files found to clean up",
+        });
+        return;
+      }
+
+      // Delete old files
+      const { error: deleteError } = await supabase.storage
+        .from('brand-logos')
+        .remove(filesToDelete);
+
+      if (deleteError) throw deleteError;
+
+      toast({
+        title: "Success",
+        description: `Cleaned up ${filesToDelete.length} old logo files`,
+      });
+
+    } catch (error: any) {
+      console.error('Error cleaning up old logos:', error);
+      toast({
+        title: "Cleanup Error",
+        description: error.message || "Failed to clean up old logos",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   const saveColors = async () => {
     if (!brand) return;
 
@@ -383,6 +453,19 @@ const BrandSettings = () => {
                   disabled={isUploading}
                 />
               </label>
+            </div>
+            
+            <div className="flex gap-2">
+              <Button
+                onClick={handleCleanupOldLogos}
+                disabled={isUploading}
+                variant="outline"
+                size="sm"
+                className="flex-1"
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Clean Up Old Files
+              </Button>
             </div>
             
             {isUploading && (
