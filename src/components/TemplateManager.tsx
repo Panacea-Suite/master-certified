@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Copy, Edit3, Eye, Plus, Search, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { FlowEditor } from './FlowEditor';
-import CustomerFlowExperience from './CustomerFlowExperience';
+import { PhonePreviewModal } from './PhonePreviewModal';
 import TemplatePreview from './TemplatePreview';
 import { FLOW_TEMPLATES } from '@/data/flowTemplates';
 import { useFlowManager } from '@/hooks/useFlowManager';
@@ -471,9 +471,13 @@ const TemplateManager: React.FC = () => {
 
       {/* Preview Modal */}
       {previewMode === 'customer' && previewTemplate && (
-        <CustomerFlowExperience
+        <PhonePreviewModal
+          isOpen={true}
+          onClose={() => {
+            setPreviewTemplate(null);
+            setPreviewMode(null);
+          }}
           templateData={previewTemplate}
-          qrCode="preview-template"
         />
       )}
     </div>
