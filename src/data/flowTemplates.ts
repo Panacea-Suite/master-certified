@@ -40,14 +40,6 @@ const CERTIFICATION_FLOW_PAGES: FlowPage[] = [
     type: 'welcome',
     sections: [
       {
-        id: 'header',
-        type: 'header',
-        config: {
-          logo: true,
-          backgroundColor: 'primary'
-        }
-      },
-      {
         id: 'hero-text',
         type: 'hero',
         config: {
@@ -190,82 +182,6 @@ export const FLOW_TEMPLATES: FlowTemplateData[] = [
       borderStyle: 'rounded',
       dividerStyle: 'line',
       cardStyle: 'bordered',
-      spacing: 'comfortable'
-    }
-  },
-
-  // MODERN GRADIENT
-  {
-    id: 'gradient-certification',
-    name: 'Modern Gradient',
-    description: 'Contemporary design with gradient backgrounds and smooth transitions',
-    category: 'certification',
-    designType: 'modern',
-    icon: 'zap',
-    pages: CERTIFICATION_FLOW_PAGES,
-    designConfig: {
-      backgroundStyle: 'gradient',
-      colorScheme: 'vibrant',
-      borderStyle: 'soft',
-      dividerStyle: 'gradient',
-      cardStyle: 'glass',
-      spacing: 'spacious'
-    }
-  },
-
-  // MINIMALIST
-  {
-    id: 'minimal-certification',
-    name: 'Minimalist Clean',
-    description: 'Ultra-clean design with minimal elements and maximum focus',
-    category: 'certification',
-    designType: 'minimal',
-    icon: 'circle',
-    pages: CERTIFICATION_FLOW_PAGES,
-    designConfig: {
-      backgroundStyle: 'solid',
-      colorScheme: 'monochrome',
-      borderStyle: 'sharp',
-      dividerStyle: 'none',
-      cardStyle: 'flat',
-      spacing: 'compact'
-    }
-  },
-
-  // PREMIUM ELEVATED
-  {
-    id: 'premium-certification',
-    name: 'Premium Elevated',
-    description: 'Luxurious design with elevated cards and sophisticated shadows',
-    category: 'certification',
-    designType: 'premium',
-    icon: 'crown',
-    pages: CERTIFICATION_FLOW_PAGES,
-    designConfig: {
-      backgroundStyle: 'pattern',
-      colorScheme: 'secondary',
-      borderStyle: 'rounded',
-      dividerStyle: 'decorative',
-      cardStyle: 'elevated',
-      spacing: 'spacious'
-    }
-  },
-
-  // BOLD VIBRANT
-  {
-    id: 'bold-certification',
-    name: 'Bold & Vibrant',
-    description: 'Eye-catching design with bold colors and dynamic elements',
-    category: 'certification',
-    designType: 'bold',
-    icon: 'star',
-    pages: CERTIFICATION_FLOW_PAGES,
-    designConfig: {
-      backgroundStyle: 'gradient',
-      colorScheme: 'vibrant',
-      borderStyle: 'soft',
-      dividerStyle: 'gradient',
-      cardStyle: 'elevated',
       spacing: 'comfortable'
     }
   }
