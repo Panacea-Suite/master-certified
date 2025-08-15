@@ -270,25 +270,37 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
   const [pages, setPages] = useState<PageData[]>(initializePages());
   const [currentPageId, setCurrentPageId] = useState<string>('');
   
-  // Effect to handle template processing after component mounts
+  // Effect to handle template processing after component mounts and fetch fresh brand data when editor opens
   React.useEffect(() => {
-    if (templateToEdit && !templateToEdit.flow_config?.pages) {
-      // Use unified template processor for system templates with brand data
-      Promise.all([
-        import('@/utils/templateProcessor'),
-        // Fetch user's brand data for proper template processing
-        user ? supabase
-          .from('brands')
-          .select('*')
-          .eq('user_id', user.id)
-          .maybeSingle() : Promise.resolve({ data: null })
-      ]).then(([{ processTemplateData, templateToFlowConfig }, { data: brandDataFromDB }]) => {
+    if (!isOpen || !user) return;
+
+    // Always fetch fresh brand data when editor opens
+    const fetchBrandData = async () => {
+      const { data: freshBrandData } = await supabase
+        .from('brands')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      // Update global header with fresh brand data
+      if (freshBrandData) {
+        setGlobalHeader(prev => ({
+          ...prev,
+          brandName: freshBrandData.name || prev.brandName,
+          logoUrl: freshBrandData.logo_url || prev.logoUrl,
+          backgroundColor: (freshBrandData.brand_colors as any)?.primary || prev.backgroundColor
+        }));
+      }
+
+      // Process template if needed
+      if (templateToEdit && !templateToEdit.flow_config?.pages) {
         try {
+          const { processTemplateData, templateToFlowConfig } = await import('@/utils/templateProcessor');
           const processedTemplate = processTemplateData(templateToEdit);
           console.log('Processed template for editor:', processedTemplate);
           
-          // Use brandData prop first, then fallback to DB data
-          const activeBrandData = brandData || brandDataFromDB;
+          // Use fresh brand data for template processing
+          const activeBrandData = freshBrandData || brandData;
           console.log('Active brand data in FlowEditor:', activeBrandData);
           
           // Get the flow config with proper brand data integration
@@ -336,13 +348,18 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
         } catch (error) {
           console.error('Error processing template in editor:', error);
         }
-      }).catch(error => {
-        console.error('Error fetching brand data or processing template:', error);
-      });
-    } else if (pages.length > 0 && !currentPageId) {
+      }
+    };
+
+    fetchBrandData();
+  }, [isOpen, user, templateToEdit]);
+
+  // Set current page if not set and pages exist
+  React.useEffect(() => {
+    if (pages.length > 0 && !currentPageId) {
       setCurrentPageId(pages[0].id);
     }
-  }, [templateToEdit, currentPageId, pages.length, brandData]);
+  }, [pages.length, currentPageId]);
   const [pageSettings, setPageSettings] = useState({
     backgroundColor: templateToEdit?.flow_config?.theme?.backgroundColor || '#ffffff'
   });
