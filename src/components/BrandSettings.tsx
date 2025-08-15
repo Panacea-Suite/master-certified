@@ -67,7 +67,7 @@ const BrandSettings = () => {
     }
   };
 
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -80,8 +80,25 @@ const BrandSettings = () => {
       return;
     }
 
-    setSelectedFile(file);
-    setShowImageEditor(true);
+    // Auto-trim the image before opening editor
+    try {
+      setIsUploading(true);
+      const { trimImage } = await import('@/utils/trimImage');
+      const trimmedFile = await trimImage(file, 15); // Higher tolerance for logos
+      setSelectedFile(trimmedFile);
+      setShowImageEditor(true);
+      toast({
+        title: "Image processed",
+        description: "White space automatically trimmed",
+      });
+    } catch (error) {
+      console.error('Error trimming image:', error);
+      // Fallback to original file if trimming fails
+      setSelectedFile(file);
+      setShowImageEditor(true);
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleImageSave = async (editedFile: File) => {

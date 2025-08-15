@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Canvas as FabricCanvas, FabricImage } from "fabric";
+import { Canvas as FabricCanvas, FabricImage, Rect } from "fabric";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import { Crop, RotateCcw, Download, X, Link, Scissors } from "lucide-react";
+import { Crop, RotateCcw, Download, X, Link, Scissors, Check } from "lucide-react";
 import { toast } from "sonner";
 import { removeBackground, loadImage } from "@/utils/backgroundRemoval";
 
@@ -41,6 +41,8 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
   const [originalAspectRatio, setOriginalAspectRatio] = useState(1);
   const [isRemovingBackground, setIsRemovingBackground] = useState(false);
   const [hasTransparentBackground, setHasTransparentBackground] = useState(false);
+  const [isCropMode, setIsCropMode] = useState(false);
+  const [cropRect, setCropRect] = useState<Rect | null>(null);
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -74,7 +76,7 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
         
         console.log("Image loaded successfully:", img.width, "x", img.height);
 
-        // Scale image to fit canvas initially
+        // Scale image to fit canvas initially with increased scale (90% instead of 80%)
         const canvasWidth = 300;
         const canvasHeight = 300;
         const imageAspect = (img.width || 1) / (img.height || 1);
@@ -82,9 +84,9 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
 
         let scaleFactor;
         if (imageAspect > canvasAspect) {
-          scaleFactor = (canvasWidth * 0.8) / (img.width || 1);
+          scaleFactor = (canvasWidth * 0.9) / (img.width || 1);
         } else {
-          scaleFactor = (canvasHeight * 0.8) / (img.height || 1);
+          scaleFactor = (canvasHeight * 0.9) / (img.height || 1);
         }
 
         img.set({
@@ -395,6 +397,147 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
     }
   };
 
+  const handleCropStart = () => {
+    if (!fabricCanvas || !originalImage) return;
+    
+    setIsCropMode(true);
+    
+    // Create crop rectangle overlay
+    const imageLeft = originalImage.left || 0;
+    const imageTop = originalImage.top || 0;
+    const imageWidth = (originalImage.width || 0) * (originalImage.scaleX || 1);
+    const imageHeight = (originalImage.height || 0) * (originalImage.scaleY || 1);
+    
+    const cropWidth = Math.min(imageWidth * 0.8, 200);
+    const cropHeight = Math.min(imageHeight * 0.8, 200);
+    
+    const rect = new Rect({
+      left: imageLeft - cropWidth / 2,
+      top: imageTop - cropHeight / 2,
+      width: cropWidth,
+      height: cropHeight,
+      fill: 'rgba(0, 0, 0, 0.3)',
+      stroke: '#3B82F6',
+      strokeWidth: 2,
+      strokeDashArray: [5, 5],
+      selectable: true,
+      evented: true,
+    });
+    
+    fabricCanvas.add(rect);
+    fabricCanvas.setActiveObject(rect);
+    setCropRect(rect);
+    fabricCanvas.renderAll();
+    
+    toast.info("Drag and resize the blue rectangle to set crop area");
+  };
+
+  const handleCropApply = () => {
+    if (!fabricCanvas || !originalImage || !cropRect) return;
+    
+    try {
+      // Get crop rectangle bounds
+      const cropLeft = cropRect.left || 0;
+      const cropTop = cropRect.top || 0;
+      const cropWidth = cropRect.width || 0;
+      const cropHeight = cropRect.height || 0;
+      
+      // Create a new canvas for the cropped image
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = cropWidth;
+      tempCanvas.height = cropHeight;
+      const tempCtx = tempCanvas.getContext('2d');
+      
+      if (!tempCtx) {
+        throw new Error('Could not get canvas context');
+      }
+      
+      // Get the fabric canvas as an element and crop it
+      const fabricCanvasElement = fabricCanvas.toCanvasElement();
+      
+      // Draw the cropped area
+      tempCtx.drawImage(
+        fabricCanvasElement,
+        cropLeft, cropTop, cropWidth, cropHeight,
+        0, 0, cropWidth, cropHeight
+      );
+      
+      // Create new fabric image from cropped canvas
+      tempCanvas.toBlob(async (blob) => {
+        if (!blob) {
+          throw new Error('Failed to create cropped image');
+        }
+        
+        const croppedImageUrl = URL.createObjectURL(blob);
+        const newImage = await FabricImage.fromURL(croppedImageUrl, {
+          crossOrigin: 'anonymous'
+        });
+        
+        // Clear canvas and add the cropped image
+        fabricCanvas.clear();
+        if (hasTransparentBackground) {
+          fabricCanvas.backgroundColor = 'rgba(0,0,0,0)';
+        } else {
+          fabricCanvas.backgroundColor = '#ffffff';
+        }
+        
+        // Scale the new image to fit the canvas
+        const canvasWidth = 300;
+        const canvasHeight = 300;
+        const imageAspect = (newImage.width || 1) / (newImage.height || 1);
+        const canvasAspect = canvasWidth / canvasHeight;
+
+        let scaleFactor;
+        if (imageAspect > canvasAspect) {
+          scaleFactor = (canvasWidth * 0.9) / (newImage.width || 1);
+        } else {
+          scaleFactor = (canvasHeight * 0.9) / (newImage.height || 1);
+        }
+
+        newImage.set({
+          scaleX: scaleFactor,
+          scaleY: scaleFactor,
+          originX: 'center',
+          originY: 'center',
+        });
+        
+        fabricCanvas.centerObject(newImage);
+        fabricCanvas.add(newImage);
+        fabricCanvas.setActiveObject(newImage);
+        fabricCanvas.renderAll();
+        
+        setOriginalImage(newImage);
+        setOriginalAspectRatio((newImage.width || 1) / (newImage.height || 1));
+        
+        // Update output dimensions to match cropped image
+        setOutputWidth(newImage.width || 300);
+        setOutputHeight(newImage.height || 300);
+        
+        // Clean up
+        URL.revokeObjectURL(croppedImageUrl);
+        setCropRect(null);
+        setIsCropMode(false);
+        
+        toast.success("Image cropped successfully!");
+      }, 'image/png');
+      
+    } catch (error) {
+      console.error('Crop failed:', error);
+      toast.error("Failed to crop image. Please try again.");
+    }
+  };
+
+  const handleCropCancel = () => {
+    if (!fabricCanvas || !cropRect) return;
+    
+    fabricCanvas.remove(cropRect);
+    fabricCanvas.renderAll();
+    setCropRect(null);
+    setIsCropMode(false);
+    
+    toast.info("Crop cancelled");
+  };
+
   const handleSave = () => {
     if (!fabricCanvas) {
       console.error("No fabric canvas available for save");
@@ -655,6 +798,37 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
                   </>
                 )}
               </Button>
+              
+              {!isCropMode ? (
+                <Button 
+                  onClick={handleCropStart}
+                  variant="outline"
+                  className="w-full"
+                >
+                  <Crop className="w-4 h-4 mr-2" />
+                  Crop
+                </Button>
+              ) : (
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={handleCropApply}
+                    size="sm"
+                    className="flex-1"
+                  >
+                    <Check className="w-4 h-4 mr-1" />
+                    Apply
+                  </Button>
+                  <Button 
+                    onClick={handleCropCancel}
+                    variant="outline"
+                    size="sm"
+                    className="flex-1"
+                  >
+                    <X className="w-4 h-4 mr-1" />
+                    Cancel
+                  </Button>
+                </div>
+              )}
               
               <Button
                 variant="outline"
