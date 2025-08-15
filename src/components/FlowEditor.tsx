@@ -954,7 +954,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                   <Smartphone className="h-5 w-5 text-primary" />
                   <h3 className="font-semibold">Flow Preview</h3>
                 </div>
-                <div className="flex items-center gap-4">
+                <div className="flex items-center justify-center flex-1 px-4">
                   <Select
                     value={selectedDevice.name}
                     onValueChange={(value) => {
@@ -973,11 +973,11 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                       ))}
                     </SelectContent>
                   </Select>
-                  <Button onClick={handleSave} disabled={isSaving}>
-                    <Save className="h-4 w-4 mr-2" />
-                    {isSaving ? 'Saving...' : 'Save Flow'}
-                  </Button>
                 </div>
+                <Button onClick={handleSave} disabled={isSaving}>
+                  <Save className="h-4 w-4 mr-2" />
+                  {isSaving ? 'Saving...' : 'Save Flow'}
+                </Button>
               </div>
             </div>
             
