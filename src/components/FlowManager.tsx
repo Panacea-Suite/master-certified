@@ -3,272 +3,125 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
-import { Plus, Edit, Trash2, Eye, Settings, Copy, Smartphone } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, Settings, Copy, Smartphone, AlertCircle, RefreshCw } from 'lucide-react';
 import { FlowEditor } from './FlowEditor';
 import { FlowTemplateSelector } from './FlowTemplateSelector';
 import CustomerFlowExperience from './CustomerFlowExperience';
-
-interface Flow {
-  id: string;
-  name: string;
-  campaign_id?: string;
-  flow_config?: any;
-  base_url?: string;
-  created_at: string;
-  template_category?: string;
-  created_by?: string | null;
-  campaigns?: {
-    name: string;
-  };
-}
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useFlowManager, Flow } from '@/hooks/useFlowManager';
+import { supabase } from '@/integrations/supabase/client';
 
 const FlowManager = () => {
-  const [flows, setFlows] = useState<Flow[]>([]);
   const [newFlowName, setNewFlowName] = useState('');
-  const [newFlowRedirectUrl, setNewFlowRedirectUrl] = useState('');
-  const [newFlowDescription, setNewFlowDescription] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
-  const [selectedFlowId, setSelectedFlowId] = useState<string | null>(null);
-  const [selectedFlow, setSelectedFlow] = useState<Flow | null>(null);
-  const [previewMode, setPreviewMode] = useState<'editor' | 'customer' | null>(null);
-  const [showTemplateSelector, setShowTemplateSelector] = useState(false);
   const [brandData, setBrandData] = useState<{ id: string; name: string; logo_url?: string; brand_colors?: any } | null>(null);
-  const { toast } = useToast();
+  
+  const {
+    flows,
+    isLoading,
+    error,
+    selectedFlow,
+    selectedFlowId,
+    previewMode,
+    showTemplateSelector,
+    fetchFlows,
+    createFlowAtomic,
+    duplicateFlow: hookDuplicateFlow,
+    deleteFlow: hookDeleteFlow,
+    saveFlow,
+    openFlowEditor,
+    openCustomerPreview,
+    openTemplateSelector,
+    closeModals,
+    logOperation
+  } = useFlowManager();
 
   useEffect(() => {
-    fetchFlows();
-  }, []);
-
-  const fetchFlows = async () => {
-    try {
-      // Fetch flows and brand data in parallel
-      const [flowsResponse, brandResponse] = await Promise.all([
-        supabase
-          .from('flows')
-          .select(`
-            *,
-            campaigns (
-              name
-            )
-          `)
-          .order('created_at', { ascending: false }),
-        supabase
-          .from('brands')
-          .select('id, name, logo_url, brand_colors')
-          .maybeSingle()
-      ]);
-
-      if (flowsResponse.error) throw flowsResponse.error;
-      if (brandResponse.error) throw brandResponse.error;
-
-      setFlows(flowsResponse.data || []);
-      setBrandData(brandResponse.data);
-    } catch (error) {
-      console.error('Error fetching data:', error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch flows",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    const initialize = async () => {
+      const result = await fetchFlows();
+      if (result.success && result.data?.brand) {
+        setBrandData(result.data.brand);
+      }
+    };
+    initialize();
+  }, [fetchFlows]);
 
   const createNewTemplate = async () => {
     if (!newFlowName.trim()) {
-      toast({
-        title: "Error",
-        description: "Template name is required",
-        variant: "destructive",
-      });
+      return;
+    }
+
+    if (!brandData?.id) {
+      // Try to get brand data first
+      const { data: brandResult } = await supabase
+        .from('brands')
+        .select('id, name, logo_url, brand_colors')
+        .limit(1)
+        .maybeSingle();
+
+      if (!brandResult) {
+        return;
+      }
+      setBrandData(brandResult);
+    }
+
+    const flowConfig = {
+      version: "3.0",
+      sections: []
+    };
+
+    const result = await createFlowAtomic(newFlowName, brandData.id, flowConfig);
+    if (result.success) {
+      setNewFlowName('');
+    }
+  };
+
+  const handleTemplateSelect = async (template: any) => {
+    if (!template) {
+      closeModals();
       return;
     }
 
     try {
-      // Get user's first brand to associate with the template
-      const { data: brandData } = await supabase
-        .from('brands')
-        .select('id')
-        .limit(1)
-        .maybeSingle();
+      // Check if this is a pre-built template (has 'pages' property) or database template
+      if ('pages' in template) {
+        // Pre-built template from flowTemplates.ts - create a new flow in the database
+        if (!brandData?.id) {
+          const { data: fullBrandData } = await supabase
+            .from('brands')
+            .select('id, name, logo_url, brand_colors')
+            .limit(1)
+            .maybeSingle();
 
-      if (!brandData) {
-        toast({
-          title: "Error",
-          description: "Please create a brand first before creating flow templates",
-          variant: "destructive",
-        });
-        return;
+          if (!fullBrandData) {
+            return;
+          }
+          setBrandData(fullBrandData);
+        }
+
+        const flowConfig = {
+          pages: template.pages,
+          design_template_id: null,
+          globalHeader: {
+            showHeader: true,
+            brandName: brandData?.name || 'Brand',
+            logoUrl: brandData?.logo_url || '',
+            backgroundColor: (brandData?.brand_colors as any)?.primary || '#3b82f6',
+            logoSize: 'medium'
+          },
+          theme: {
+            backgroundColor: '#ffffff'
+          }
+        };
+
+        await createFlowAtomic(template.name, brandData.id, flowConfig, `${template.name} Campaign`);
+      } else {
+        // Database template - use as is
+        openFlowEditor(template);
       }
-
-      // Create a template campaign
-      const { data: campaignData, error: campaignError } = await supabase
-        .from('campaigns')
-        .insert([{
-          name: `${newFlowName} Template Campaign`,
-          description: 'Auto-generated campaign for flow template',
-          brand_id: brandData.id,
-          approved_stores: ['Template Store A', 'Template Store B', 'Template Store C']
-        }])
-        .select('id')
-        .single();
-
-      if (campaignError) throw campaignError;
-
-      // Create flow template with empty sections for drag-and-drop editor
-      const flowConfig = {
-        version: "3.0",
-        sections: [] // Empty sections array for new page builder
-      };
-
-      const { data, error } = await supabase
-        .from('flows')
-        .insert([{
-          name: newFlowName,
-          campaign_id: campaignData.id,
-          base_url: `${window.location.origin}/flow/${campaignData.id}`,
-          flow_config: flowConfig
-        }])
-        .select(`
-          *,
-          campaigns (
-            name
-          )
-        `)
-        .single();
-
-      if (error) throw error;
-
-      setFlows([data, ...flows]);
-      setNewFlowName('');
-      toast({
-        title: "Success",
-        description: "Flow template created successfully",
-      });
-
-      // Open the flow editor immediately
-      openFlowEditor(data);
     } catch (error) {
-      console.error('Error creating flow template:', error);
-      toast({
-        title: "Error",
-        description: "Failed to create flow template",
-        variant: "destructive",
-      });
+      console.error('Error creating flow from template:', error);
     }
-  };
-
-  const duplicateFlow = async (flow: Flow) => {
-    try {
-      // Create a new campaign for the duplicated flow
-      const { data: brandData } = await supabase
-        .from('brands')
-        .select('id')
-        .limit(1)
-        .maybeSingle();
-
-      if (!brandData) {
-        toast({
-          title: "Error",
-          description: "Please create a brand first",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      const { data: campaignData, error: campaignError } = await supabase
-        .from('campaigns')
-        .insert([{
-          name: `${flow.name} Copy Campaign`,
-          description: 'Auto-generated campaign for duplicated flow',
-          brand_id: brandData.id
-        }])
-        .select('id')
-        .single();
-
-      if (campaignError) throw campaignError;
-
-      const { data, error } = await supabase
-        .from('flows')
-        .insert([{
-          name: `${flow.name} (Copy)`,
-          campaign_id: campaignData.id,
-          base_url: flow.base_url,
-          flow_config: flow.flow_config
-        }])
-        .select(`
-          *,
-          campaigns (
-            name
-          )
-        `)
-        .single();
-
-      if (error) throw error;
-
-      setFlows([data, ...flows]);
-      toast({
-        title: "Success",
-        description: "Flow duplicated successfully",
-      });
-    } catch (error) {
-      console.error('Error duplicating flow:', error);
-      toast({
-        title: "Error",
-        description: "Failed to duplicate flow",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const deleteFlow = async (flowId: string) => {
-    try {
-      const { error } = await supabase
-        .from('flows')
-        .delete()
-        .eq('id', flowId);
-
-      if (error) throw error;
-
-      setFlows(flows.filter(flow => flow.id !== flowId));
-      toast({
-        title: "Success",
-        description: "Flow deleted successfully",
-      });
-    } catch (error) {
-      console.error('Error deleting flow:', error);
-      toast({
-        title: "Error",
-        description: "Failed to delete flow",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const openFlowEditor = (flow: Flow) => {
-    setSelectedFlow(flow);
-    setSelectedFlowId(flow.id);
-    setPreviewMode('editor');
-  };
-
-  const openTemplateSelector = () => {
-    setShowTemplateSelector(true);
-  };
-
-  const openCustomerPreview = (flowId: string) => {
-    setSelectedFlowId(flowId);
-    setPreviewMode('customer');
-  };
-
-  const closeModals = () => {
-    setSelectedFlowId(null);
-    setSelectedFlow(null);
-    setPreviewMode(null);
-    setShowTemplateSelector(false);
+    closeModals();
   };
 
   const convertFlowToTemplate = (flow: Flow) => {
@@ -281,127 +134,47 @@ const FlowManager = () => {
     };
   };
 
-  const handleTemplateSelect = async (template: any) => {
-    if (template) {
-      try {
-        // Check if this is a pre-built template (has 'pages' property) or database template
-        if ('pages' in template) {
-          // Pre-built template from flowTemplates.ts - create a new flow in the database
-          const { data: fullBrandData } = await supabase
-            .from('brands')
-            .select('id, name, logo_url, brand_colors')
-            .limit(1)
-            .maybeSingle();
-
-          if (!fullBrandData) {
-            toast({
-              title: "Error",
-              description: "Please create a brand first before using templates",
-              variant: "destructive",
-            });
-            return;
-          }
-
-          // Check if there's already a campaign for this brand, or create one
-          let { data: existingCampaign } = await supabase
-            .from('campaigns')
-            .select('id')
-            .eq('brand_id', fullBrandData.id)
-            .eq('name', `${template.name} Campaign`)
-            .maybeSingle();
-
-          let campaignId;
-          if (existingCampaign) {
-            campaignId = existingCampaign.id;
-          } else {
-            // Create a new campaign for the template
-            const { data: campaignData, error: campaignError } = await supabase
-              .from('campaigns')
-              .insert([{
-                name: `${template.name} Campaign`,
-                description: `Campaign for ${template.name} flow`,
-                brand_id: fullBrandData.id,
-                approved_stores: ['Store A', 'Store B', 'Store C']
-              }])
-              .select('id')
-              .single();
-
-            if (campaignError) throw campaignError;
-            campaignId = campaignData.id;
-          }
-
-          // Create the flow in the database
-          const flowConfig = {
-            pages: template.pages,
-            design_template_id: null,
-            globalHeader: {
-              showHeader: true,
-              brandName: fullBrandData?.name || 'Brand',
-              logoUrl: fullBrandData?.logo_url || '',
-              backgroundColor: (fullBrandData?.brand_colors as any)?.primary || '#3b82f6',
-              logoSize: 'medium'
-            },
-            theme: {
-              backgroundColor: '#ffffff'
-            }
-          };
-
-          const { data: newFlow, error: flowError } = await supabase
-            .from('flows')
-            .insert([{
-              name: template.name,
-              campaign_id: campaignId,
-              base_url: `${window.location.origin}/flow/${campaignId}`,
-              flow_config: flowConfig
-            }])
-            .select(`
-              *,
-              campaigns (
-                name
-              )
-            `)
-            .single();
-
-          if (flowError) throw flowError;
-
-          // Add to flows list and open editor
-          setFlows(prevFlows => [newFlow, ...prevFlows]);
-          
-          // Make sure we set the selected flow properly
-          setSelectedFlow(newFlow);
-          setSelectedFlowId(newFlow.id);
-          setPreviewMode('editor');
-
-          console.log('Created new flow from template:', newFlow);
-          
-          toast({
-            title: "Success",
-            description: "Flow created from template successfully",
-          });
-        } else {
-          // Database template - use as is
-          openFlowEditor(template);
-        }
-      } catch (error) {
-        console.error('Error creating flow from template:', error);
-        toast({
-          title: "Error",
-          description: "Failed to create flow from template",
-          variant: "destructive",
-        });
-      }
-    }
-    setShowTemplateSelector(false);
-  };
-
   if (isLoading) {
-    return <div className="text-center py-8">Loading flows...</div>;
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="text-center space-y-4">
+          <RefreshCw className="w-8 h-8 animate-spin mx-auto text-muted-foreground" />
+          <p className="text-muted-foreground">Loading flows...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Failed to load flows: {error}
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => fetchFlows()}
+              className="ml-2"
+            >
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Retry
+            </Button>
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
   }
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Flow Templates</h1>
+        <Button variant="outline" onClick={() => fetchFlows()} size="sm">
+          <RefreshCw className="w-4 h-4 mr-2" />
+          Refresh
+        </Button>
       </div>
 
       {/* Quick Create Template */}
@@ -421,13 +194,18 @@ const FlowManager = () => {
                 value={newFlowName}
                 onChange={(e) => setNewFlowName(e.target.value)}
                 placeholder="Enter template name (e.g., Premium Product Flow)"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    createNewTemplate();
+                  }
+                }}
               />
             </div>
-            <Button onClick={createNewTemplate} className="mb-0">
+            <Button onClick={createNewTemplate} disabled={!newFlowName.trim()}>
               <Plus className="w-4 h-4 mr-2" />
               Create New Flow
             </Button>
-            <Button onClick={openTemplateSelector} variant="outline" className="mb-0">
+            <Button onClick={openTemplateSelector} variant="outline">
               Choose from Templates
             </Button>
           </div>
@@ -476,7 +254,7 @@ const FlowManager = () => {
                         </span>
                       </CardTitle>
                       <CardDescription>
-                        Campaign: {flow.campaigns?.name} • Created {new Date(flow.created_at).toLocaleDateString()}
+                        Campaign: {flow.campaign_name || 'N/A'} • Created {new Date(flow.created_at).toLocaleDateString()}
                       </CardDescription>
                       
                        {/* Page Sections Preview */}
@@ -511,7 +289,7 @@ const FlowManager = () => {
                       <Button 
                         variant="outline" 
                         size="sm"
-                        onClick={() => duplicateFlow(flow)}
+                        onClick={() => hookDuplicateFlow(flow)}
                         title="Duplicate template"
                       >
                         <Copy className="w-4 h-4" />
@@ -527,7 +305,7 @@ const FlowManager = () => {
                       <Button 
                         variant="destructive" 
                         size="sm"
-                        onClick={() => deleteFlow(flow.id)}
+                        onClick={() => hookDeleteFlow(flow.id)}
                         title="Delete template"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -577,56 +355,18 @@ const FlowManager = () => {
           onClose={closeModals}
           brandData={brandData}
           onSave={async (pageData) => {
-            console.log('FlowManager onSave called with:', pageData);
-            console.log('selectedFlow:', selectedFlow);
-            console.log('selectedFlow.id:', selectedFlow?.id);
-            
-            try {
-              // Check if we have a valid flow ID
-              if (!selectedFlow?.id) {
-                console.error('No valid flow ID found for saving. selectedFlow:', selectedFlow);
-                toast({
-                  title: "Error",
-                  description: "No valid flow ID found. Please try creating a new flow.",
-                  variant: "destructive",
-                });
-                return;
-              }
+            if (!selectedFlow?.id) {
+              console.error('No valid flow ID found for saving');
+              return;
+            }
 
-              // Update the existing flow with the new data
-              const { error } = await supabase
-                .from('flows')
-                .update({
-                  name: pageData.name,
-                  flow_config: pageData.flow_config,
-                })
-                .eq('id', selectedFlow.id);
+            const result = await saveFlow(selectedFlow.id, {
+              name: pageData.name,
+              flow_config: pageData.flow_config,
+            });
 
-              if (error) {
-                console.error('Error updating flow:', error);
-                toast({
-                  title: "Error",
-                  description: "Failed to save page changes",
-                  variant: "destructive",
-                });
-                return;
-              }
-
-              console.log('Page saved successfully');
-              toast({
-                title: "Success", 
-                description: "Page changes saved successfully",
-              });
-              
-              fetchFlows(); // Refresh the flows list
+            if (result.success) {
               closeModals();
-            } catch (error) {
-              console.error('Error in onSave:', error);
-              toast({
-                title: "Error",
-                description: "Failed to save page changes",
-                variant: "destructive",
-              });
             }
           }}
           templateToEdit={selectedFlow ? convertFlowToTemplate(selectedFlow) : null}
@@ -636,7 +376,7 @@ const FlowManager = () => {
       {/* Template Selector Modal */}
       <FlowTemplateSelector
         isOpen={showTemplateSelector}
-        onClose={() => setShowTemplateSelector(false)}
+        onClose={closeModals}
         onSelectTemplate={handleTemplateSelect}
       />
 

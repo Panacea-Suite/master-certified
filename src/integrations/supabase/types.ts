@@ -360,6 +360,38 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_flow_with_campaign: {
+        Args: {
+          p_brand_id: string
+          p_campaign_name?: string
+          p_flow_config?: Json
+          p_flow_name: string
+        }
+        Returns: {
+          base_url: string
+          campaign_id: string
+          flow_id: string
+          flow_name: string
+        }[]
+      }
+      get_user_flows: {
+        Args: { p_user_id?: string }
+        Returns: {
+          base_url: string
+          brand_id: string
+          brand_name: string
+          campaign_id: string
+          campaign_name: string
+          created_at: string
+          created_by: string
+          flow_config: Json
+          id: string
+          is_template: boolean
+          name: string
+          template_category: string
+          updated_at: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["user_role"]
