@@ -367,7 +367,7 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
     const backgroundColor = flow?.flow_config?.theme?.backgroundColor || '#ffffff';
     const globalHeader = flow?.flow_config?.globalHeader || {
       showHeader: true,
-      brandName: 'Brand',
+      brandName: '',
       logoUrl: '',
       backgroundColor: '#3b82f6',
       logoSize: 'medium'
@@ -698,7 +698,7 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
     const backgroundColor = flowConfig?.theme?.backgroundColor || '#ffffff';
     const globalHeader = flowConfig?.globalHeader || {
       showHeader: true,
-      brandName: 'Brand',
+      brandName: '',
       logoUrl: '',
       backgroundColor: '#3b82f6',
       logoSize: 'medium'
