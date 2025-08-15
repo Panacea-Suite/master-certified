@@ -8,7 +8,7 @@ import BrandManager from '@/components/BrandManager';
 import BrandSettings from '@/components/BrandSettings';
 import CampaignManager from '@/components/CampaignManager';
 import BatchManager from '@/components/BatchManager';
-import FlowManager from '@/components/FlowManager';
+import TemplateManager from '@/components/TemplateManager';
 
 import { Button } from '@/components/ui/button';
 import { Shield } from 'lucide-react';
@@ -36,8 +36,8 @@ const Index = () => {
         return <CampaignManager />;
       case 'batches':
         return <BatchManager />;
-      case 'flows':
-        return <FlowManager />;
+      case 'templates':
+        return <TemplateManager />;
       default:
         return <Dashboard />;
     }

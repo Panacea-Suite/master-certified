@@ -218,9 +218,13 @@ export type Database = {
           design_template_id: string | null
           flow_config: Json | null
           id: string
+          is_system_template: boolean | null
           is_template: boolean | null
           name: string
           template_category: string | null
+          template_description: string | null
+          template_preview_image: string | null
+          template_tags: string[] | null
           updated_at: string
         }
         Insert: {
@@ -231,9 +235,13 @@ export type Database = {
           design_template_id?: string | null
           flow_config?: Json | null
           id?: string
+          is_system_template?: boolean | null
           is_template?: boolean | null
           name: string
           template_category?: string | null
+          template_description?: string | null
+          template_preview_image?: string | null
+          template_tags?: string[] | null
           updated_at?: string
         }
         Update: {
@@ -244,9 +252,13 @@ export type Database = {
           design_template_id?: string | null
           flow_config?: Json | null
           id?: string
+          is_system_template?: boolean | null
           is_template?: boolean | null
           name?: string
           template_category?: string | null
+          template_description?: string | null
+          template_preview_image?: string | null
+          template_tags?: string[] | null
           updated_at?: string
         }
         Relationships: [

@@ -15,7 +15,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }
     { id: 'brands', label: 'Brands', icon: Settings, roles: ['master_admin'] },
     { id: 'brand-settings', label: 'Brand Settings', icon: Settings, roles: ['brand_admin'] },
     { id: 'campaigns', label: 'Campaigns', icon: QrCode, roles: ['master_admin', 'brand_admin'] },
-    { id: 'flows', label: 'Flows', icon: Settings, roles: ['brand_admin'] }
+    { id: 'templates', label: 'Templates', icon: Settings, roles: ['brand_admin'] }
   ];
 
   // Filter navigation items based on effective role
