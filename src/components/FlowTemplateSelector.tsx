@@ -189,7 +189,7 @@ export const FlowTemplateSelector: React.FC<FlowTemplateSelectorProps> = ({
                   onClick={() => handleSaveAsOwn(prebuiltTemplate)}
                   className="flex-1"
                 >
-                  Save as Mine
+                  Use Template
                 </Button>
               </div>
             </div>
@@ -258,7 +258,7 @@ export const FlowTemplateSelector: React.FC<FlowTemplateSelectorProps> = ({
                   onClick={() => handleSaveAsOwn(dbTemplate)}
                   className="flex-1"
                 >
-                  Save as Mine
+                  Use Template
                 </Button>
               </div>
             </div>
