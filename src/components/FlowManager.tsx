@@ -35,7 +35,7 @@ const FlowManager = () => {
   const [selectedFlow, setSelectedFlow] = useState<Flow | null>(null);
   const [previewMode, setPreviewMode] = useState<'editor' | 'customer' | null>(null);
   const [showTemplateSelector, setShowTemplateSelector] = useState(false);
-  const [brandData, setBrandData] = useState<{ id: string; name: string; logo_url?: string } | null>(null);
+  const [brandData, setBrandData] = useState<{ id: string; name: string; logo_url?: string; brand_colors?: any } | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -57,7 +57,7 @@ const FlowManager = () => {
           .order('created_at', { ascending: false }),
         supabase
           .from('brands')
-          .select('id, name, logo_url')
+          .select('id, name, logo_url, brand_colors')
           .maybeSingle()
       ]);
 
