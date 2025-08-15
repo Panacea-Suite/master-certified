@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Upload, Palette, Save, Image, Store, Plus, X, Edit } from 'lucide-react';
+import { Upload, Palette, Save, Image, Store, Plus, X, Edit, Trash2 } from 'lucide-react';
 import { ImageEditor } from '@/components/ImageEditor';
 
 interface Brand {
@@ -175,6 +175,69 @@ const BrandSettings = () => {
     setSelectedFile(null);
   };
 
+  const handleDeleteLogo = async () => {
+    if (!brand || !brand.logo_url) return;
+
+    setIsUploading(true);
+    try {
+      // Extract file path from logo URL
+      const url = new URL(brand.logo_url);
+      const pathSegments = url.pathname.split('/');
+      const fileName = pathSegments[pathSegments.length - 1];
+      const brandFolder = pathSegments[pathSegments.length - 2];
+      const filePath = `${brandFolder}/${fileName}`;
+
+      console.log('Deleting logo file:', filePath);
+
+      // Delete from storage
+      const { error: deleteError } = await supabase.storage
+        .from('brand-logos')
+        .remove([filePath]);
+
+      if (deleteError) {
+        console.error('Storage deletion error:', deleteError);
+        // Continue with database update even if storage deletion fails
+      }
+
+      // Update brand to remove logo URL
+      const { error: updateError } = await supabase
+        .from('brands')
+        .update({ logo_url: null })
+        .eq('id', brand.id);
+
+      if (updateError) {
+        console.error('Database update error:', updateError);
+        throw new Error(`Database update failed: ${updateError.message}`);
+      }
+
+      console.log('Logo deleted successfully');
+
+      // Update state
+      setBrand({ ...brand, logo_url: null });
+      toast({
+        title: "Success",
+        description: "Logo deleted successfully",
+      });
+    } catch (error: any) {
+      console.error('Error in handleDeleteLogo:', error);
+      
+      let errorMessage = "Failed to delete logo";
+      if (error.message) {
+        errorMessage = error.message;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      }
+
+      toast({
+        title: "Delete Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   const saveColors = async () => {
     if (!brand) return;
 
@@ -282,13 +345,23 @@ const BrandSettings = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             {brand.logo_url && (
-              <div className="flex justify-center">
+              <div className="flex justify-center relative">
                 <img
                   src={`${brand.logo_url}?t=${Date.now()}`}
                   alt="Brand Logo"
                   className="w-32 h-32 object-contain border rounded-lg"
                   key={brand.logo_url} // Force re-render when URL changes
                 />
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleDeleteLogo}
+                  disabled={isUploading}
+                  className="absolute -top-2 -right-2 h-8 w-8 p-0 rounded-full"
+                  title="Delete logo"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
               </div>
             )}
             
