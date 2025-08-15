@@ -4,13 +4,11 @@ import { Button } from '@/components/ui/button';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import CustomerFlowExperience from './CustomerFlowExperience';
 import { processTemplateData } from '@/utils/templateProcessor';
-
 interface PhonePreviewModalProps {
   isOpen: boolean;
   onClose: () => void;
   templateData: any;
 }
-
 export const PhonePreviewModal: React.FC<PhonePreviewModalProps> = ({
   isOpen,
   onClose,
@@ -33,25 +31,17 @@ export const PhonePreviewModal: React.FC<PhonePreviewModalProps> = ({
       }
     }
   }, [isOpen, templateData]);
-
   const handlePreviousPage = () => {
     setCurrentPageIndex(Math.max(0, currentPageIndex - 1));
   };
-
   const handleNextPage = () => {
     setCurrentPageIndex(Math.min(totalPages - 1, currentPageIndex + 1));
   };
-  return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+  return <Dialog open={isOpen} onOpenChange={open => !open && onClose()}>
       <DialogContent className="max-w-fit p-0 bg-transparent border-none shadow-none">
         <div className="relative">
           {/* Close button */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onClose}
-            className="absolute -top-12 -right-2 z-50 bg-background border shadow-sm hover:bg-muted"
-          >
+          <Button variant="ghost" size="sm" onClick={onClose} className="absolute -top-12 -right-2 z-50 bg-background border shadow-sm hover:bg-muted">
             <X className="h-4 w-4" />
           </Button>
           
@@ -65,12 +55,7 @@ export const PhonePreviewModal: React.FC<PhonePreviewModalProps> = ({
                 
                 {/* Screen content */}
                 <div className="w-[390px] h-[844px] overflow-hidden relative">
-                  <CustomerFlowExperience
-                    templateData={templateData}
-                    qrCode="phone-preview"
-                    externalPageIndex={currentPageIndex}
-                    hideInternalNavigation={true}
-                  />
+                  <CustomerFlowExperience templateData={templateData} qrCode="phone-preview" externalPageIndex={currentPageIndex} hideInternalNavigation={true} />
                 </div>
               </div>
             </div>
@@ -83,49 +68,29 @@ export const PhonePreviewModal: React.FC<PhonePreviewModalProps> = ({
           </div>
           
           {/* External Navigation Controls */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-4 mt-6">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handlePreviousPage}
-                disabled={currentPageIndex === 0}
-                className="bg-background"
-              >
+          {totalPages > 1 && <div className="flex items-center justify-center gap-4 mt-6">
+              <Button variant="outline" size="sm" onClick={handlePreviousPage} disabled={currentPageIndex === 0} className="bg-background">
                 <ChevronLeft className="h-4 w-4 mr-1" />
                 Previous
               </Button>
               
               <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">
+                <span className="text-sm text-slate-50">
                   Page {currentPageIndex + 1} of {totalPages}
                 </span>
                 <div className="flex gap-1">
-                  {Array.from({ length: totalPages }, (_, index) => (
-                    <div
-                      key={index}
-                      className={`w-2 h-2 rounded-full ${
-                        index === currentPageIndex ? 'bg-primary' : 'bg-muted'
-                      }`}
-                    />
-                  ))}
+                  {Array.from({
+                length: totalPages
+              }, (_, index) => <div key={index} className={`w-2 h-2 rounded-full ${index === currentPageIndex ? 'bg-primary' : 'bg-muted'}`} />)}
                 </div>
               </div>
               
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleNextPage}
-                disabled={currentPageIndex === totalPages - 1}
-                className="bg-background"
-              >
+              <Button variant="outline" size="sm" onClick={handleNextPage} disabled={currentPageIndex === totalPages - 1} className="bg-background">
                 Next
                 <ChevronRight className="h-4 w-4 ml-1" />
               </Button>
-            </div>
-          )}
+            </div>}
         </div>
       </DialogContent>
-    </Dialog>
-  );
+    </Dialog>;
 };
