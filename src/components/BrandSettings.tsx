@@ -238,116 +238,6 @@ const BrandSettings = () => {
     }
   };
 
-  const handleCleanupOldLogos = async () => {
-    if (!brand) return;
-
-    setIsUploading(true);
-    try {
-      // List all files in the brand-logos bucket
-      const { data: files, error: listError } = await supabase.storage
-        .from('brand-logos')
-        .list('', { limit: 1000, sortBy: { column: 'name', order: 'asc' } });
-
-      if (listError) throw listError;
-
-      if (!files || files.length === 0) {
-        toast({
-          title: "Info",
-          description: "No files found in logo storage",
-        });
-        return;
-      }
-
-      // Get all file paths recursively starting from this brand folder
-      const getAllFiles = async (prefix: string): Promise<string[]> => {
-        const { data: items } = await supabase.storage
-          .from('brand-logos')
-          .list(prefix, { limit: 1000, sortBy: { column: 'name', order: 'asc' } });
-        
-        const allFiles: string[] = [];
-        for (const item of items || []) {
-          if (item.name === '.emptyFolderPlaceholder') continue;
-          const fullPath = prefix ? `${prefix}/${item.name}` : item.name;
-          // Supabase returns folders with no id; files have an id
-          // @ts-ignore - SDK types may vary across versions
-          if (!item.id) {
-            const subFiles = await getAllFiles(fullPath);
-            allFiles.push(...subFiles);
-          } else {
-            allFiles.push(fullPath);
-          }
-        }
-        return allFiles;
-      };
-
-      const allFiles = await getAllFiles(brand.id);
-      console.log('All files found under brand folder:', allFiles);
-
-      // Find current brand logo file path
-      let currentLogoPath = null;
-      if (brand.logo_url) {
-        try {
-          const url = new URL(brand.logo_url);
-          const pathSegments = url.pathname.split('/').slice(1); // Remove empty first element
-          // Path should be like: storage/v1/object/public/brand-logos/brand-id/logo.ext
-          if (pathSegments.length >= 5) {
-            currentLogoPath = pathSegments.slice(4).join('/'); // Get brand-id/logo.ext
-          }
-        } catch (error) {
-          console.log('Could not parse logo URL:', error);
-        }
-      }
-      console.log('Current logo path:', currentLogoPath);
-
-      // Find files to delete (only within this brand folder, exclude current logo)
-      const filesToDelete = allFiles.filter(filePath => {
-        // Don't delete current logo
-        if (currentLogoPath && filePath === currentLogoPath) {
-          return false;
-        }
-        // Only delete files in this brand's folder
-        if (!filePath.startsWith(`${brand.id}/`)) {
-          return false;
-        }
-        return true;
-      });
-
-      console.log('Files to delete:', filesToDelete);
-
-      if (filesToDelete.length === 0) {
-        toast({
-          title: "Info",
-          description: "No old logo files found to clean up",
-        });
-        return;
-      }
-
-      // Delete old files
-      const { error: deleteError } = await supabase.storage
-        .from('brand-logos')
-        .remove(filesToDelete);
-
-      if (deleteError) {
-        console.error('Delete error:', deleteError);
-        throw deleteError;
-      }
-
-      toast({
-        title: "Success",
-        description: `Cleaned up ${filesToDelete.length} old logo files including AniVatio logo`,
-      });
-
-    } catch (error: any) {
-      console.error('Error cleaning up old logos:', error);
-      toast({
-        title: "Cleanup Error",
-        description: error.message || "Failed to clean up old logos",
-        variant: "destructive",
-      });
-    } finally {
-      setIsUploading(false);
-    }
-  };
 
   const saveColors = async () => {
     if (!brand) return;
@@ -496,18 +386,6 @@ const BrandSettings = () => {
               </label>
             </div>
             
-            <div className="flex gap-2">
-              <Button
-                onClick={handleCleanupOldLogos}
-                disabled={isUploading}
-                variant="outline"
-                size="sm"
-                className="flex-1"
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Clean Up Old Files
-              </Button>
-            </div>
             
             {isUploading && (
               <p className="text-sm text-muted-foreground text-center">Uploading...</p>
