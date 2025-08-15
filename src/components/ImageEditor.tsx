@@ -442,32 +442,56 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
       const cropWidth = cropRect.width || 0;
       const cropHeight = cropRect.height || 0;
       
-      // Temporarily hide the crop rectangle
-      cropRect.set({ visible: false });
+      // Remove the crop overlay first
+      fabricCanvas.remove(cropRect);
       fabricCanvas.renderAll();
       
-      // Create a new canvas for the cropped image
+      // Create a temporary canvas to render just the image
       const tempCanvas = document.createElement('canvas');
-      tempCanvas.width = cropWidth;
-      tempCanvas.height = cropHeight;
+      tempCanvas.width = fabricCanvas.width || 300;
+      tempCanvas.height = fabricCanvas.height || 300;
       const tempCtx = tempCanvas.getContext('2d');
       
       if (!tempCtx) {
         throw new Error('Could not get canvas context');
       }
       
-      // Get the fabric canvas as an element (without the crop overlay)
-      const fabricCanvasElement = fabricCanvas.toCanvasElement();
+      // Set background based on transparency
+      if (hasTransparentBackground) {
+        tempCtx.clearRect(0, 0, tempCanvas.width, tempCanvas.height);
+      } else {
+        tempCtx.fillStyle = '#ffffff';
+        tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+      }
       
-      // Draw the cropped area
-      tempCtx.drawImage(
-        fabricCanvasElement,
+      // Draw only the image (without any overlays)
+      const imageElement = originalImage.getElement();
+      const matrix = originalImage.calcTransformMatrix();
+      
+      tempCtx.save();
+      tempCtx.transform(matrix[0], matrix[1], matrix[2], matrix[3], matrix[4], matrix[5]);
+      tempCtx.drawImage(imageElement, -originalImage.width! / 2, -originalImage.height! / 2, originalImage.width!, originalImage.height!);
+      tempCtx.restore();
+      
+      // Now create the cropped canvas
+      const croppedCanvas = document.createElement('canvas');
+      croppedCanvas.width = cropWidth;
+      croppedCanvas.height = cropHeight;
+      const croppedCtx = croppedCanvas.getContext('2d');
+      
+      if (!croppedCtx) {
+        throw new Error('Could not get cropped canvas context');
+      }
+      
+      // Draw the cropped area from the temp canvas
+      croppedCtx.drawImage(
+        tempCanvas,
         cropLeft, cropTop, cropWidth, cropHeight,
         0, 0, cropWidth, cropHeight
       );
       
       // Create new fabric image from cropped canvas
-      tempCanvas.toBlob(async (blob) => {
+      croppedCanvas.toBlob(async (blob) => {
         if (!blob) {
           throw new Error('Failed to create cropped image');
         }
@@ -528,6 +552,12 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
     } catch (error) {
       console.error('Crop failed:', error);
       toast.error("Failed to crop image. Please try again.");
+      
+      // Restore crop rectangle if there was an error
+      if (cropRect) {
+        fabricCanvas.add(cropRect);
+        fabricCanvas.renderAll();
+      }
     }
   };
 
