@@ -82,8 +82,8 @@ const FlowManager = () => {
     }
 
     try {
-      // Check if this is a pre-built template (has 'pages' property) or database template
-      if ('pages' in template) {
+      // Check if this is a pre-built template (has 'pages' property), database template, or saved flow data from editor
+      if ('pages' in template && !template.flow_config) {
         // Pre-built template from flowTemplates.ts - create a new flow in the database
         if (!brandData?.id) {
           const { data: fullBrandData } = await supabase
@@ -114,6 +114,22 @@ const FlowManager = () => {
         };
 
         await createFlowAtomic(template.name, brandData.id, flowConfig, `${template.name} Campaign`);
+      } else if (template.flow_config && template.name) {
+        // This is a saved flow from the FlowEditor - create a new flow
+        if (!brandData?.id) {
+          const { data: fullBrandData } = await supabase
+            .from('brands')
+            .select('id, name, logo_url, brand_colors')
+            .limit(1)
+            .maybeSingle();
+
+          if (!fullBrandData) {
+            return;
+          }
+          setBrandData(fullBrandData);
+        }
+
+        await createFlowAtomic(template.name, brandData.id, template.flow_config, `${template.name} Campaign`);
       } else {
         // Database template - use as is
         openFlowEditor(template);
