@@ -93,14 +93,14 @@ export const FlowTemplateSelector: React.FC<FlowTemplateSelectorProps> = ({
     }
   };
 
-  const handleUseTemplate = (template: FlowTemplateData | FlowTemplate) => {
-    onSelectTemplate(template);
-    onClose();
-  };
-
-  const handleCustomizeTemplate = (template: FlowTemplateData | FlowTemplate) => {
+  const handlePreviewTemplate = (template: FlowTemplateData | FlowTemplate) => {
     setSelectedTemplate(template);
     setShowEditor(true);
+  };
+
+  const handleSaveAsOwn = (template: FlowTemplateData | FlowTemplate) => {
+    onSelectTemplate(template);
+    onClose();
   };
 
   const handleCreateFromScratch = () => {
@@ -119,7 +119,7 @@ export const FlowTemplateSelector: React.FC<FlowTemplateSelectorProps> = ({
     onClose();
   };
 
-  const renderTemplateCard = (template: FlowTemplateData | FlowTemplate, showCustomize: boolean = true, isPrebuilt: boolean = false) => {
+  const renderTemplateCard = (template: FlowTemplateData | FlowTemplate, isPrebuilt: boolean = false) => {
     if (isPrebuilt && 'pages' in template) {
       // Pre-built template from flowTemplates.ts
       const prebuiltTemplate = template as FlowTemplateData;
@@ -178,21 +178,19 @@ export const FlowTemplateSelector: React.FC<FlowTemplateSelectorProps> = ({
               <div className="flex gap-2 pt-2">
                 <Button 
                   size="sm" 
-                  onClick={() => handleUseTemplate(prebuiltTemplate)}
+                  variant="outline"
+                  onClick={() => handlePreviewTemplate(prebuiltTemplate)}
                   className="flex-1"
                 >
-                  Use Template
+                  Preview
                 </Button>
-                {showCustomize && (
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    onClick={() => handleCustomizeTemplate(prebuiltTemplate)}
-                    className="flex-1"
-                  >
-                    Customize
-                  </Button>
-                )}
+                <Button 
+                  size="sm" 
+                  onClick={() => handleSaveAsOwn(prebuiltTemplate)}
+                  className="flex-1"
+                >
+                  Save as Mine
+                </Button>
               </div>
             </div>
           </CardContent>
@@ -249,21 +247,19 @@ export const FlowTemplateSelector: React.FC<FlowTemplateSelectorProps> = ({
               <div className="flex gap-2 pt-2">
                 <Button 
                   size="sm" 
-                  onClick={() => handleUseTemplate(dbTemplate)}
+                  variant="outline"
+                  onClick={() => handlePreviewTemplate(dbTemplate)}
                   className="flex-1"
                 >
-                  Use Template
+                  Preview
                 </Button>
-                {showCustomize && (
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    onClick={() => handleCustomizeTemplate(dbTemplate)}
-                    className="flex-1"
-                  >
-                    Customize
-                  </Button>
-                )}
+                <Button 
+                  size="sm" 
+                  onClick={() => handleSaveAsOwn(dbTemplate)}
+                  className="flex-1"
+                >
+                  Save as Mine
+                </Button>
               </div>
             </div>
           </CardContent>
@@ -333,10 +329,10 @@ export const FlowTemplateSelector: React.FC<FlowTemplateSelectorProps> = ({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Pre-built templates */}
                   {filteredPrebuiltTemplates.map(template => 
-                    renderTemplateCard(template, true, true)
+                    renderTemplateCard(template, true)
                   )}
                   {/* Database templates */}
-                  {templates.map(template => renderTemplateCard(template, true, false))}
+                  {templates.map(template => renderTemplateCard(template, false))}
                 </div>
               )}
             </div>
