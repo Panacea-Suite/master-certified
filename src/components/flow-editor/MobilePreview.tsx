@@ -69,6 +69,13 @@ export const MobilePreview: React.FC<MobilePreviewProps> = ({
     }
   };
 
+  const getHeaderHeight = (logoSize: string) => {
+    const sizeInPx = /^\d+$/.test(logoSize) ? parseInt(logoSize) : 48;
+    // Ensure header is at least as tall as the logo plus some padding
+    const minHeight = Math.max(sizeInPx + 16, 64); // 16px padding, minimum 64px
+    return `${minHeight}px`;
+  };
+
   const handleDragOver = (e: React.DragEvent, index: number) => {
     e.preventDefault();
     e.stopPropagation();
@@ -111,15 +118,18 @@ export const MobilePreview: React.FC<MobilePreviewProps> = ({
         {/* Global Header with Brand Logo */}
         {globalHeader.showHeader && (
           <div 
-            className="h-16 border-b flex items-center justify-center overflow-visible relative z-10"
-            style={{ backgroundColor: globalHeader.backgroundColor }}
+            className="border-b flex items-center justify-center overflow-visible relative z-10"
+            style={{ 
+              backgroundColor: globalHeader.backgroundColor,
+              height: getHeaderHeight(globalHeader.logoSize)
+            }}
           >
             {globalHeader.logoUrl ? (
               <img 
                 src={globalHeader.logoUrl} 
                 alt={globalHeader.brandName}
                 className="object-contain"
-                style={{ height: getLogoSize(globalHeader.logoSize), maxHeight: '100%', width: 'auto', maxWidth: '90%' }}
+                style={{ height: getLogoSize(globalHeader.logoSize), width: 'auto', maxWidth: '90%' }}
               />
             ) : (
               <div className="flex items-center gap-2">
@@ -182,15 +192,18 @@ export const MobilePreview: React.FC<MobilePreviewProps> = ({
       {/* Global Header with Brand Logo */}
       {globalHeader.showHeader && (
         <div 
-          className="h-16 border-b flex items-center justify-center overflow-visible relative z-10"
-          style={{ backgroundColor: globalHeader.backgroundColor }}
+          className="border-b flex items-center justify-center overflow-visible relative z-10"
+          style={{ 
+            backgroundColor: globalHeader.backgroundColor,
+            height: getHeaderHeight(globalHeader.logoSize)
+          }}
         >
           {globalHeader.logoUrl ? (
             <img 
               src={globalHeader.logoUrl} 
               alt={globalHeader.brandName}
               className="object-contain"
-              style={{ height: getLogoSize(globalHeader.logoSize), maxHeight: '100%', width: 'auto', maxWidth: '90%' }}
+              style={{ height: getLogoSize(globalHeader.logoSize), width: 'auto', maxWidth: '90%' }}
             />
           ) : (
             <div className="flex items-center gap-2">
