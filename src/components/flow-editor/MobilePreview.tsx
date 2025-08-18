@@ -38,7 +38,7 @@ export const MobilePreview: React.FC<MobilePreviewProps> = ({
     brandName: 'Brand',
     logoUrl: '',
     backgroundColor: '#ffffff',
-    logoSize: 'medium'
+    logoSize: '120'
   },
   deviceSpec = { name: 'iphone14', displayName: 'iPhone 14', width: 390, height: 844 }
 }) => {

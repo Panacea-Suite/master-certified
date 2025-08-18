@@ -60,7 +60,7 @@ export const FlowPreview: React.FC<FlowPreviewProps> = ({
     brandName: 'Brand',
     logoUrl: '',
     backgroundColor: '#ffffff',
-    logoSize: 'medium'
+    logoSize: '120'
   },
   templateId,
   brandColors,
