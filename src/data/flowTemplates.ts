@@ -51,7 +51,7 @@ const CERTIFICATION_FLOW_PAGES: FlowPage[] = [
         type: 'text',
         config: {
           content: 'Verify the authenticity and quality of this product.',
-          fontSize: 28,
+          fontSize: 20,
           textColor: '#1a1a1a',
           backgroundColor: 'transparent',
           padding: 4,
