@@ -190,80 +190,80 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
           placeholder="Auto"
         />
       </div>
+    </div>
+  );
+
+  const renderDropShadowSettings = () => (
+    <div className="space-y-4">
+      <div className="flex items-center space-x-2">
+        <Switch
+          id="dropShadow"
+          checked={config.dropShadow || false}
+          onCheckedChange={(checked) => updateConfig('dropShadow', checked)}
+        />
+        <Label htmlFor="dropShadow">Drop Shadow</Label>
+      </div>
       
-      <Separator />
-      
-      <div className="space-y-4">
-        <div className="flex items-center space-x-2">
-          <Switch
-            id="dropShadow"
-            checked={config.dropShadow || false}
-            onCheckedChange={(checked) => updateConfig('dropShadow', checked)}
-          />
-          <Label htmlFor="dropShadow">Drop Shadow</Label>
-        </div>
-        
-        {config.dropShadow && (
-          <div className="space-y-4 ml-6">
-            <div className="space-y-2">
-              <Label htmlFor="shadowBlur">Shadow Blur: {config.shadowBlur || 10}px</Label>
-              <Slider
-                value={[config.shadowBlur || 10]}
-                onValueChange={(value) => updateConfig('shadowBlur', value[0])}
-                min={0}
-                max={50}
-                step={1}
-                className="w-full"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="shadowOffsetX">Horizontal Offset: {config.shadowOffsetX || 0}px</Label>
-              <Slider
-                value={[config.shadowOffsetX || 0]}
-                onValueChange={(value) => updateConfig('shadowOffsetX', value[0])}
-                min={-20}
-                max={20}
-                step={1}
-                className="w-full"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="shadowOffsetY">Vertical Offset: {config.shadowOffsetY || 4}px</Label>
-              <Slider
-                value={[config.shadowOffsetY || 4]}
-                onValueChange={(value) => updateConfig('shadowOffsetY', value[0])}
-                min={-20}
-                max={20}
-                step={1}
-                className="w-full"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="shadowSpread">Shadow Spread: {config.shadowSpread || 0}px</Label>
-              <Slider
-                value={[config.shadowSpread || 0]}
-                onValueChange={(value) => updateConfig('shadowSpread', value[0])}
-                min={-10}
-                max={10}
-                step={1}
-                className="w-full"
-              />
-            </div>
-            
-            <BrandColorPicker
-              label="Shadow Color"
-              value={config.shadowColor || 'rgba(0,0,0,0.1)'}
-              onChange={(color) => updateConfig('shadowColor', color)}
-              brandColors={brandColors}
-              showOpacity={true}
-              id="shadowColor"
+      {config.dropShadow && (
+        <div className="space-y-4 ml-6">
+          <div className="space-y-2">
+            <Label htmlFor="shadowBlur">Shadow Blur: {config.shadowBlur || 10}px</Label>
+            <Slider
+              value={[config.shadowBlur || 10]}
+              onValueChange={(value) => updateConfig('shadowBlur', value[0])}
+              min={0}
+              max={50}
+              step={1}
+              className="w-full"
             />
           </div>
-        )}
-      </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="shadowOffsetX">Horizontal Offset: {config.shadowOffsetX || 0}px</Label>
+            <Slider
+              value={[config.shadowOffsetX || 0]}
+              onValueChange={(value) => updateConfig('shadowOffsetX', value[0])}
+              min={-20}
+              max={20}
+              step={1}
+              className="w-full"
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="shadowOffsetY">Vertical Offset: {config.shadowOffsetY || 4}px</Label>
+            <Slider
+              value={[config.shadowOffsetY || 4]}
+              onValueChange={(value) => updateConfig('shadowOffsetY', value[0])}
+              min={-20}
+              max={20}
+              step={1}
+              className="w-full"
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="shadowSpread">Shadow Spread: {config.shadowSpread || 0}px</Label>
+            <Slider
+              value={[config.shadowSpread || 0]}
+              onValueChange={(value) => updateConfig('shadowSpread', value[0])}
+              min={-10}
+              max={10}
+              step={1}
+              className="w-full"
+            />
+          </div>
+          
+          <BrandColorPicker
+            label="Shadow Color"
+            value={config.shadowColor || 'rgba(0,0,0,0.1)'}
+            onChange={(color) => updateConfig('shadowColor', color)}
+            brandColors={brandColors}
+            showOpacity={true}
+            id="shadowColor"
+          />
+        </div>
+      )}
     </div>
   );
 
@@ -438,6 +438,118 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
     }
   };
 
+  const renderCommonSettings = () => (
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-2">
+        <BrandColorPicker
+          label="Background"
+          value={config.backgroundColor || 'rgba(255,255,255,1)'}
+          onChange={(color) => updateConfig('backgroundColor', color)}
+          brandColors={brandColors}
+          showOpacity={true}
+        />
+        <BrandColorPicker
+          label="Text Color"
+          value={config.textColor || '#000000'}
+          onChange={(color) => updateConfig('textColor', color)}
+          brandColors={brandColors}
+          showOpacity={true}
+        />
+      </div>
+    </div>
+  );
+
+  const renderFeaturesEditor = () => (
+    <div className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="features">Features (one per line)</Label>
+        <Textarea
+          id="features"
+          value={config.items?.join('\n') || ''}
+          onChange={(e) => updateConfig('items', e.target.value.split('\n').filter(item => item.trim()))}
+          placeholder="Feature 1&#10;Feature 2&#10;Feature 3"
+          rows={4}
+        />
+      </div>
+    </div>
+  );
+
+  const renderCTAEditor = () => (
+    <div className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="text">Button Text</Label>
+        <Input
+          id="text"
+          value={config.text || ''}
+          onChange={(e) => updateConfig('text', e.target.value)}
+          placeholder="Click here"
+        />
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="color">Button Color</Label>
+        <Select 
+          value={config.color || 'primary'} 
+          onValueChange={(value) => updateConfig('color', value)}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Select color" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="primary">Primary</SelectItem>
+            <SelectItem value="secondary">Secondary</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="size">Button Size</Label>
+        <Select 
+          value={config.size || 'normal'} 
+          onValueChange={(value) => updateConfig('size', value)}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Select size" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="normal">Normal</SelectItem>
+            <SelectItem value="large">Large</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+    </div>
+  );
+
+  const renderProductShowcaseEditor = () => (
+    <div className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="caption">Caption</Label>
+        <Input
+          id="caption"
+          value={config.caption || ''}
+          onChange={(e) => updateConfig('caption', e.target.value)}
+          placeholder="Product description"
+        />
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="bgColor">Background Color</Label>
+        <Select 
+          value={config.backgroundColor || 'muted'} 
+          onValueChange={(value) => updateConfig('backgroundColor', value)}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Select background" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="muted">Muted</SelectItem>
+            <SelectItem value="primary">Primary</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+    </div>
+  );
+
   return (
     <div className="space-y-4">
       <Card>
@@ -448,7 +560,24 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {renderEditor()}
+          <div className="space-y-4">
+            {renderCommonSettings()}
+            
+            <Separator />
+            
+            {renderDropShadowSettings()}
+            
+            <Separator />
+            
+            {section.type === 'text' && renderTextEditor()}
+            {section.type === 'image' && renderImageEditor()}
+            {section.type === 'features' && renderFeaturesEditor()}
+            {section.type === 'cta' && renderCTAEditor()}
+            {section.type === 'product_showcase' && renderProductShowcaseEditor()}
+            {section.type === 'store_selector' && renderStoreSelector()}
+            {section.type === 'divider' && renderDividerEditor()}
+            {section.type === 'column' && renderColumnEditor()}
+          </div>
         </CardContent>
         
         {/* Image Editor Modal */}

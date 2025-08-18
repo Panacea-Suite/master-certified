@@ -78,6 +78,28 @@ export const PageSection: React.FC<PageSectionProps> = ({
   const { config } = section;
   
   const paddingClass = `p-${config.padding || 4}`;
+  const templateClasses = getTemplateClasses('card');
+  
+  // Generate drop shadow style for all sections
+  const getSectionStyle = () => {
+    const shadowStyle = config.dropShadow ? {
+      boxShadow: `${config.shadowOffsetX || 0}px ${config.shadowOffsetY || 4}px ${config.shadowBlur || 10}px ${config.shadowSpread || 0}px ${config.shadowColor || 'rgba(0,0,0,0.1)'}`
+    } : {
+      boxShadow: 'none'
+    };
+
+    return {
+      backgroundColor: config.backgroundColor || undefined,
+      color: config.textColor || undefined,
+      ...shadowStyle
+    };
+  };
+
+  const getSectionClassName = () => {
+    return config.dropShadow 
+      ? templateClasses 
+      : templateClasses.replace(/shadow-\w+/g, '');
+  };
 
   const renderSectionContent = () => {
     switch (section.type) {
@@ -117,7 +139,10 @@ export const PageSection: React.FC<PageSectionProps> = ({
 
       case 'features':
         return (
-          <div className={`features-section ${paddingClass}`}>
+          <div 
+            className={`features-section ${paddingClass} ${getSectionClassName()}`}
+            style={getSectionStyle()}
+          >
             <div className="space-y-3">
               {section.config?.items?.map((item: string, index: number) => (
                 <div key={index} className="flex items-center gap-3">
@@ -131,7 +156,10 @@ export const PageSection: React.FC<PageSectionProps> = ({
 
       case 'cta':
         return (
-          <div className={`cta-section ${paddingClass} flex justify-center`}>
+          <div 
+            className={`cta-section ${paddingClass} ${getSectionClassName()} flex justify-center`}
+            style={getSectionStyle()}
+          >
             <button className={`px-6 py-3 rounded-lg font-medium transition-colors ${
               section.config?.color === 'secondary' ? 'bg-secondary text-secondary-foreground hover:bg-secondary/90' : 'bg-primary text-primary-foreground hover:bg-primary/90'
             } ${
@@ -144,7 +172,10 @@ export const PageSection: React.FC<PageSectionProps> = ({
 
       case 'product_showcase':
         return (
-          <div className={`product-showcase-section ${paddingClass}`}>
+          <div 
+            className={`product-showcase-section ${paddingClass} ${getSectionClassName()}`}
+            style={getSectionStyle()}
+          >
             <div className={`p-6 rounded-lg ${section.config?.backgroundColor === 'primary' ? 'bg-primary/10' : 'bg-muted'}`}>
               <div className="flex justify-center">
                 <div className="w-32 h-32 bg-muted border-2 border-dashed border-muted-foreground/30 rounded-lg flex items-center justify-center">
@@ -163,11 +194,8 @@ export const PageSection: React.FC<PageSectionProps> = ({
       case 'text':
         return (
           <div 
-            className={`text-section ${paddingClass} ${config.backgroundColor ? '' : getTemplateClasses('text')}`}
-            style={{ 
-              backgroundColor: config.backgroundColor || 'transparent',
-              color: config.textColor || '#000000'
-            }}
+            className={`text-section ${paddingClass} ${getSectionClassName()}`}
+            style={getSectionStyle()}
           >
             <div 
               className="prose prose-sm max-w-none"
@@ -178,17 +206,11 @@ export const PageSection: React.FC<PageSectionProps> = ({
           </div>
         );
         
-      case 'image':
-        const shadowStyle = config.dropShadow ? {
-          boxShadow: `${config.shadowOffsetX || 0}px ${config.shadowOffsetY || 4}px ${config.shadowBlur || 10}px ${config.shadowSpread || 0}px ${config.shadowColor || 'rgba(0,0,0,0.1)'}`
-        } : {
-          boxShadow: 'none'
-        };
-        
+      case 'image':        
         return (
           <div 
-            className={`image-section ${paddingClass} ${config.dropShadow ? getTemplateClasses('card') : getTemplateClasses('card').replace(/shadow-\w+/g, '')}`}
-            style={config.dropShadow ? {} : { boxShadow: 'none !important' }}
+            className={`image-section ${paddingClass} ${getSectionClassName()}`}
+            style={getSectionStyle()}
           >
             <div className="space-y-2">
               {config.imageUrl ? (
@@ -196,10 +218,7 @@ export const PageSection: React.FC<PageSectionProps> = ({
                   src={config.imageUrl} 
                   alt={config.alt || 'Section image'}
                   className={`w-full h-auto ${getBorderRadius()}`}
-                  style={{ 
-                    maxHeight: config.height || 'auto',
-                    ...shadowStyle
-                  }}
+                  style={{ maxHeight: config.height || 'auto' }}
                 />
               ) : (
                 <div className={`w-full h-32 bg-muted ${getBorderRadius()} flex items-center justify-center`}>
