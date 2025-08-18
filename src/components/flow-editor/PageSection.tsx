@@ -181,7 +181,9 @@ export const PageSection: React.FC<PageSectionProps> = ({
       case 'image':
         const shadowStyle = config.dropShadow ? {
           boxShadow: `${config.shadowOffsetX || 0}px ${config.shadowOffsetY || 4}px ${config.shadowBlur || 10}px ${config.shadowSpread || 0}px ${config.shadowColor || 'rgba(0,0,0,0.1)'}`
-        } : {};
+        } : {
+          boxShadow: 'none'
+        };
         
         return (
           <div className={`image-section ${paddingClass} ${getTemplateClasses('card')}`}>
