@@ -97,20 +97,17 @@ export const PageSection: React.FC<PageSectionProps> = ({
   };
 
   const getSectionClassName = () => {
-    // If a custom background color is set, remove template background classes to prevent conflicts
+    // Start with template card classes but strip visual backgrounds/borders so sections inherit page background
     let classes = config.dropShadow 
       ? templateClasses 
       : templateClasses.replace(/shadow-\w+/g, '');
-    
-    // Remove background and border classes if custom background is set to prevent white lines
-    if (config.backgroundColor) {
-      classes = classes
-        .replace(/bg-\S+/g, '')
-        .replace(/\bborder[^\s]*/g, '');
-    } else {
-      // Even without custom background, strip any thin borders to avoid faint lines
-      classes = classes.replace(/\bborder[^\s]*/g, '');
-    }
+
+    // Remove any background, border, and backdrop blur/gradient classes to avoid lightening
+    classes = classes
+      .replace(/\bbg-[^\s]+/g, '')
+      .replace(/\bborder[^\s]*/g, '')
+      .replace(/\bbackdrop-blur[^\s]*/g, '')
+      .replace(/\bfrom-[^\s]+\b|\bto-[^\s]+\b|\bvia-[^\s]+\b/g, '');
     
     return classes.trim();
   };
