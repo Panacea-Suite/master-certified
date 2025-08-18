@@ -120,7 +120,7 @@ const CERTIFICATION_FLOW_PAGES: FlowPage[] = [
           width: 100,
           thickness: 1,
           color: '#e5e7eb',
-          padding: 4
+          padding: 0
         }
       },
       {
