@@ -163,7 +163,7 @@ export const PageSection: React.FC<PageSectionProps> = ({
       case 'text':
         return (
           <div 
-            className={`text-section ${paddingClass} ${getTemplateClasses('text')}`}
+            className={`text-section ${paddingClass} ${config.backgroundColor ? '' : getTemplateClasses('text')}`}
             style={{ 
               backgroundColor: config.backgroundColor || 'transparent',
               color: config.textColor || '#000000'

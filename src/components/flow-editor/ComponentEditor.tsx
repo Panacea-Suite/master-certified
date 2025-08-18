@@ -67,7 +67,7 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
       <div className="grid grid-cols-2 gap-2">
         <BrandColorPicker
           label="Background"
-          value={config.backgroundColor || '#ffffff'}
+          value={config.backgroundColor || 'rgba(255,255,255,1)'}
           onChange={(color) => updateConfig('backgroundColor', color)}
           brandColors={brandColors}
           showOpacity={true}
@@ -265,7 +265,7 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
       <div className="grid grid-cols-2 gap-2">
         <BrandColorPicker
           label="Background"
-          value={config.backgroundColor || '#ffffff'}
+          value={config.backgroundColor || 'rgba(255,255,255,1)'}
           onChange={(color) => updateConfig('backgroundColor', color)}
           brandColors={brandColors}
           showOpacity={true}
@@ -333,7 +333,7 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
       
       <BrandColorPicker
         label="Background Color"
-        value={config.backgroundColor || '#ffffff'}
+        value={config.backgroundColor || 'rgba(255,255,255,1)'}
         onChange={(color) => updateConfig('backgroundColor', color)}
         brandColors={brandColors}
         showOpacity={true}
