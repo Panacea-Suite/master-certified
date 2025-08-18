@@ -481,6 +481,22 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
     </div>
   );
 
+  const renderSpacingSettings = () => (
+    <div className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="padding">Padding: {config.padding || 4}</Label>
+        <Slider
+          value={[config.padding || 4]}
+          onValueChange={(value) => updateConfig('padding', value[0])}
+          min={0}
+          max={12}
+          step={1}
+          className="w-full"
+        />
+      </div>
+    </div>
+  );
+
   const renderFeaturesEditor = () => (
     <div className="space-y-4">
       <div className="space-y-2">
@@ -626,27 +642,30 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
         )}
       </Card>
       
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm">Spacing</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            <Label htmlFor="padding">Padding: {config.padding || 4}</Label>
-            <Slider
-              value={[config.padding || 4]}
-              onValueChange={(value) => updateConfig('padding', value[0])}
-              min={0}
-              max={12}
-              step={1}
-              className="w-full"
-            />
-            <div className="text-xs text-muted-foreground">
-              Controls inner spacing of the section
+      {/* Only show spacing card for non-divider sections or dividers without edge-to-edge */}
+      {(section.type !== 'divider' || (config.padding ?? 2) !== 0) && (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm">Spacing</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <Label htmlFor="padding">Padding: {config.padding || 4}</Label>
+              <Slider
+                value={[config.padding || 4]}
+                onValueChange={(value) => updateConfig('padding', value[0])}
+                min={0}
+                max={12}
+                step={1}
+                className="w-full"
+              />
+              <div className="text-xs text-muted-foreground">
+                Controls inner spacing of the section
+              </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
