@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import { Slider } from '@/components/ui/slider';
 import { Trash2, Upload, Edit2, Settings } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
 import { ImageEditor } from '@/components/ImageEditor';
 import { BrandColorPicker } from '@/components/ui/brand-color-picker';
 import { supabase } from '@/integrations/supabase/client';
@@ -188,6 +189,80 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
           onChange={(e) => updateConfig('height', e.target.value)}
           placeholder="Auto"
         />
+      </div>
+      
+      <Separator />
+      
+      <div className="space-y-4">
+        <div className="flex items-center space-x-2">
+          <Switch
+            id="dropShadow"
+            checked={config.dropShadow || false}
+            onCheckedChange={(checked) => updateConfig('dropShadow', checked)}
+          />
+          <Label htmlFor="dropShadow">Drop Shadow</Label>
+        </div>
+        
+        {config.dropShadow && (
+          <div className="space-y-4 ml-6">
+            <div className="space-y-2">
+              <Label htmlFor="shadowBlur">Shadow Blur: {config.shadowBlur || 10}px</Label>
+              <Slider
+                value={[config.shadowBlur || 10]}
+                onValueChange={(value) => updateConfig('shadowBlur', value[0])}
+                min={0}
+                max={50}
+                step={1}
+                className="w-full"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="shadowOffsetX">Horizontal Offset: {config.shadowOffsetX || 0}px</Label>
+              <Slider
+                value={[config.shadowOffsetX || 0]}
+                onValueChange={(value) => updateConfig('shadowOffsetX', value[0])}
+                min={-20}
+                max={20}
+                step={1}
+                className="w-full"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="shadowOffsetY">Vertical Offset: {config.shadowOffsetY || 4}px</Label>
+              <Slider
+                value={[config.shadowOffsetY || 4]}
+                onValueChange={(value) => updateConfig('shadowOffsetY', value[0])}
+                min={-20}
+                max={20}
+                step={1}
+                className="w-full"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="shadowSpread">Shadow Spread: {config.shadowSpread || 0}px</Label>
+              <Slider
+                value={[config.shadowSpread || 0]}
+                onValueChange={(value) => updateConfig('shadowSpread', value[0])}
+                min={-10}
+                max={10}
+                step={1}
+                className="w-full"
+              />
+            </div>
+            
+            <BrandColorPicker
+              label="Shadow Color"
+              value={config.shadowColor || 'rgba(0,0,0,0.1)'}
+              onChange={(color) => updateConfig('shadowColor', color)}
+              brandColors={brandColors}
+              showOpacity={true}
+              id="shadowColor"
+            />
+          </div>
+        )}
       </div>
     </div>
   );

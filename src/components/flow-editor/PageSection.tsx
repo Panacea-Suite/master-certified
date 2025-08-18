@@ -179,6 +179,10 @@ export const PageSection: React.FC<PageSectionProps> = ({
         );
         
       case 'image':
+        const shadowStyle = config.dropShadow ? {
+          boxShadow: `${config.shadowOffsetX || 0}px ${config.shadowOffsetY || 4}px ${config.shadowBlur || 10}px ${config.shadowSpread || 0}px ${config.shadowColor || 'rgba(0,0,0,0.1)'}`
+        } : {};
+        
         return (
           <div className={`image-section ${paddingClass} ${getTemplateClasses('card')}`}>
             <div className="space-y-2">
@@ -187,7 +191,10 @@ export const PageSection: React.FC<PageSectionProps> = ({
                   src={config.imageUrl} 
                   alt={config.alt || 'Section image'}
                   className={`w-full h-auto ${getBorderRadius()}`}
-                  style={{ maxHeight: config.height || 'auto' }}
+                  style={{ 
+                    maxHeight: config.height || 'auto',
+                    ...shadowStyle
+                  }}
                 />
               ) : (
                 <div className={`w-full h-32 bg-muted ${getBorderRadius()} flex items-center justify-center`}>
