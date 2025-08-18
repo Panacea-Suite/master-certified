@@ -96,15 +96,12 @@ export const BrandColorPicker: React.FC<BrandColorPickerProps> = ({
           <button
             type="button"
             className={cn(
-              "w-full h-8 rounded border-2 border-gray-200 hover:border-gray-300 transition-colors flex items-center justify-center",
+              "w-full h-8 rounded border-2 border-gray-200 hover:border-gray-300 transition-colors",
               className
             )}
             style={{ backgroundColor: value }}
             title={`Current color: ${value}`}
           >
-            <span className="text-xs text-white drop-shadow-md mix-blend-difference">
-              {value}
-            </span>
           </button>
         </PopoverTrigger>
         
