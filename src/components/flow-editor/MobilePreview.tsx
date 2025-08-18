@@ -170,7 +170,7 @@ export const MobilePreview: React.FC<MobilePreviewProps> = ({
       )}
 
       {/* Content */}
-      <div className={`flex-1 overflow-y-auto ${getTemplateClasses('section')}`} style={{ backgroundColor }}>
+      <div className={`flex-1 overflow-y-auto ${backgroundColor ? '' : getTemplateClasses('section')}`} style={{ backgroundColor, backgroundImage: backgroundColor ? 'none' : undefined }}>
         {/* Drop zone at top */}
         <div
           className={`h-2 transition-all ${dragOverIndex === 0 ? 'h-8 bg-primary/20 border-y-2 border-dashed border-primary' : ''}`}
