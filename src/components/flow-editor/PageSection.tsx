@@ -92,6 +92,7 @@ export const PageSection: React.FC<PageSectionProps> = ({
       backgroundColor: config.backgroundColor || undefined,
       color: config.textColor || undefined,
       border: config.backgroundColor ? 'none' : undefined,
+      padding: `${(config.padding ?? 4) * 0.25}rem`,
       ...shadowStyle
     };
   };
