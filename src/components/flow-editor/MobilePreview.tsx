@@ -119,7 +119,12 @@ export const MobilePreview: React.FC<MobilePreviewProps> = ({
                 src={globalHeader.logoUrl} 
                 alt={globalHeader.brandName}
                 className="object-contain"
-                style={{ height: getLogoSize(globalHeader.logoSize), width: 'auto', maxWidth: '90%' }}
+                style={{ 
+                  height: getLogoSize(globalHeader.logoSize), 
+                  width: 'auto', 
+                  maxWidth: '90%',
+                  imageRendering: 'crisp-edges'
+                }}
               />
             ) : (
               <div className="flex items-center gap-2">
@@ -190,7 +195,12 @@ export const MobilePreview: React.FC<MobilePreviewProps> = ({
               src={globalHeader.logoUrl} 
               alt={globalHeader.brandName}
               className="object-contain"
-              style={{ height: getLogoSize(globalHeader.logoSize), width: 'auto', maxWidth: '90%' }}
+              style={{ 
+                height: getLogoSize(globalHeader.logoSize), 
+                width: 'auto', 
+                maxWidth: '90%',
+                imageRendering: 'crisp-edges'
+              }}
             />
           ) : (
             <div className="flex items-center gap-2">
