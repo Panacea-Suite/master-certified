@@ -375,7 +375,7 @@ const TemplateManager: React.FC = () => {
             className="flex-1 min-w-[120px] px-3 py-2"
           >
             <Edit3 className="h-4 w-4 mr-2" />
-            {isUserTemplate ? 'Edit' : 'Edit as New'}
+            Edit Template
           </Button>
         </div>
       </CardContent>
