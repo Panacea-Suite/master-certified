@@ -50,7 +50,7 @@ const CERTIFICATION_FLOW_PAGES: FlowPage[] = [
         id: 'hero-title',
         type: 'text',
         config: {
-          content: 'Verify Your Product Authenticity',
+          content: 'Verify the authenticity and quality of this product.',
           fontSize: 28,
           textColor: '#1a1a1a',
           backgroundColor: 'transparent',
@@ -60,44 +60,10 @@ const CERTIFICATION_FLOW_PAGES: FlowPage[] = [
         }
       },
       {
-        id: 'hero-subtitle',
-        type: 'text', 
-        config: {
-          content: 'Confirm the quality and authenticity of your purchase with our trusted certification process.',
-          fontSize: 16,
-          textColor: '#666666',
-          backgroundColor: 'transparent',
-          padding: 4,
-          align: 'center'
-        }
-      },
-      {
-        id: 'product-image',
-        type: 'image',
-        config: {
-          imageUrl: '',
-          alt: 'Product verification image',
-          height: '300',
-          padding: 4
-        }
-      },
-      {
-        id: 'features-title',
-        type: 'text',
-        config: {
-          content: 'What You Get:',
-          fontSize: 20,
-          textColor: '#1a1a1a',
-          backgroundColor: 'transparent',
-          padding: 4,
-          fontWeight: 'semibold'
-        }
-      },
-      {
         id: 'feature-1',
         type: 'text',
         config: {
-          content: '✓ Authentic product verification',
+          content: '• Ensure this product is genuine and not counterfeit.',
           fontSize: 16,
           textColor: '#333333',
           backgroundColor: 'transparent',
@@ -108,7 +74,7 @@ const CERTIFICATION_FLOW_PAGES: FlowPage[] = [
         id: 'feature-2', 
         type: 'text',
         config: {
-          content: '✓ Quality assurance guarantee',
+          content: '• Trace the origin of each ingredient.',
           fontSize: 16,
           textColor: '#333333',
           backgroundColor: 'transparent',
@@ -119,7 +85,7 @@ const CERTIFICATION_FLOW_PAGES: FlowPage[] = [
         id: 'feature-3',
         type: 'text',
         config: {
-          content: '✓ Warranty registration included',
+          content: '• Access verified results from independent lab testing.',
           fontSize: 16,
           textColor: '#333333',
           backgroundColor: 'transparent',
@@ -130,7 +96,7 @@ const CERTIFICATION_FLOW_PAGES: FlowPage[] = [
         id: 'feature-4',
         type: 'text',
         config: {
-          content: '✓ Trusted certification process',
+          content: '• Review documentation audited by trusted third parties.',
           fontSize: 16,
           textColor: '#333333',
           backgroundColor: 'transparent',
@@ -139,25 +105,31 @@ const CERTIFICATION_FLOW_PAGES: FlowPage[] = [
       },
       {
         id: 'cta-button',
-        type: 'text',
+        type: 'cta',
         config: {
-          content: 'Verify Now',
-          fontSize: 18,
-          textColor: '#ffffff',
-          backgroundColor: 'var(--accent)',
-          padding: 6,
-          align: 'center',
-          fontWeight: 'semibold',
-          borderRadius: '8px'
+          text: 'Verify Now',
+          color: 'primary',
+          size: 'default',
+          padding: 6
         }
       },
       {
         id: 'divider',
         type: 'divider',
         config: {
-          width: 50,
-          thickness: 2,
-          color: 'var(--accent)',
+          width: 100,
+          thickness: 1,
+          color: '#e5e7eb',
+          padding: 4
+        }
+      },
+      {
+        id: 'product-image',
+        type: 'image',
+        config: {
+          imageUrl: '',
+          alt: 'Product verification image',
+          height: '300',
           padding: 4
         }
       }
