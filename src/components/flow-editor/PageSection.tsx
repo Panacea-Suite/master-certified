@@ -306,7 +306,7 @@ export const PageSection: React.FC<PageSectionProps> = ({
                 height: `${config.thickness || 1}px`,
                 backgroundColor: config.color || '#e5e7eb',
                 width: `${config.width || 100}%`,
-                margin: '0 auto'
+                margin: config.fullWidth ? '0' : '0 auto'
               }}
             />
           </div>

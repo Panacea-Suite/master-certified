@@ -269,15 +269,28 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
 
   const renderDividerEditor = () => (
     <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <Label htmlFor="fullWidth">Full width</Label>
+        <Switch
+          id="fullWidth"
+          checked={!!config.fullWidth}
+          onCheckedChange={(checked) => {
+            updateConfig('fullWidth', checked);
+            if (checked) updateConfig('width', 100);
+          }}
+        />
+      </div>
+
       <div className="space-y-2">
-        <Label htmlFor="width">Width: {config.width || 100}%</Label>
+        <Label htmlFor="width">Width: {config.fullWidth ? 100 : (config.width || 100)}%</Label>
         <Slider
-          value={[config.width || 100]}
+          value={[config.fullWidth ? 100 : (config.width || 100)]}
           onValueChange={(value) => updateConfig('width', value[0])}
           min={10}
           max={100}
           step={5}
           className="w-full"
+          disabled={!!config.fullWidth}
         />
       </div>
       
@@ -287,9 +300,18 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
           value={[config.thickness || 1]}
           onValueChange={(value) => updateConfig('thickness', value[0])}
           min={1}
-          max={10}
+          max={64}
           step={1}
           className="w-full"
+        />
+      </div>
+
+      <div className="flex items-center justify-between">
+        <Label htmlFor="edgeToEdge">Edge-to-edge (no padding)</Label>
+        <Switch
+          id="edgeToEdge"
+          checked={(config.padding ?? 2) === 0}
+          onCheckedChange={(checked) => updateConfig('padding', checked ? 0 : 4)}
         />
       </div>
       
