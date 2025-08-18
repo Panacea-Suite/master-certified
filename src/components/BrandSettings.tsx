@@ -28,6 +28,7 @@ const BrandSettings = () => {
   const [newStore, setNewStore] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [showImageEditor, setShowImageEditor] = useState(false);
+  const [fileInputKey, setFileInputKey] = useState(Date.now()); // Force input re-render
   const { toast } = useToast();
 
   useEffect(() => {
@@ -69,6 +70,8 @@ const BrandSettings = () => {
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
+    console.log('File selected:', file?.name, 'Size:', file?.size);
+    
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
@@ -77,8 +80,6 @@ const BrandSettings = () => {
         description: "Please select an image file",
         variant: "destructive",
       });
-      // Clear the input to allow same file selection
-      event.target.value = '';
       return;
     }
 
@@ -100,8 +101,6 @@ const BrandSettings = () => {
       setShowImageEditor(true);
     } finally {
       setIsUploading(false);
-      // Clear the input to allow same file selection next time
-      event.target.value = '';
     }
   };
 
@@ -167,9 +166,8 @@ const BrandSettings = () => {
       // Update state with clean URL, we'll apply cache-busting when displaying
       setBrand({ ...brand, logo_url: publicUrl });
       setSelectedFile(null);
-      // Clear file input to allow same file selection
-      const fileInput = document.getElementById('logo-upload') as HTMLInputElement;
-      if (fileInput) fileInput.value = '';
+      // Reset file input by changing key
+      setFileInputKey(Date.now());
       toast({
         title: "Success",
         description: "Logo uploaded and saved successfully",
@@ -197,9 +195,8 @@ const BrandSettings = () => {
   const handleImageCancel = () => {
     setShowImageEditor(false);
     setSelectedFile(null);
-    // Clear file input to allow same file selection
-    const fileInput = document.getElementById('logo-upload') as HTMLInputElement;
-    if (fileInput) fileInput.value = '';
+    // Reset file input by changing key
+    setFileInputKey(Date.now());
   };
 
   const handleDeleteLogo = async () => {
@@ -241,9 +238,8 @@ const BrandSettings = () => {
 
       // Update state
       setBrand({ ...brand, logo_url: null });
-      // Clear file input to allow same file selection
-      const fileInput = document.getElementById('logo-upload') as HTMLInputElement;
-      if (fileInput) fileInput.value = '';
+      // Reset file input by changing key
+      setFileInputKey(Date.now());
       toast({
         title: "Success",
         description: "Logo deleted successfully",
@@ -407,6 +403,7 @@ const BrandSettings = () => {
                 </div>
                 <input
                   id="logo-upload"
+                  key={fileInputKey}
                   type="file"
                   className="hidden"
                   accept="image/*"
