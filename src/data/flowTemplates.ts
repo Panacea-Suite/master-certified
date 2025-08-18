@@ -64,7 +64,7 @@ const CERTIFICATION_FLOW_PAGES: FlowPage[] = [
         type: 'text',
         config: {
           content: "• Ensure this product is genuine and not counterfeit.\n• Trace the origin of each ingredient.\n• Access verified results from independent lab testing.\n• Review documentation audited by trusted third parties.",
-          fontSize: 16,
+          fontSize: 12,
           textColor: '#333333',
           backgroundColor: 'transparent',
           padding: 2
