@@ -7,6 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { CheckCircle, XCircle, ArrowRight, ArrowLeft, Shield, FileText, Package, Truck } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { PanaceaFooter } from '@/components/PanaceaFooter';
 
 // Cache-busting utility
 const withCacheBust = (url: string, seed?: string | number): string => {
@@ -451,6 +452,9 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
               </Button>
             </div>
           )}
+          
+          {/* Panacea Footer */}
+          <PanaceaFooter />
         </div>
       </div>
     );
@@ -759,6 +763,9 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
           <div className="space-y-4">
             {sections.map((section: any) => renderTemplateSection(section))}
           </div>
+          
+          {/* Panacea Footer */}
+          <PanaceaFooter />
         </div>
       </div>
     );
@@ -811,6 +818,11 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           )}
+        </div>
+        
+        {/* Panacea Footer */}
+        <div className="max-w-sm mx-auto px-4">
+          <PanaceaFooter />
         </div>
       </div>
     </div>
