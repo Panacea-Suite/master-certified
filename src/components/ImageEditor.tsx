@@ -448,15 +448,32 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
       fabricCanvas.discardActiveObject();
       fabricCanvas.renderAll();
 
-      // Export exactly the selected region from the Fabric canvas
-      const dataUrl = fabricCanvas.toDataURL({
-        format: 'png',
-        left: Math.round(cropLeft),
-        top: Math.round(cropTop),
-        width: Math.round(cropWidth),
-        height: Math.round(cropHeight),
-        enableRetinaScaling: false,
-      } as any);
+      // Create a temporary canvas for clean cropping without grey background
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = Math.round(cropWidth);
+      tempCanvas.height = Math.round(cropHeight);
+      const tempCtx = tempCanvas.getContext('2d');
+      
+      if (!tempCtx) throw new Error('Failed to get temp canvas context');
+      
+      // Set transparent background for crop
+      tempCtx.clearRect(0, 0, tempCanvas.width, tempCanvas.height);
+      
+      // Draw only the image portion within crop bounds
+      const canvasElement = fabricCanvas.getElement();
+      tempCtx.drawImage(
+        canvasElement,
+        Math.round(cropLeft),
+        Math.round(cropTop),
+        Math.round(cropWidth),
+        Math.round(cropHeight),
+        0,
+        0,
+        Math.round(cropWidth),
+        Math.round(cropHeight)
+      );
+      
+      const dataUrl = tempCanvas.toDataURL('image/png');
 
       // Create new image from the cropped data URL
       fetch(dataUrl)
