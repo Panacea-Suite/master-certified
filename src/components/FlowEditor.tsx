@@ -752,7 +752,6 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                           id="logoSize" 
                           type="number" 
                           min="12" 
-                          max="100" 
                           value={globalHeader.logoSize} 
                           onChange={e => setGlobalHeader(prev => ({
                             ...prev,
