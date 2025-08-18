@@ -30,6 +30,7 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [fabricCanvas, setFabricCanvas] = useState<FabricCanvas | null>(null);
   const [originalImage, setOriginalImage] = useState<FabricImage | null>(null);
+  const [trulyOriginalImage, setTrulyOriginalImage] = useState<FabricImage | null>(null);
   const [rotation, setRotation] = useState([0]);
   const [selectedPreset, setSelectedPreset] = useState<string>("");
   const [canvasSize, setCanvasSize] = useState({ width: 300, height: 300 });
@@ -102,6 +103,8 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
         canvas.renderAll();
         
         setOriginalImage(img);
+        // Store the image source for reset functionality
+        setTrulyOriginalImage(img);
         setOriginalAspectRatio((img.width || 1) / (img.height || 1));
         
         // Check if the loaded image has transparency (for PNG files)
@@ -283,35 +286,56 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
     toast.success("Image scaled to fill canvas");
   };
 
-  const handleReset = () => {
-    if (!originalImage || !fabricCanvas) return;
+  const handleReset = async () => {
+    if (!trulyOriginalImage || !fabricCanvas) return;
     
-    setRotation([0]);
-    originalImage.set({ angle: 0 });
-    
-    // Reset to fit canvas
-    const canvasWidth = canvasSize.width;
-    const canvasHeight = canvasSize.height;
-    const imageAspect = (originalImage.width || 1) / (originalImage.height || 1);
-    const canvasAspect = canvasWidth / canvasHeight;
+    try {
+      // Clear the canvas and restore the truly original image
+      fabricCanvas.clear();
+      fabricCanvas.backgroundColor = hasTransparentBackground ? 'rgba(0,0,0,0)' : '#ffffff';
+      
+      // Get the original image source and recreate it
+      const originalElement = trulyOriginalImage.getElement() as HTMLImageElement;
+      const resetImage = await FabricImage.fromURL(originalElement.src, {
+        crossOrigin: 'anonymous'
+      });
+      
+      setRotation([0]);
+      resetImage.set({ angle: 0 });
+      
+      // Reset to fit canvas with original scaling
+      const canvasWidth = canvasSize.width;
+      const canvasHeight = canvasSize.height;
+      const imageAspect = (resetImage.width || 1) / (resetImage.height || 1);
+      const canvasAspect = canvasWidth / canvasHeight;
 
-    let scaleFactor;
-    if (imageAspect > canvasAspect) {
-      scaleFactor = (canvasWidth * 0.8) / (originalImage.width || 1);
-    } else {
-      scaleFactor = (canvasHeight * 0.8) / (originalImage.height || 1);
+      let scaleFactor;
+      if (imageAspect > canvasAspect) {
+        scaleFactor = (canvasWidth * 0.9) / (resetImage.width || 1);
+      } else {
+        scaleFactor = (canvasHeight * 0.9) / (resetImage.height || 1);
+      }
+
+      resetImage.set({
+        scaleX: scaleFactor,
+        scaleY: scaleFactor,
+        originX: 'center',
+        originY: 'center',
+      });
+      
+      fabricCanvas.centerObject(resetImage);
+      fabricCanvas.add(resetImage);
+      fabricCanvas.setActiveObject(resetImage);
+      fabricCanvas.renderAll();
+      
+      // Update the working image reference
+      setOriginalImage(resetImage);
+      
+      toast.success("Image reset to original");
+    } catch (error) {
+      console.error('Reset failed:', error);
+      toast.error("Failed to reset image. Please try again.");
     }
-
-    originalImage.set({
-      scaleX: scaleFactor,
-      scaleY: scaleFactor,
-      originX: 'center',
-      originY: 'center',
-    });
-    
-    fabricCanvas.centerObject(originalImage);
-    fabricCanvas.renderAll();
-    toast.success("Image reset to fit canvas");
   };
 
   const handleRemoveBackground = async () => {
