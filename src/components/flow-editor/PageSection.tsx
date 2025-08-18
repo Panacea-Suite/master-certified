@@ -96,9 +96,17 @@ export const PageSection: React.FC<PageSectionProps> = ({
   };
 
   const getSectionClassName = () => {
-    return config.dropShadow 
+    // If a custom background color is set, remove template background classes to prevent conflicts
+    let classes = config.dropShadow 
       ? templateClasses 
       : templateClasses.replace(/shadow-\w+/g, '');
+    
+    // Remove background classes if custom background is set to prevent white lines
+    if (config.backgroundColor) {
+      classes = classes.replace(/bg-\S+/g, '');
+    }
+    
+    return classes;
   };
 
   const renderSectionContent = () => {
