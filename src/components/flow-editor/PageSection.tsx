@@ -187,7 +187,7 @@ export const PageSection: React.FC<PageSectionProps> = ({
         
         return (
           <div 
-            className={`image-section ${paddingClass} ${getTemplateClasses('card')}`}
+            className={`image-section ${paddingClass} ${config.dropShadow ? getTemplateClasses('card') : getTemplateClasses('card').replace(/shadow-\w+/g, '')}`}
             style={config.dropShadow ? {} : { boxShadow: 'none !important' }}
           >
             <div className="space-y-2">
