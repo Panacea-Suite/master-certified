@@ -442,42 +442,55 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
       console.log('Canvas size:', fabricCanvas.width, fabricCanvas.height);
       console.log('Image bounds:', originalImage.getBoundingRect());
       
-      // Ensure crop bounds are within canvas
-      const cropLeft = Math.max(0, cropBounds.left);
-      const cropTop = Math.max(0, cropBounds.top);
-      const cropWidth = Math.min(cropBounds.width, fabricCanvas.width! - cropLeft);
-      const cropHeight = Math.min(cropBounds.height, fabricCanvas.height! - cropTop);
+      // Instead of cropping from canvas, crop directly from the original image
+      const imageElement = originalImage.getElement() as HTMLImageElement;
+      const imageBounds = originalImage.getBoundingRect();
       
-      console.log('Adjusted crop area:', { cropLeft, cropTop, cropWidth, cropHeight });
+      // Calculate the crop area relative to the image
+      const relativeLeft = Math.max(0, (cropBounds.left - imageBounds.left) / imageBounds.width);
+      const relativeTop = Math.max(0, (cropBounds.top - imageBounds.top) / imageBounds.height);
+      const relativeWidth = Math.min(1 - relativeLeft, cropBounds.width / imageBounds.width);
+      const relativeHeight = Math.min(1 - relativeTop, cropBounds.height / imageBounds.height);
+      
+      console.log('Relative crop area:', { relativeLeft, relativeTop, relativeWidth, relativeHeight });
+      
+      // Calculate actual pixel coordinates on the original image
+      const sourceWidth = imageElement.naturalWidth;
+      const sourceHeight = imageElement.naturalHeight;
+      const sourceLeft = relativeLeft * sourceWidth;
+      const sourceTop = relativeTop * sourceHeight;
+      const sourceCropWidth = relativeWidth * sourceWidth;
+      const sourceCropHeight = relativeHeight * sourceHeight;
+      
+      console.log('Source crop coordinates:', { sourceLeft, sourceTop, sourceCropWidth, sourceCropHeight });
 
-      // Hide the crop overlay so it doesn't appear in the export
+      // Hide the crop overlay
       cropRect.visible = false;
       fabricCanvas.discardActiveObject();
       fabricCanvas.renderAll();
 
-      // Create a temporary canvas for clean cropping without grey background
+      // Create a temporary canvas for cropping
       const tempCanvas = document.createElement('canvas');
-      tempCanvas.width = Math.round(cropWidth);
-      tempCanvas.height = Math.round(cropHeight);
+      tempCanvas.width = Math.round(sourceCropWidth);
+      tempCanvas.height = Math.round(sourceCropHeight);
       const tempCtx = tempCanvas.getContext('2d');
       
       if (!tempCtx) throw new Error('Failed to get temp canvas context');
       
-      // Set transparent background for crop
+      // Set transparent background
       tempCtx.clearRect(0, 0, tempCanvas.width, tempCanvas.height);
       
-      // Draw only the image portion within crop bounds
-      const canvasElement = fabricCanvas.getElement();
+      // Draw the cropped portion from the original image
       tempCtx.drawImage(
-        canvasElement,
-        Math.round(cropLeft),
-        Math.round(cropTop),
-        Math.round(cropWidth),
-        Math.round(cropHeight),
+        imageElement,
+        Math.round(sourceLeft),
+        Math.round(sourceTop),
+        Math.round(sourceCropWidth),
+        Math.round(sourceCropHeight),
         0,
         0,
-        Math.round(cropWidth),
-        Math.round(cropHeight)
+        Math.round(sourceCropWidth),
+        Math.round(sourceCropHeight)
       );
       
       const dataUrl = tempCanvas.toDataURL('image/png');
