@@ -123,7 +123,9 @@ export const MobilePreview: React.FC<MobilePreviewProps> = ({
                   height: getLogoSize(globalHeader.logoSize), 
                   width: 'auto', 
                   maxWidth: '90%',
-                  imageRendering: 'crisp-edges'
+                  imageRendering: 'auto',
+                  transform: 'translateZ(0)',
+                  backfaceVisibility: 'hidden'
                 }}
               />
             ) : (
@@ -199,7 +201,9 @@ export const MobilePreview: React.FC<MobilePreviewProps> = ({
                 height: getLogoSize(globalHeader.logoSize), 
                 width: 'auto', 
                 maxWidth: '90%',
-                imageRendering: 'crisp-edges'
+                imageRendering: 'auto',
+                transform: 'translateZ(0)',
+                backfaceVisibility: 'hidden'
               }}
             />
           ) : (
