@@ -325,7 +325,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
               brandName: flowConfig.globalHeader.brandName,
               logoUrl: withCacheBust(activeBrandData?.logo_url || '', (activeBrandData as any)?.updated_at || Date.now()),
               backgroundColor: flowConfig.globalHeader.backgroundColor,
-              logoSize: flowConfig.globalHeader.logoSize || '48'
+              logoSize: flowConfig.globalHeader.logoSize || '120'
             });
           }
 
@@ -356,7 +356,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
     brandName: templateToEdit?.flow_config?.globalHeader?.brandName || brandData?.name || 'Brand',
     logoUrl: withCacheBust(brandData?.logo_url || '', (brandData as any)?.updated_at || Date.now()),
     backgroundColor: templateToEdit?.flow_config?.globalHeader?.backgroundColor || brandData?.brand_colors?.primary || '#3b82f6',
-    logoSize: templateToEdit?.flow_config?.globalHeader?.logoSize || '48'
+    logoSize: templateToEdit?.flow_config?.globalHeader?.logoSize || '120'
   });
   const [selectedSection, setSelectedSection] = useState<SectionData | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
