@@ -626,7 +626,6 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
       image: {
         imageUrl: '',
         alt: '',
-        caption: '',
         height: '',
         padding: 4
       },
