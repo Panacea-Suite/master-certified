@@ -77,7 +77,7 @@ export const PageSection: React.FC<PageSectionProps> = ({
   const Icon = sectionIcons[section.type as keyof typeof sectionIcons] || Type;
   const { config } = section;
   
-  const paddingClass = `p-${config.padding || 4}`;
+  const paddingClass = `p-${config.padding ?? 4}`;
   const templateClasses = getTemplateClasses('card');
   
   // Generate drop shadow style for all sections

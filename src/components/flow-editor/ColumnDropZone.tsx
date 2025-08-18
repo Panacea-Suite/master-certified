@@ -49,7 +49,7 @@ export const ColumnDropZone: React.FC<ColumnDropZoneProps> = ({
 
   const renderSectionContent = (section: SectionData) => {
     const { config } = section;
-    const paddingClass = `p-${config.padding || 2}`;
+    const paddingClass = `p-${config.padding ?? 2}`;
 
     switch (section.type) {
       case 'text':

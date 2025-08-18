@@ -484,9 +484,9 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
   const renderSpacingSettings = () => (
     <div className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="padding">Padding: {config.padding || 4}</Label>
+        <Label htmlFor="padding">Padding: {config.padding ?? 4}</Label>
         <Slider
-          value={[config.padding || 4]}
+          value={[config.padding ?? 4]}
           onValueChange={(value) => updateConfig('padding', value[0])}
           min={0}
           max={12}
@@ -650,9 +650,9 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              <Label htmlFor="padding">Padding: {config.padding || 4}</Label>
+              <Label htmlFor="padding">Padding: {config.padding ?? 4}</Label>
               <Slider
-                value={[config.padding || 4]}
+                value={[config.padding ?? 4]}
                 onValueChange={(value) => updateConfig('padding', value[0])}
                 min={0}
                 max={12}
