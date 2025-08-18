@@ -178,18 +178,18 @@ export const FlowTemplateSelector: React.FC<FlowTemplateSelectorProps> = ({
               <div className="flex gap-2 pt-2">
                 <Button 
                   size="sm" 
-                  variant="outline"
-                  onClick={() => handlePreviewTemplate(prebuiltTemplate)}
-                  className="flex-1"
-                >
-                  Preview
-                </Button>
-                <Button 
-                  size="sm" 
                   onClick={() => handleSaveAsOwn(prebuiltTemplate)}
                   className="flex-1"
                 >
                   Use Template
+                </Button>
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  onClick={() => handlePreviewTemplate(prebuiltTemplate)}
+                  className="flex-1"
+                >
+                  Edit Template
                 </Button>
               </div>
             </div>
@@ -247,18 +247,18 @@ export const FlowTemplateSelector: React.FC<FlowTemplateSelectorProps> = ({
               <div className="flex gap-2 pt-2">
                 <Button 
                   size="sm" 
-                  variant="outline"
-                  onClick={() => handlePreviewTemplate(dbTemplate)}
-                  className="flex-1"
-                >
-                  Preview
-                </Button>
-                <Button 
-                  size="sm" 
                   onClick={() => handleSaveAsOwn(dbTemplate)}
                   className="flex-1"
                 >
                   Use Template
+                </Button>
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  onClick={() => handlePreviewTemplate(dbTemplate)}
+                  className="flex-1"
+                >
+                  Edit Template
                 </Button>
               </div>
             </div>

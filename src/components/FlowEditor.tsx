@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ImageEditor } from '@/components/ImageEditor';
 import { ComponentPalette } from './flow-editor/ComponentPalette';
-import { FlowPreview, DEVICE_SPECS, DeviceSpec } from './flow-editor/FlowPreview';
+import { MobilePreview } from './flow-editor/MobilePreview';
 import { PageSection } from './flow-editor/PageSection';
 import { ComponentEditor } from './flow-editor/ComponentEditor';
 import { PageManager, PageData } from './flow-editor/PageManager';
@@ -72,7 +72,12 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
       return `${url}${url.includes('?') ? '&' : '?'}v=${version ?? Date.now()}`;
     }
   };
-  const [selectedDevice, setSelectedDevice] = useState<DeviceSpec>(DEVICE_SPECS[0]); // Default to iPhone 14
+  const selectedDevice = {
+    name: 'iphone14',
+    displayName: 'iPhone 14',
+    width: 390,
+    height: 844
+  };
   const [flowName, setFlowName] = useState(templateToEdit && 'name' in templateToEdit ? templateToEdit.name : 'Untitled Flow');
 
   // Initialize pages from template or create mandatory pages with landing page
@@ -843,19 +848,9 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                   <h3 className="font-semibold">Flow Preview</h3>
                 </div>
                 <div className="flex justify-center flex-1">
-                  <Select value={selectedDevice.name} onValueChange={value => {
-                    const device = DEVICE_SPECS.find(d => d.name === value);
-                    if (device) setSelectedDevice(device);
-                  }}>
-                    <SelectTrigger className="w-48">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-background border z-50">
-                      {DEVICE_SPECS.map(device => <SelectItem key={device.name} value={device.name}>
-                          {device.displayName} ({device.width}×{device.height})
-                        </SelectItem>)}
-                    </SelectContent>
-                  </Select>
+                  <span className="text-sm text-muted-foreground">
+                    Editing: {currentPage?.name || 'No page selected'}
+                  </span>
                 </div>
                 <div className="flex justify-end flex-1">
                   <Button onClick={handleSave} disabled={isSaving}>
@@ -866,7 +861,17 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
               </div>
             </div>
             
-            <FlowPreview pages={pages} currentPageId={currentPageId} onSelectPage={setCurrentPageId} selectedSectionId={selectedSection?.id} onSelectSection={setSelectedSection} onAddSection={handleAddSection} backgroundColor={pageSettings.backgroundColor} globalHeader={globalHeader} templateId={selectedTemplateId} brandColors={brandData?.brand_colors} deviceSpec={selectedDevice} />
+            <div className="flex-1 flex items-center justify-center p-8">
+              <MobilePreview
+                sections={currentPage?.sections.sort((a, b) => a.order - b.order) || []}
+                selectedSectionId={selectedSection?.id}
+                onSelectSection={setSelectedSection}
+                onAddSection={handleAddSection}
+                backgroundColor={pageSettings.backgroundColor}
+                globalHeader={globalHeader}
+                deviceSpec={selectedDevice}
+              />
+            </div>
           </div>
 
           {/* Right Panel - Section Properties */}

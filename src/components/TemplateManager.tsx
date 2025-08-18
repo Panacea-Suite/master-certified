@@ -5,11 +5,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Copy, Edit3, Eye, Plus, Search, Trash2 } from "lucide-react";
+import { Copy, Edit3, Plus, Search, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { FlowEditor } from './FlowEditor';
-import { PhonePreviewModal } from './PhonePreviewModal';
-import TemplatePreview from './TemplatePreview';
 import { FLOW_TEMPLATES } from '@/data/flowTemplates';
 import { useFlowManager } from '@/hooks/useFlowManager';
 
@@ -39,11 +37,9 @@ const TemplateManager: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [previewTemplate, setPreviewTemplate] = useState<any>(null);
   const [editTemplate, setEditTemplate] = useState<any>(null);
   const [brandData, setBrandData] = useState<any>(null);
   const [showEditor, setShowEditor] = useState(false);
-  const [previewMode, setPreviewMode] = useState<'template' | 'customer' | null>(null);
 
   const { toast } = useToast();
   const { createFlowAtomic, deleteFlow, fetchFlows } = useFlowManager();
@@ -120,7 +116,6 @@ const TemplateManager: React.FC = () => {
   const handleCreateFromScratch = () => {
     setEditTemplate(null);
     setShowEditor(true);
-    setPreviewMode('template');
   };
 
   const handleUseTemplate = async (template: SystemTemplate | UserTemplate) => {
@@ -212,7 +207,6 @@ const TemplateManager: React.FC = () => {
       setEditTemplate(editorTemplate);
       setBrandData(brandData); // Pass brand data to FlowEditor
       setShowEditor(true);
-      setPreviewMode('template');
     } catch (error) {
       console.error('Error in handleEditAsNew:', error);
       toast({
@@ -223,39 +217,6 @@ const TemplateManager: React.FC = () => {
     }
   };
 
-  const handlePreviewTemplate = async (template: SystemTemplate | UserTemplate) => {
-    try {
-      // Fetch user's brand data first (same as handleEditAsNew)
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast({
-          title: "Authentication Error",
-          description: "You must be logged in to preview templates",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      const { data: brandData } = await supabase
-        .from('brands')
-        .select('id, name, logo_url, brand_colors')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      console.log('Brand data fetched for preview:', brandData);
-
-      setPreviewTemplate(template);
-      setBrandData(brandData); // Store brand data for preview
-      setPreviewMode('customer');
-    } catch (error) {
-      console.error('Error in handlePreviewTemplate:', error);
-      toast({
-        title: "Error",
-        description: "Failed to prepare template for preview",
-        variant: "destructive",
-      });
-    }
-  };
 
   const handleDeleteUserTemplate = async (templateId: string) => {
     try {
@@ -398,16 +359,6 @@ const TemplateManager: React.FC = () => {
       <CardContent className="pt-0">
         <div className="flex flex-wrap gap-2">
           <Button
-            variant="outline"
-            size="sm"
-            onClick={() => handlePreviewTemplate(template)}
-            className="flex-1 min-w-[110px] px-3 py-2"
-          >
-            <Eye className="h-4 w-4 mr-2" />
-            Preview
-          </Button>
-          
-          <Button
             variant="default"
             size="sm"
             onClick={() => handleUseTemplate(template)}
@@ -531,19 +482,6 @@ const TemplateManager: React.FC = () => {
         />
       )}
 
-      {/* Preview Modal */}
-      {previewMode === 'customer' && previewTemplate && (
-        <PhonePreviewModal
-          isOpen={true}
-          onClose={() => {
-            setPreviewTemplate(null);
-            setPreviewMode(null);
-            setBrandData(null);
-          }}
-          templateData={previewTemplate}
-          brandData={brandData}
-        />
-      )}
     </div>
   );
 };

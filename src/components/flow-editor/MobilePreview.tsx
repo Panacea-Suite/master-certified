@@ -1,6 +1,11 @@
 import React, { useState } from 'react';
 import { PageSection } from './PageSection';
-import { DeviceSpec } from './FlowPreview';
+export interface DeviceSpec {
+  name: string;
+  displayName: string;
+  width: number;
+  height: number;
+}
 import { useTemplateStyle } from '@/components/TemplateStyleProvider';
 import { FlowHeader } from './FlowHeader';
 
