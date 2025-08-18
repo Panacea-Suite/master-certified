@@ -524,34 +524,38 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
         />
       </div>
       
-      <div className="space-y-2">
-        <Label htmlFor="color">Button Color</Label>
-        <Select 
-          value={config.color || 'primary'} 
-          onValueChange={(value) => updateConfig('color', value)}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select color" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="primary">Primary</SelectItem>
-            <SelectItem value="secondary">Secondary</SelectItem>
-          </SelectContent>
-        </Select>
+      <div className="grid grid-cols-2 gap-2">
+        <BrandColorPicker
+          label="Background Color"
+          value={config.backgroundColor || '#3b82f6'}
+          onChange={(color) => updateConfig('backgroundColor', color)}
+          brandColors={brandColors}
+          showOpacity={true}
+          id="backgroundColor"
+        />
+        <BrandColorPicker
+          label="Text Color"
+          value={config.textColor || '#ffffff'}
+          onChange={(color) => updateConfig('textColor', color)}
+          brandColors={brandColors}
+          showOpacity={true}
+          id="textColor"
+        />
       </div>
       
       <div className="space-y-2">
         <Label htmlFor="size">Button Size</Label>
         <Select 
-          value={config.size || 'normal'} 
+          value={config.size || 'default'} 
           onValueChange={(value) => updateConfig('size', value)}
         >
           <SelectTrigger>
             <SelectValue placeholder="Select size" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="normal">Normal</SelectItem>
-            <SelectItem value="large">Large</SelectItem>
+            <SelectItem value="sm">Small</SelectItem>
+            <SelectItem value="default">Default</SelectItem>
+            <SelectItem value="lg">Large</SelectItem>
           </SelectContent>
         </Select>
       </div>
