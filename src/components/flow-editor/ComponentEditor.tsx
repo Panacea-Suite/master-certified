@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import { Slider } from '@/components/ui/slider';
-import { Trash2, Upload, Edit2, Settings } from 'lucide-react';
+import { Trash2, Upload, Edit2, Settings, Bold, Italic, Underline, List, Link } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { ImageEditor } from '@/components/ImageEditor';
 import { BrandColorPicker } from '@/components/ui/brand-color-picker';
@@ -34,26 +34,120 @@ interface ComponentEditorProps {
 export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpdate, brandColors }) => {
   const [showImageEditor, setShowImageEditor] = useState(false);
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
+  const textAreaRef = useRef<HTMLTextAreaElement>(null);
   const { config } = section;
 
   const updateConfig = (key: string, value: any) => {
     onUpdate({ [key]: value });
   };
 
+  const formatText = (format: string) => {
+    const textarea = textAreaRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = textarea.value.substring(start, end);
+    const beforeText = textarea.value.substring(0, start);
+    const afterText = textarea.value.substring(end);
+
+    let formattedText = '';
+    switch (format) {
+      case 'bold':
+        formattedText = selectedText ? `**${selectedText}**` : '**bold text**';
+        break;
+      case 'italic':
+        formattedText = selectedText ? `*${selectedText}*` : '*italic text*';
+        break;
+      case 'underline':
+        formattedText = selectedText ? `__${selectedText}__` : '__underlined text__';
+        break;
+      case 'bullet':
+        formattedText = selectedText ? `• ${selectedText}` : '• bullet point';
+        break;
+      case 'link':
+        formattedText = selectedText ? `[${selectedText}](url)` : '[link text](url)';
+        break;
+      default:
+        formattedText = selectedText;
+    }
+
+    const newContent = beforeText + formattedText + afterText;
+    updateConfig('content', newContent);
+
+    // Focus back to textarea and set cursor position
+    setTimeout(() => {
+      textarea.focus();
+      const newCursorPos = start + formattedText.length;
+      textarea.setSelectionRange(newCursorPos, newCursorPos);
+    }, 0);
+  };
+
   const renderTextEditor = () => (
     <div className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="content">Text Content</Label>
+        
+        {/* Formatting Toolbar */}
+        <div className="flex flex-wrap gap-1 p-2 border rounded-md bg-muted/50">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => formatText('bold')}
+            className="h-8 w-8 p-0"
+          >
+            <Bold className="h-4 w-4" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => formatText('italic')}
+            className="h-8 w-8 p-0"
+          >
+            <Italic className="h-4 w-4" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => formatText('underline')}
+            className="h-8 w-8 p-0"
+          >
+            <Underline className="h-4 w-4" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => formatText('bullet')}
+            className="h-8 w-8 p-0"
+          >
+            <List className="h-4 w-4" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => formatText('link')}
+            className="h-8 w-8 p-0"
+          >
+            <Link className="h-4 w-4" />
+          </Button>
+        </div>
+        
         <Textarea
+          ref={textAreaRef}
           id="content"
           value={config.content || ''}
           onChange={(e) => updateConfig('content', e.target.value)}
-          placeholder="Enter your text content..."
+          placeholder="Enter your text content... Use **bold**, *italic*, __underline__, • bullets, [links](url)"
           rows={8}
-          className="font-mono"
+          className="font-mono text-sm"
         />
         <div className="text-xs text-muted-foreground">
-          Supports line breaks and basic formatting. Use • for bullet points.
+          Use markdown-style formatting: **bold**, *italic*, __underline__, • bullets, [link text](url)
         </div>
       </div>
       

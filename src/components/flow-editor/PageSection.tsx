@@ -209,21 +209,31 @@ export const PageSection: React.FC<PageSectionProps> = ({
         );
 
       case 'text':
+        const formatContent = (content: string) => {
+          if (!content) return 'Click to edit text...';
+          
+          return content
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.*?)\*/g, '<em>$1</em>')
+            .replace(/__(.*?)__/g, '<u>$1</u>')
+            .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-blue-600 underline">$1</a>')
+            .replace(/\n/g, '<br/>');
+        };
+
         return (
           <div 
             className={`text-section ${paddingClass} ${getSectionClassName()}`}
             style={getSectionStyle()}
           >
             <div 
-              className="prose prose-sm max-w-none whitespace-pre-line"
+              className="prose prose-sm max-w-none"
               style={{ 
                 fontSize: `${config.fontSize || 16}px`,
                 fontWeight: config.fontWeight || 'normal',
                 textAlign: config.align || 'left'
               }}
-            >
-              {config.content || 'Click to edit text...'}
-            </div>
+              dangerouslySetInnerHTML={{ __html: formatContent(config.content) }}
+            />
           </div>
         );
         
