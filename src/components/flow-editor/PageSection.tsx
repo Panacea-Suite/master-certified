@@ -232,7 +232,7 @@ export const PageSection: React.FC<PageSectionProps> = ({
                   style={{ maxHeight: config.height || 'auto' }}
                 />
               ) : (
-                <div className={`w-full h-32 ${getBorderRadius()} flex items-center justify-center`} style={{ backgroundColor: 'transparent' }}>
+                <div className={`w-full h-32 bg-muted ${getBorderRadius()} flex items-center justify-center`}>
                   <div className="text-center text-muted-foreground">
                     <ImageIcon className="h-8 w-8 mx-auto mb-2" />
                     <p className="text-sm">No image selected</p>
