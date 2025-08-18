@@ -22,6 +22,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { DesignTemplateSelector } from './DesignTemplateSelector';
 import { TemplateStyleProvider } from './TemplateStyleProvider';
+import { FlowHeader } from './flow-editor/FlowHeader';
 import { BrandColorPicker } from '@/components/ui/brand-color-picker';
 interface FlowTemplate {
   id: string;
@@ -735,11 +736,15 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                       <div>
                         <Label>Brand Logo</Label>
                         <div className="space-y-2">
-                          {globalHeader.logoUrl ? <div className="flex justify-center">
-                              <img src={globalHeader.logoUrl} alt="Brand Logo" className="w-16 h-16 object-contain border rounded-lg" />
-                            </div> : <div className="flex justify-center items-center w-full h-16 border-2 border-dashed border-muted-foreground/25 rounded-lg">
+                          {globalHeader.logoUrl ? (
+                            <div className="border rounded-lg">
+                              <FlowHeader globalHeader={globalHeader} />
+                            </div>
+                          ) : (
+                            <div className="flex justify-center items-center w-full h-16 border-2 border-dashed border-muted-foreground/25 rounded-lg">
                               <p className="text-xs text-muted-foreground">No logo uploaded</p>
-                            </div>}
+                            </div>
+                          )}
                           <p className="text-xs text-muted-foreground text-center">
                             Logo is managed in Brand Settings
                           </p>

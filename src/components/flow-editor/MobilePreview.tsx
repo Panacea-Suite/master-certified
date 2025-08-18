@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { PageSection } from './PageSection';
 import { DeviceSpec } from './FlowPreview';
 import { useTemplateStyle } from '@/components/TemplateStyleProvider';
+import { FlowHeader } from './FlowHeader';
 
 interface SectionData {
   id: string;
@@ -110,35 +111,7 @@ export const MobilePreview: React.FC<MobilePreviewProps> = ({
 
         {/* Global Header with Brand Logo */}
         {globalHeader.showHeader && (
-          <div 
-            className="h-16 border-b flex items-center justify-center overflow-visible relative z-10"
-            style={{ backgroundColor: globalHeader.backgroundColor }}
-          >
-            {globalHeader.logoUrl ? (
-              <img 
-                src={globalHeader.logoUrl} 
-                alt={globalHeader.brandName}
-                className="object-contain"
-                style={{ 
-                  height: getLogoSize(globalHeader.logoSize), 
-                  width: 'auto', 
-                  maxWidth: '90%',
-                  imageRendering: 'auto',
-                  transform: 'translateZ(0)',
-                  backfaceVisibility: 'hidden'
-                }}
-              />
-            ) : (
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
-                  <span className="text-primary font-bold text-sm">
-                    {globalHeader.brandName.charAt(0).toUpperCase()}
-                  </span>
-                </div>
-                <span className="font-medium text-sm">{globalHeader.brandName}</span>
-              </div>
-            )}
-          </div>
+          <FlowHeader globalHeader={globalHeader} />
         )}
 
         {/* Empty Content */}
@@ -188,35 +161,7 @@ export const MobilePreview: React.FC<MobilePreviewProps> = ({
 
       {/* Global Header with Brand Logo */}
       {globalHeader.showHeader && (
-        <div 
-          className="h-16 border-b flex items-center justify-center overflow-visible relative z-10"
-          style={{ backgroundColor: globalHeader.backgroundColor }}
-        >
-          {globalHeader.logoUrl ? (
-            <img 
-              src={globalHeader.logoUrl} 
-              alt={globalHeader.brandName}
-              className="object-contain"
-              style={{ 
-                height: getLogoSize(globalHeader.logoSize), 
-                width: 'auto', 
-                maxWidth: '90%',
-                imageRendering: 'auto',
-                transform: 'translateZ(0)',
-                backfaceVisibility: 'hidden'
-              }}
-            />
-          ) : (
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
-                <span className="text-primary font-bold text-sm">
-                  {globalHeader.brandName.charAt(0).toUpperCase()}
-                </span>
-              </div>
-              <span className="font-medium text-sm">{globalHeader.brandName}</span>
-            </div>
-          )}
-        </div>
+        <FlowHeader globalHeader={globalHeader} />
       )}
 
       {/* Content */}
