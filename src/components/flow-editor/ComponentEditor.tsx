@@ -77,6 +77,7 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
           value={config.textColor || '#000000'}
           onChange={(color) => updateConfig('textColor', color)}
           brandColors={brandColors}
+          showOpacity={true}
         />
       </div>
     </div>
@@ -222,6 +223,7 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
         value={config.color || '#e5e7eb'}
         onChange={(color) => updateConfig('color', color)}
         brandColors={brandColors}
+        showOpacity={true}
         id="color"
       />
     </div>
@@ -273,6 +275,7 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
           value={config.textColor || '#000000'}
           onChange={(color) => updateConfig('textColor', color)}
           brandColors={brandColors}
+          showOpacity={true}
         />
       </div>
       
@@ -282,12 +285,14 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
           value={config.borderColor || '#e5e7eb'}
           onChange={(color) => updateConfig('borderColor', color)}
           brandColors={brandColors}
+          showOpacity={true}
         />
         <BrandColorPicker
           label="Focus Border"
           value={config.focusBorderColor || '#3b82f6'}
           onChange={(color) => updateConfig('focusBorderColor', color)}
           brandColors={brandColors}
+          showOpacity={true}
         />
       </div>
     </div>
