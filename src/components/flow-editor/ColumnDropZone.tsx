@@ -100,7 +100,7 @@ export const ColumnDropZone: React.FC<ColumnDropZoneProps> = ({
         
       case 'divider':
         return (
-          <div className={`divider-section ${paddingClass}`}>
+          <div className={`divider-section ${paddingClass}`} style={{ backgroundColor: config.backgroundColor || 'transparent' }}>
             <hr 
               className="border-0"
               style={{

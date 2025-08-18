@@ -299,7 +299,7 @@ export const PageSection: React.FC<PageSectionProps> = ({
         
       case 'divider':
         return (
-          <div className={`divider-section ${paddingClass}`}>
+          <div className={`divider-section ${paddingClass} ${getSectionClassName()}`} style={getSectionStyle()}>
             <hr 
               className="border-0"
               style={{
