@@ -436,14 +436,21 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
     if (!fabricCanvas || !originalImage || !cropRect) return;
     
     try {
-      // Compute crop bounds in canvas space (account for scaling)
-      const cropLeft = (cropRect.left || 0);
-      const cropTop = (cropRect.top || 0);
-      const cropWidth = ((cropRect.width || 0) * (cropRect.scaleX || 1));
-      const cropHeight = ((cropRect.height || 0) * (cropRect.scaleY || 1));
+      // Get the actual displayed crop rectangle bounds
+      const cropBounds = cropRect.getBoundingRect();
+      console.log('Crop bounds:', cropBounds);
+      console.log('Canvas size:', fabricCanvas.width, fabricCanvas.height);
+      console.log('Image bounds:', originalImage.getBoundingRect());
+      
+      // Ensure crop bounds are within canvas
+      const cropLeft = Math.max(0, cropBounds.left);
+      const cropTop = Math.max(0, cropBounds.top);
+      const cropWidth = Math.min(cropBounds.width, fabricCanvas.width! - cropLeft);
+      const cropHeight = Math.min(cropBounds.height, fabricCanvas.height! - cropTop);
+      
+      console.log('Adjusted crop area:', { cropLeft, cropTop, cropWidth, cropHeight });
 
       // Hide the crop overlay so it doesn't appear in the export
-      const previousVisibility = cropRect.visible;
       cropRect.visible = false;
       fabricCanvas.discardActiveObject();
       fabricCanvas.renderAll();
@@ -527,7 +534,7 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
         })
         .catch((error) => {
           // Restore crop rectangle visibility on failure
-          cropRect.visible = previousVisibility;
+          cropRect.visible = true;
           fabricCanvas.renderAll();
           console.error('Crop failed:', error);
           toast.error('Failed to crop image. Please try again.');
