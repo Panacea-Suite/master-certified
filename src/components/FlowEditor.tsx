@@ -325,7 +325,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
               brandName: flowConfig.globalHeader.brandName,
               logoUrl: withCacheBust(activeBrandData?.logo_url || '', (activeBrandData as any)?.updated_at || Date.now()),
               backgroundColor: flowConfig.globalHeader.backgroundColor,
-              logoSize: flowConfig.globalHeader.logoSize
+              logoSize: flowConfig.globalHeader.logoSize || '48'
             });
           }
 
@@ -356,7 +356,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
     brandName: templateToEdit?.flow_config?.globalHeader?.brandName || brandData?.name || 'Brand',
     logoUrl: withCacheBust(brandData?.logo_url || '', (brandData as any)?.updated_at || Date.now()),
     backgroundColor: templateToEdit?.flow_config?.globalHeader?.backgroundColor || brandData?.brand_colors?.primary || '#3b82f6',
-    logoSize: templateToEdit?.flow_config?.globalHeader?.logoSize || 'medium'
+    logoSize: templateToEdit?.flow_config?.globalHeader?.logoSize || '48'
   });
   const [selectedSection, setSelectedSection] = useState<SectionData | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -747,20 +747,19 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                       </div>
                       
                       <div>
-                        <Label htmlFor="logoSize">Logo Size</Label>
-                        <Select value={globalHeader.logoSize} onValueChange={value => setGlobalHeader(prev => ({
-                        ...prev,
-                        logoSize: value
-                      }))}>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="small">Small</SelectItem>
-                            <SelectItem value="medium">Medium</SelectItem>
-                            <SelectItem value="large">Large</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <Label htmlFor="logoSize">Logo Size (px)</Label>
+                        <Input 
+                          id="logoSize" 
+                          type="number" 
+                          min="12" 
+                          max="100" 
+                          value={globalHeader.logoSize} 
+                          onChange={e => setGlobalHeader(prev => ({
+                            ...prev,
+                            logoSize: e.target.value
+                          }))} 
+                          placeholder="48" 
+                        />
                       </div>
                       
                       <BrandColorPicker label="Header Background" value={globalHeader.backgroundColor} onChange={color => setGlobalHeader(prev => ({

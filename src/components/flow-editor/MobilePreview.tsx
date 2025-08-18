@@ -53,14 +53,19 @@ export const MobilePreview: React.FC<MobilePreviewProps> = ({
   const scaledHeight = deviceHeight * scale;
 
   const getLogoSize = (size: string) => {
+    // If it's a number string (px value), use it directly
+    if (/^\d+$/.test(size)) {
+      return `${size}px`;
+    }
+    // Fallback for legacy size names
     switch (size) {
       case 'small':
-        return '60%'; // ~38px of 64px header
+        return '32px';
       case 'large':
-        return '100%'; // Full header height (~64px)
+        return '56px';
       case 'medium':
       default:
-        return '85%'; // ~54px of 64px header
+        return '48px';
     }
   };
 
