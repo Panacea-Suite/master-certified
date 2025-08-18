@@ -91,6 +91,7 @@ export const PageSection: React.FC<PageSectionProps> = ({
     return {
       backgroundColor: config.backgroundColor || undefined,
       color: config.textColor || undefined,
+      border: config.backgroundColor ? 'none' : undefined,
       ...shadowStyle
     };
   };
@@ -101,12 +102,17 @@ export const PageSection: React.FC<PageSectionProps> = ({
       ? templateClasses 
       : templateClasses.replace(/shadow-\w+/g, '');
     
-    // Remove background classes if custom background is set to prevent white lines
+    // Remove background and border classes if custom background is set to prevent white lines
     if (config.backgroundColor) {
-      classes = classes.replace(/bg-\S+/g, '');
+      classes = classes
+        .replace(/bg-\S+/g, '')
+        .replace(/\bborder[^\s]*/g, '');
+    } else {
+      // Even without custom background, strip any thin borders to avoid faint lines
+      classes = classes.replace(/\bborder[^\s]*/g, '');
     }
     
-    return classes;
+    return classes.trim();
   };
 
   const renderSectionContent = () => {
