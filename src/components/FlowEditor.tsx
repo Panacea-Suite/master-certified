@@ -793,7 +793,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                   <BrandColorPicker label="Background Color" value={pageSettings.backgroundColor} onChange={color => setPageSettings(prev => ({
                     ...prev,
                     backgroundColor: color
-                  }))} brandColors={brandData?.brand_colors} id="backgroundColor" />
+                  }))} brandColors={brandData?.brand_colors} showOpacity={true} id="backgroundColor" />
                 </CollapsibleContent>
               </Collapsible>
 

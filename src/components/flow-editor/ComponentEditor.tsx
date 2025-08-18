@@ -70,6 +70,7 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
           value={config.backgroundColor || '#ffffff'}
           onChange={(color) => updateConfig('backgroundColor', color)}
           brandColors={brandColors}
+          showOpacity={true}
         />
         <BrandColorPicker
           label="Text Color"
@@ -265,6 +266,7 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
           value={config.backgroundColor || '#ffffff'}
           onChange={(color) => updateConfig('backgroundColor', color)}
           brandColors={brandColors}
+          showOpacity={true}
         />
         <BrandColorPicker
           label="Text Color"
@@ -329,6 +331,7 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
         value={config.backgroundColor || '#ffffff'}
         onChange={(color) => updateConfig('backgroundColor', color)}
         brandColors={brandColors}
+        showOpacity={true}
         id="backgroundColor"
       />
     </div>
