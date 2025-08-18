@@ -60,43 +60,10 @@ const CERTIFICATION_FLOW_PAGES: FlowPage[] = [
         }
       },
       {
-        id: 'feature-1',
+        id: 'features-list',
         type: 'text',
         config: {
-          content: '• Ensure this product is genuine and not counterfeit.',
-          fontSize: 16,
-          textColor: '#333333',
-          backgroundColor: 'transparent',
-          padding: 2
-        }
-      },
-      {
-        id: 'feature-2', 
-        type: 'text',
-        config: {
-          content: '• Trace the origin of each ingredient.',
-          fontSize: 16,
-          textColor: '#333333',
-          backgroundColor: 'transparent',
-          padding: 2
-        }
-      },
-      {
-        id: 'feature-3',
-        type: 'text',
-        config: {
-          content: '• Access verified results from independent lab testing.',
-          fontSize: 16,
-          textColor: '#333333',
-          backgroundColor: 'transparent',
-          padding: 2
-        }
-      },
-      {
-        id: 'feature-4',
-        type: 'text',
-        config: {
-          content: '• Review documentation audited by trusted third parties.',
+          content: "• Ensure this product is genuine and not counterfeit.\n• Trace the origin of each ingredient.\n• Access verified results from independent lab testing.\n• Review documentation audited by trusted third parties.",
           fontSize: 16,
           textColor: '#333333',
           backgroundColor: 'transparent',

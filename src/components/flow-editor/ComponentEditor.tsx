@@ -49,20 +49,61 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
           value={config.content || ''}
           onChange={(e) => updateConfig('content', e.target.value)}
           placeholder="Enter your text content..."
-          rows={4}
+          rows={8}
+          className="font-mono"
         />
+        <div className="text-xs text-muted-foreground">
+          Supports line breaks and basic formatting. Use • for bullet points.
+        </div>
+      </div>
+      
+      <div className="grid grid-cols-2 gap-2">
+        <div className="space-y-2">
+          <Label htmlFor="fontSize">Font Size: {config.fontSize || 16}px</Label>
+          <Slider
+            value={[config.fontSize || 16]}
+            onValueChange={(value) => updateConfig('fontSize', value[0])}
+            min={12}
+            max={48}
+            step={1}
+            className="w-full"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="fontWeight">Font Weight</Label>
+          <Select 
+            value={config.fontWeight || 'normal'} 
+            onValueChange={(value) => updateConfig('fontWeight', value)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select weight" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="normal">Normal</SelectItem>
+              <SelectItem value="medium">Medium</SelectItem>
+              <SelectItem value="semibold">Semibold</SelectItem>
+              <SelectItem value="bold">Bold</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
       
       <div className="space-y-2">
-        <Label htmlFor="fontSize">Font Size: {config.fontSize || 16}px</Label>
-        <Slider
-          value={[config.fontSize || 16]}
-          onValueChange={(value) => updateConfig('fontSize', value[0])}
-          min={12}
-          max={32}
-          step={1}
-          className="w-full"
-        />
+        <Label htmlFor="textAlign">Text Alignment</Label>
+        <Select 
+          value={config.align || 'left'} 
+          onValueChange={(value) => updateConfig('align', value)}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Select alignment" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="left">Left</SelectItem>
+            <SelectItem value="center">Center</SelectItem>
+            <SelectItem value="right">Right</SelectItem>
+            <SelectItem value="justify">Justify</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
       
       <div className="grid grid-cols-2 gap-2">

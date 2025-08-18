@@ -215,8 +215,12 @@ export const PageSection: React.FC<PageSectionProps> = ({
             style={getSectionStyle()}
           >
             <div 
-              className="prose prose-sm max-w-none"
-              style={{ fontSize: `${config.fontSize || 16}px` }}
+              className="prose prose-sm max-w-none whitespace-pre-line"
+              style={{ 
+                fontSize: `${config.fontSize || 16}px`,
+                fontWeight: config.fontWeight || 'normal',
+                textAlign: config.align || 'left'
+              }}
             >
               {config.content || 'Click to edit text...'}
             </div>
