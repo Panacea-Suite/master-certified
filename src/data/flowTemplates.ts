@@ -77,7 +77,6 @@ const CERTIFICATION_FLOW_PAGES: FlowPage[] = [
         config: {
           imageUrl: '',
           alt: 'Product verification image',
-          caption: 'Your certified product',
           height: '300',
           padding: 4
         }
