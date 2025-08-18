@@ -171,11 +171,16 @@ export const PageSection: React.FC<PageSectionProps> = ({
             className={`cta-section ${paddingClass} ${getSectionClassName()} flex justify-center`}
             style={getSectionStyle()}
           >
-            <button className={`px-6 py-3 rounded-lg font-medium transition-colors ${
-              section.config?.color === 'secondary' ? 'bg-secondary text-secondary-foreground hover:bg-secondary/90' : 'bg-primary text-primary-foreground hover:bg-primary/90'
-            } ${
-              section.config?.size === 'large' ? 'text-lg px-8 py-4' : ''
-            }`}>
+            <button 
+              className={`px-6 py-3 rounded-lg font-medium transition-colors ${
+                section.config?.size === 'lg' ? 'text-lg px-8 py-4' : 
+                section.config?.size === 'sm' ? 'text-sm px-4 py-2' : ''
+              }`}
+              style={{
+                backgroundColor: section.config?.backgroundColor || '#3b82f6',
+                color: section.config?.textColor || '#ffffff'
+              }}
+            >
               {section.config?.text || 'Click here'}
             </button>
           </div>
