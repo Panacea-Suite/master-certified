@@ -177,7 +177,7 @@ export const PageSection: React.FC<PageSectionProps> = ({
                 section.config?.size === 'sm' ? 'text-sm px-4 py-2' : ''
               }`}
               style={{
-                backgroundColor: section.config?.backgroundColor || '#3b82f6',
+                backgroundColor: section.config?.buttonColor || '#3b82f6',
                 color: section.config?.textColor || '#ffffff'
               }}
             >

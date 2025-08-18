@@ -524,17 +524,25 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
         />
       </div>
       
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-3 gap-2">
         <BrandColorPicker
-          label="Background Color"
-          value={config.backgroundColor || '#3b82f6'}
+          label="Background"
+          value={config.backgroundColor || 'rgba(255,255,255,1)'}
           onChange={(color) => updateConfig('backgroundColor', color)}
           brandColors={brandColors}
           showOpacity={true}
-          id="backgroundColor"
+          id="sectionBackground"
         />
         <BrandColorPicker
-          label="Text Color"
+          label="Button"
+          value={config.buttonColor || '#3b82f6'}
+          onChange={(color) => updateConfig('buttonColor', color)}
+          brandColors={brandColors}
+          showOpacity={true}
+          id="buttonColor"
+        />
+        <BrandColorPicker
+          label="Text"
           value={config.textColor || '#ffffff'}
           onChange={(color) => updateConfig('textColor', color)}
           brandColors={brandColors}
@@ -603,9 +611,9 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-4">
-            {renderCommonSettings()}
+            {section.type !== 'cta' && renderCommonSettings()}
             
-            <Separator />
+            {section.type !== 'cta' && <Separator />}
             
             {renderDropShadowSettings()}
             
