@@ -171,9 +171,9 @@ export const MobilePreview: React.FC<MobilePreviewProps> = ({
 
       {/* Content */}
       <div className={`flex-1 overflow-y-auto ${backgroundColor ? '' : getTemplateClasses('section')}`} style={{ backgroundColor, backgroundImage: backgroundColor ? 'none' : undefined }}>
-        {/* Drop zone at top */}
+        {/* Drop zone at top - minimal height to prevent gaps */}
         <div
-          className={`h-2 transition-all ${dragOverIndex === 0 ? 'h-8 bg-primary/20 border-y-2 border-dashed border-primary' : ''}`}
+          className={`transition-all ${dragOverIndex === 0 ? 'h-8 bg-primary/20 border-y-2 border-dashed border-primary' : 'h-0'}`}
           onDragOver={(e) => handleDragOver(e, 0)}
           onDragLeave={handleDragLeave}
           onDrop={(e) => handleDrop(e, 0)}
@@ -196,9 +196,9 @@ export const MobilePreview: React.FC<MobilePreviewProps> = ({
                 isPreview={true}
               />
               
-              {/* Drop zone between sections */}
+              {/* Drop zone between sections - minimal height to prevent gaps */}
               <div
-                className={`h-2 transition-all ${dragOverIndex === index + 1 ? 'h-8 bg-primary/20 border-y-2 border-dashed border-primary' : ''}`}
+                className={`transition-all ${dragOverIndex === index + 1 ? 'h-8 bg-primary/20 border-y-2 border-dashed border-primary' : 'h-0'}`}
                 onDragOver={(e) => handleDragOver(e, index + 1)}
                 onDragLeave={handleDragLeave}
                 onDrop={(e) => handleDrop(e, index + 1)}
