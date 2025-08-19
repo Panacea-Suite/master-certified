@@ -367,6 +367,15 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
             }
             return convertedPages;
           })();
+          // Update footer default for Classic Certification if not explicitly set
+          if (processedTemplate.id === 'classic-certification') {
+            setFooterConfig(prev => ({
+              ...prev,
+              backgroundColor: (prev.backgroundColor && prev.backgroundColor !== 'transparent')
+                ? prev.backgroundColor
+                : (activeBrandData?.brand_colors?.secondary || 'hsl(var(--secondary))')
+            }));
+          }
 
           // Update pages state after processing
           setPages(adjustedPages);
@@ -700,7 +709,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
         backgroundColor: 'transparent'
       },
       footer: {
-        backgroundColor: 'transparent',
+        backgroundColor: brandData?.brand_colors?.secondary || 'hsl(var(--secondary))',
         logoSize: 60
       }
     };

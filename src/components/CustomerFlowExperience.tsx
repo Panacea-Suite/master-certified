@@ -7,7 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { CheckCircle, XCircle, ArrowRight, ArrowLeft, Shield, FileText, Package, Truck } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { PanaceaFooter } from '@/components/PanaceaFooter';
+
 
 // Cache-busting utility
 const withCacheBust = (url: string, seed?: string | number): string => {
@@ -453,8 +453,6 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
             </div>
           )}
           
-          {/* Panacea Footer */}
-          <PanaceaFooter backgroundColor={flowConfig?.footerConfig?.backgroundColor} logoSize={flowConfig?.footerConfig?.logoSize} />
         </div>
       </div>
     );
@@ -764,10 +762,6 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
             {sections.map((section: any) => renderTemplateSection(section))}
           </div>
           
-          {/* Panacea Footer - Always at bottom */}
-          <div className="mt-8">
-            <PanaceaFooter backgroundColor={flowConfig?.footerConfig?.backgroundColor} logoSize={flowConfig?.footerConfig?.logoSize} />
-          </div>
         </div>
       </div>
     );
@@ -822,10 +816,6 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
           )}
         </div>
         
-        {/* Panacea Footer */}
-        <div className="max-w-sm mx-auto px-4">
-          <PanaceaFooter backgroundColor={flowConfig?.footerConfig?.backgroundColor} logoSize={flowConfig?.footerConfig?.logoSize} />
-        </div>
       </div>
     </div>
   );
