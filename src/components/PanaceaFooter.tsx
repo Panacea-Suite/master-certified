@@ -6,13 +6,16 @@ interface PanaceaFooterProps {
 }
 
 export const PanaceaFooter: React.FC<PanaceaFooterProps> = ({ 
-  backgroundColor = 'hsl(var(--secondary))',
+  backgroundColor,
   logoSize = 60
 }) => {
+  // Use secondary color as default if backgroundColor is not provided or is falsy
+  const finalBackgroundColor = backgroundColor || 'hsl(var(--secondary))';
+  
   return (
     <div 
       className="pt-6 pb-8 flex justify-center"
-      style={{ backgroundColor }}
+      style={{ backgroundColor: finalBackgroundColor }}
     >
       <img 
         src="/lovable-uploads/4983a5bb-4435-4141-9e62-8240ed8dce24.png" 
