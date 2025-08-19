@@ -9,6 +9,7 @@ import BrandSettings from '@/components/BrandSettings';
 import CampaignManager from '@/components/CampaignManager';
 import BatchManager from '@/components/BatchManager';
 import TemplateManager from '@/components/TemplateManager';
+import { PanaceaFooter } from '@/components/PanaceaFooter';
 
 import { Button } from '@/components/ui/button';
 import { Shield } from 'lucide-react';
@@ -75,6 +76,9 @@ const Index = () => {
         <main>
           {renderContent()}
         </main>
+        
+        {/* Test Footer */}
+        <PanaceaFooter />
       </div>
     </div>
   );

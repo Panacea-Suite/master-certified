@@ -12,6 +12,8 @@ export const PanaceaFooter: React.FC<PanaceaFooterProps> = ({
   // Use secondary color as default if backgroundColor is not provided or is falsy
   const finalBackgroundColor = backgroundColor || 'hsl(var(--secondary))';
   
+  console.log('PanaceaFooter render:', { backgroundColor, finalBackgroundColor });
+  
   return (
     <div 
       className="pt-6 pb-8 flex justify-center"
