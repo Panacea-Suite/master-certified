@@ -112,16 +112,15 @@ export const MobilePreview: React.FC<MobilePreviewProps> = ({
   if (sections.length === 0) {
     return (
       <div 
-        className="bg-white rounded-3xl shadow-xl border border-gray-200 flex flex-col"
+        className="bg-white rounded-3xl shadow-xl border border-gray-200 flex flex-col overflow-hidden"
         style={{ width: `${scaledWidth}px`, height: `${scaledHeight}px` }}
       >
-
         {/* Global Header with Brand Logo */}
         {globalHeader.showHeader && (
           <FlowHeader globalHeader={globalHeader} />
         )}
 
-        {/* Empty Content */}
+        {/* Empty Content - fills the curved area */}
         <div 
           className="flex-1 text-center space-y-4 p-8 flex flex-col items-center justify-center border-2 border-dashed border-muted-foreground/30 m-4 rounded-2xl"
           style={{ backgroundColor }}
@@ -158,7 +157,7 @@ export const MobilePreview: React.FC<MobilePreviewProps> = ({
 
   return (
     <div 
-      className="bg-white rounded-3xl shadow-xl border border-gray-200 flex flex-col"
+      className="bg-white rounded-3xl shadow-xl border border-gray-200 flex flex-col overflow-hidden"
       style={{ width: `${scaledWidth}px`, height: `${scaledHeight}px` }}
     >
 
