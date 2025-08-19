@@ -275,6 +275,16 @@ export const PageSection: React.FC<PageSectionProps> = ({
                   <img 
                     src={config.imageUrl} 
                     alt={config.alt || 'Section image'}
+                    onLoad={(e) => {
+                      const img = e.currentTarget;
+                      console.log('Flow image loaded', {
+                        naturalWidth: img.naturalWidth,
+                        naturalHeight: img.naturalHeight,
+                        renderedWidth: img.clientWidth,
+                        renderedHeight: img.clientHeight,
+                        src: img.currentSrc
+                      });
+                    }}
                     className={`w-full h-auto ${getBorderRadius()} select-none pointer-events-none transition-opacity group-hover:opacity-80`}
                     style={{ 
                       maxHeight: config.height || 'auto',

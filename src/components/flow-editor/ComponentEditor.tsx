@@ -838,7 +838,7 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
                 // Upload to Supabase storage
                 const { data: uploadData, error: uploadError } = await supabase.storage
                   .from('flow-content')
-                  .upload(fileName, editedFile);
+                  .upload(fileName, editedFile, { upsert: true, cacheControl: '3600' });
 
                 if (uploadError) {
                   console.error('Storage upload error:', uploadError);

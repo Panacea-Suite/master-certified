@@ -630,29 +630,21 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
         outputHeight
       );
 
-      out.toBlob((blob) => {
-        if (blob) {
-          // Use original file extension and ensure maximum quality
-          const fileExtension = file.name.split('.').pop()?.toLowerCase();
-          const outputType = fileExtension === 'jpg' || fileExtension === 'jpeg' ? 'image/jpeg' : 'image/png';
-          const outputQuality = outputType === 'image/jpeg' ? 1.0 : undefined; // Maximum quality for JPEG, PNG ignores quality
-          
-          // Re-create the blob with proper format and quality
-          out.toBlob((finalBlob) => {
-            if (finalBlob) {
-              const editedFile = new File([finalBlob], file.name, { type: outputType });
-              onSave(editedFile);
-              toast.success('Image saved successfully!');
-            } else {
-              console.error('Failed to create final blob from canvas');
-              toast.error('Failed to save image. Please try again.');
-            }
-          }, outputType, outputQuality);
+      // Export with maximum quality, preserving format
+      const fileExtension = file.name.split('.').pop()?.toLowerCase();
+      const outputType = fileExtension === 'jpg' || fileExtension === 'jpeg' ? 'image/jpeg' : 'image/png';
+      const outputQuality = outputType === 'image/jpeg' ? 1.0 : undefined;
+
+      out.toBlob((finalBlob) => {
+        if (finalBlob) {
+          const editedFile = new File([finalBlob], file.name, { type: outputType });
+          onSave(editedFile);
+          toast.success('Image saved successfully!');
         } else {
-          console.error('Failed to create blob from canvas');
+          console.error('Failed to create final blob from canvas');
           toast.error('Failed to save image. Please try again.');
         }
-      }, 'image/png', 1.0);
+      }, outputType, outputQuality);
     } catch (error) {
       console.error('Error during save process:', error);
       toast.error('Failed to save image. Please try again.');
