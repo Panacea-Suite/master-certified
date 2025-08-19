@@ -98,6 +98,7 @@ const CERTIFICATION_FLOW_PAGES: FlowPage[] = [
           imageUrl: '',
           alt: 'Product verification image',
           height: '300',
+          backgroundColor: 'var(--template-secondary)',
           padding: 4
         }
       }

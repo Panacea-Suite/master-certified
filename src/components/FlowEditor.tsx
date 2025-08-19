@@ -338,22 +338,24 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
           // Apply template-specific defaults (e.g., Classic Certification tweaks)
           const adjustedPages = (() => {
             if (processedTemplate.id === 'classic-certification') {
+              console.log('Applying Classic Certification defaults, brand colors:', activeBrandData?.brand_colors);
               return convertedPages.map((page: any) => {
                 if (page.type === 'welcome' || page.name === 'Welcome') {
+                  console.log('Processing welcome page sections:', page.sections);
                   return {
                     ...page,
                     sections: page.sections.map((section: any) => {
-                      if (
-                        section.type === 'image' &&
-                        (!section.config || !section.config.backgroundColor)
-                      ) {
-                        return {
+                      if (section.type === 'image') {
+                        console.log('Found image section, current config:', section.config);
+                        const updatedSection = {
                           ...section,
                           config: {
                             ...section.config,
-                            backgroundColor: 'var(--template-secondary)'
+                            backgroundColor: activeBrandData?.brand_colors?.secondary || '#f8bc55'
                           }
                         };
+                        console.log('Updated image section config:', updatedSection.config);
+                        return updatedSection;
                       }
                       return section;
                     })
