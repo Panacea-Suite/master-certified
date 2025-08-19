@@ -83,9 +83,9 @@ export const PageSection: React.FC<PageSectionProps> = ({
   const paddingClass = `p-${config.padding ?? 4}`;
   const templateClasses = getTemplateClasses('card');
   
-  // Generate drop shadow style for all sections
+  // Generate drop shadow style for all sections (except images which use filter shadows)
   const getSectionStyle = () => {
-    const shadowStyle = config.dropShadow ? {
+    const shadowStyle = (config.dropShadow && section.type !== 'image') ? {
       boxShadow: `${config.shadowOffsetX || 0}px ${config.shadowOffsetY || 4}px ${config.shadowBlur || 10}px ${config.shadowSpread || 0}px ${config.shadowColor || 'rgba(0,0,0,0.1)'}`
     } : {
       boxShadow: 'none'
@@ -98,6 +98,13 @@ export const PageSection: React.FC<PageSectionProps> = ({
       padding: `${(config.padding ?? 4) * 0.25}rem`,
       ...shadowStyle
     };
+  };
+
+  // Generate filter drop shadow style for images
+  const getImageFilterStyle = () => {
+    return config.dropShadow ? {
+      filter: `drop-shadow(${config.shadowOffsetX || 0}px ${config.shadowOffsetY || 4}px ${config.shadowBlur || 10}px ${config.shadowColor || 'rgba(0,0,0,0.1)'})`
+    } : {};
   };
 
   const getSectionClassName = () => {
@@ -269,7 +276,10 @@ export const PageSection: React.FC<PageSectionProps> = ({
                     src={config.imageUrl} 
                     alt={config.alt || 'Section image'}
                     className={`w-full h-auto ${getBorderRadius()} select-none pointer-events-none transition-opacity group-hover:opacity-80`}
-                    style={{ maxHeight: config.height || 'auto' }}
+                    style={{ 
+                      maxHeight: config.height || 'auto',
+                      ...getImageFilterStyle()
+                    }}
                   />
                   <div className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20 rounded">
                     <div className="pointer-events-none bg-white/90 rounded-full p-2">
