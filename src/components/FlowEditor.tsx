@@ -397,7 +397,8 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
     logoSize: templateToEdit?.flow_config?.globalHeader?.logoSize || '120'
   });
   const [footerConfig, setFooterConfig] = useState({
-    backgroundColor: templateToEdit?.flow_config?.footerConfig?.backgroundColor || 'transparent'
+    backgroundColor: templateToEdit?.flow_config?.footerConfig?.backgroundColor || 'transparent',
+    logoSize: templateToEdit?.flow_config?.footerConfig?.logoSize || 120
   });
   const [selectedSection, setSelectedSection] = useState<SectionData | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -696,6 +697,10 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
         gap: 4,
         padding: 4,
         backgroundColor: 'transparent'
+      },
+      footer: {
+        backgroundColor: 'transparent',
+        logoSize: 120
       }
     };
     return configs[sectionType as keyof typeof configs] || {
@@ -864,6 +869,25 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                     showOpacity={true} 
                     id="footerBackground" 
                   />
+                  
+                  <div>
+                    <Label htmlFor="footerLogoSize">Logo Size (px)</Label>
+                    <Input
+                      id="footerLogoSize"
+                      type="number"
+                      value={footerConfig.logoSize}
+                      onChange={(e) => {
+                        const size = Math.max(80, parseInt(e.target.value) || 120);
+                        setFooterConfig(prev => ({
+                          ...prev,
+                          logoSize: size
+                        }));
+                      }}
+                      min={80}
+                      placeholder="120"
+                    />
+                    <p className="text-xs text-muted-foreground">Minimum: 80px</p>
+                  </div>
                 </CollapsibleContent>
               </Collapsible>
 
