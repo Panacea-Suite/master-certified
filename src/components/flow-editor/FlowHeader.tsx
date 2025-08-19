@@ -28,8 +28,11 @@ export const FlowHeader: React.FC<FlowHeaderProps> = ({ globalHeader }) => {
 
   return (
     <div
-      className="h-16 border-b flex items-center justify-center overflow-hidden relative z-10"
-      style={{ backgroundColor: globalHeader.backgroundColor }}
+      className="border-b flex items-center justify-center overflow-hidden relative z-10 py-2"
+      style={{ 
+        backgroundColor: globalHeader.backgroundColor,
+        minHeight: '64px'
+      }}
     >
       {globalHeader.logoUrl ? (
         <img
@@ -40,7 +43,6 @@ export const FlowHeader: React.FC<FlowHeaderProps> = ({ globalHeader }) => {
             height: getLogoSize(globalHeader.logoSize),
             width: 'auto',
             maxWidth: '90%',
-            maxHeight: '56px', // Ensure logo doesn't exceed header height
             imageRendering: 'auto',
             transform: 'translateZ(0)',
             backfaceVisibility: 'hidden',

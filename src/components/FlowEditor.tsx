@@ -823,23 +823,18 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                       </div>
                       
                       <div>
-                        <Label htmlFor="logoSize">Logo Size: {globalHeader.logoSize}px</Label>
-                        <Slider
-                          id="logoSize"
-                          min={24}
-                          max={120}
-                          step={4}
-                          value={[parseInt(globalHeader.logoSize) || 48]}
-                          onValueChange={(value) => setGlobalHeader(prev => ({
+                        <Label htmlFor="logoSize">Logo Size (px)</Label>
+                        <Input 
+                          id="logoSize" 
+                          type="number" 
+                          min="12" 
+                          value={globalHeader.logoSize} 
+                          onChange={e => setGlobalHeader(prev => ({
                             ...prev,
-                            logoSize: value[0].toString()
-                          }))}
-                          className="w-full"
+                            logoSize: e.target.value
+                          }))} 
+                          placeholder="48" 
                         />
-                        <div className="flex justify-between text-xs text-muted-foreground">
-                          <span>24px</span>
-                          <span>120px</span>
-                        </div>
                       </div>
                       
                       <BrandColorPicker label="Header Background" value={globalHeader.backgroundColor} onChange={color => setGlobalHeader(prev => ({
