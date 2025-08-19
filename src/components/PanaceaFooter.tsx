@@ -9,7 +9,7 @@ export const PanaceaFooter: React.FC<PanaceaFooterProps> = ({
 }) => {
   return (
     <div 
-      className="mt-8 pt-6 pb-8 border-t border-border/50 flex justify-center"
+      className="pt-6 pb-8 border-t border-border/50 flex justify-center"
       style={{ backgroundColor }}
     >
       <img 
