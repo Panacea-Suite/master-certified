@@ -775,19 +775,22 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
       />
       
       <div className="space-y-2">
-        <Label htmlFor="logoSize">Logo Size (px)</Label>
-        <Input
+        <Label htmlFor="logoSize">Logo Size: {config.logoSize || 120}px</Label>
+        <Slider
           id="logoSize"
-          type="number"
-          value={config.logoSize || 120}
-          onChange={(e) => {
-            const size = Math.max(80, parseInt(e.target.value) || 120);
-            updateConfig('logoSize', size);
+          min={40}
+          max={200}
+          step={10}
+          value={[config.logoSize || 120]}
+          onValueChange={(value) => {
+            updateConfig('logoSize', value[0]);
           }}
-          min={80}
-          placeholder="120"
+          className="w-full"
         />
-        <p className="text-xs text-muted-foreground">Minimum: 80px</p>
+        <div className="flex justify-between text-xs text-muted-foreground">
+          <span>40px</span>
+          <span>200px</span>
+        </div>
       </div>
     </div>
   );

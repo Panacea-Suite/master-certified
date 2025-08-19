@@ -9,6 +9,7 @@ import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Slider } from '@/components/ui/slider';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ImageEditor } from '@/components/ImageEditor';
 import { ComponentPalette } from './flow-editor/ComponentPalette';
@@ -822,18 +823,23 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                       </div>
                       
                       <div>
-                        <Label htmlFor="logoSize">Logo Size (px)</Label>
-                        <Input 
-                          id="logoSize" 
-                          type="number" 
-                          min="12" 
-                          value={globalHeader.logoSize} 
-                          onChange={e => setGlobalHeader(prev => ({
+                        <Label htmlFor="logoSize">Logo Size: {globalHeader.logoSize}px</Label>
+                        <Slider
+                          id="logoSize"
+                          min={24}
+                          max={120}
+                          step={4}
+                          value={[parseInt(globalHeader.logoSize) || 48]}
+                          onValueChange={(value) => setGlobalHeader(prev => ({
                             ...prev,
-                            logoSize: e.target.value
-                          }))} 
-                          placeholder="48" 
+                            logoSize: value[0].toString()
+                          }))}
+                          className="w-full"
                         />
+                        <div className="flex justify-between text-xs text-muted-foreground">
+                          <span>24px</span>
+                          <span>120px</span>
+                        </div>
                       </div>
                       
                       <BrandColorPicker label="Header Background" value={globalHeader.backgroundColor} onChange={color => setGlobalHeader(prev => ({
