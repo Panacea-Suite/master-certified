@@ -24,6 +24,7 @@ import { DesignTemplateSelector } from './DesignTemplateSelector';
 import { TemplateStyleProvider } from './TemplateStyleProvider';
 import { FlowHeader } from './flow-editor/FlowHeader';
 import { BrandColorPicker } from '@/components/ui/brand-color-picker';
+import { ScrollArea } from '@/components/ui/scroll-area';
 interface FlowTemplate {
   id: string;
   name: string;
@@ -955,8 +956,8 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
               </div>
             </div>
             
-            <div className="flex-1 overflow-y-auto p-8">
-              <div className="flex justify-center">
+            <ScrollArea className="flex-1">
+              <div className="p-8 flex justify-center">
                 <MobilePreview
                   sections={currentPage?.sections.sort((a, b) => a.order - b.order) || []}
                   selectedSectionId={selectedSection?.id}
@@ -968,7 +969,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                   deviceSpec={selectedDevice}
                 />
               </div>
-            </div>
+            </ScrollArea>
           </div>
 
           {/* Right Panel - Section Properties */}
