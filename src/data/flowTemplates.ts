@@ -26,7 +26,7 @@ export interface FlowPage {
 
 export interface FlowSection {
   id: string;
-  type: 'header' | 'hero' | 'text' | 'image' | 'form' | 'card' | 'button' | 'features' | 'divider' | 'cta' | 'product_showcase' | 'store_selector';
+  type: 'header' | 'hero' | 'text' | 'image' | 'form' | 'card' | 'button' | 'features' | 'divider' | 'cta' | 'product_showcase' | 'store_selector' | 'footer';
   config: any;
 }
 
@@ -256,6 +256,14 @@ const CERTIFICATION_FLOW_PAGES: FlowPage[] = [
           align: 'center',
           fontWeight: 'semibold',
           borderRadius: '8px'
+        }
+      },
+      {
+        id: 'footer',
+        type: 'footer',
+        config: {
+          backgroundColor: 'transparent',
+          logoSize: 120
         }
       }
     ]

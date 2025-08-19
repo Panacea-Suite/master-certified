@@ -4,6 +4,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ColumnDropZone } from './ColumnDropZone';
+import { PanaceaFooter } from '../PanaceaFooter';
 import { useTemplateStyle } from '@/components/TemplateStyleProvider';
 import { 
   GripVertical, 
@@ -47,7 +48,8 @@ const sectionIcons = {
   hero: Type,
   features: CheckCircle,
   cta: MousePointer,
-  product_showcase: Package
+  product_showcase: Package,
+  footer: Layout
 };
 
 export const PageSection: React.FC<PageSectionProps> = ({
@@ -418,6 +420,16 @@ export const PageSection: React.FC<PageSectionProps> = ({
           </div>
         );
         
+      case 'footer':
+        return (
+          <div className={paddingClass}>
+            <PanaceaFooter 
+              backgroundColor={config.backgroundColor || 'transparent'} 
+              logoSize={config.logoSize || 120}
+            />
+          </div>
+        );
+        
       default:
         return (
           <div className={paddingClass}>
@@ -528,6 +540,7 @@ export const PageSection: React.FC<PageSectionProps> = ({
             {section.type === 'store_selector' && (config.label || 'Store selector')}
             {section.type === 'divider' && `${config.width || 100}% width`}
             {section.type === 'column' && `${config.layout || '2-col-50-50'} layout`}
+            {section.type === 'footer' && `Logo size: ${config.logoSize || 120}px`}
           </div>
         </div>
       </Card>

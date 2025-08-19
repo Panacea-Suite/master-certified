@@ -10,7 +10,8 @@ import {
   Columns2,
   Columns3,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  Layout
 } from 'lucide-react';
 
 interface ComponentPaletteProps {
@@ -63,6 +64,12 @@ const sectionCategories = [
         icon: Columns2,
         title: 'Column Layout',
         description: 'Create multi-column sections'
+      },
+      {
+        type: 'footer',
+        icon: Layout,
+        title: 'Footer',
+        description: 'Panacea branding footer'
       }
     ]
   }
