@@ -670,7 +670,7 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
         />
         <BrandColorPicker
           label="Button"
-          value={config.buttonColor || '#3b82f6'}
+          value={config.buttonColor || brandColors?.primary || '#3b82f6'}
           onChange={(color) => updateConfig('buttonColor', color)}
           brandColors={brandColors}
           showOpacity={true}
