@@ -83,13 +83,18 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
 
   // Initialize pages from template or create mandatory pages with landing page
   const initializePages = (): PageData[] => {
+    // Define which page types are mandatory
+    const mandatoryPageTypes = ['store_selection', 'account_creation', 'authentication', 'thank_you'];
+    
     // Handle flow_config format for user templates (synchronous)
     if (templateToEdit?.flow_config?.pages) {
       return templateToEdit.flow_config.pages.map((page: any, index: number) => ({
         ...page,
         sections: page.sections || [],
         settings: page.settings || {},
-        order: index
+        order: index,
+        // Ensure mandatory pages always have isMandatory: true, regardless of saved state
+        isMandatory: mandatoryPageTypes.includes(page.type) ? true : (page.isMandatory || false)
       }));
     }
 
@@ -306,7 +311,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
 
           // Convert processed pages to PageData format
           const convertedPages = processedTemplate.pages.map((page: any, index: number) => {
-            const mandatoryPageTypes = ['store_selection', 'authentication', 'purchase_details', 'thank_you'];
+            const mandatoryPageTypes = ['store_selection', 'account_creation', 'authentication', 'thank_you'];
             const isMandatory = mandatoryPageTypes.includes(page.type);
             return {
               id: page.id,
