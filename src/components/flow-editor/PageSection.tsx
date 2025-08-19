@@ -246,27 +246,31 @@ export const PageSection: React.FC<PageSectionProps> = ({
           >
             <div className="space-y-2">
               {config.imageUrl ? (
-                <div className="relative group">
-                  <img 
-                    src={config.imageUrl} 
-                    alt={config.alt || 'Section image'}
-                    className={`w-full h-auto ${getBorderRadius()} cursor-pointer transition-opacity group-hover:opacity-80`}
-                    style={{ maxHeight: config.height || 'auto' }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      console.log('Image clicked, selecting section and dispatching event', section.id);
-                      onSelect();
-                      // Ask editor to open image editor for this section
+                <div 
+                  className="relative group cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    console.log('Image wrapper clicked, selecting section and dispatching event', section.id);
+                    onSelect();
+                    // Delay dispatch slightly to allow the ComponentEditor to mount for this section
+                    setTimeout(() => {
                       document.dispatchEvent(
                         new CustomEvent('lov-open-image-editor', {
                           detail: { sectionId: section.id, imageUrl: config.imageUrl },
                         })
                       );
-                      console.log('Event dispatched for section:', section.id);
-                    }}
+                      console.log('lov-open-image-editor dispatched for', section.id);
+                    }, 250);
+                  }}
+                >
+                  <img 
+                    src={config.imageUrl} 
+                    alt={config.alt || 'Section image'}
+                    className={`w-full h-auto ${getBorderRadius()} select-none pointer-events-none transition-opacity group-hover:opacity-80`}
+                    style={{ maxHeight: config.height || 'auto' }}
                   />
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20 rounded">
-                    <div className="bg-white/90 rounded-full p-2">
+                  <div className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20 rounded">
+                    <div className="pointer-events-none bg-white/90 rounded-full p-2">
                       <Edit2 className="h-4 w-4 text-gray-700" />
                     </div>
                   </div>
