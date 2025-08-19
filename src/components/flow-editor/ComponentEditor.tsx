@@ -831,9 +831,15 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
               try {
                 console.log('Uploading flow image to Supabase storage...');
                 
-                // Generate unique filename
-                const fileExt = editedFile.name.split('.').pop() || 'png';
-                const fileName = `flow-images/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+                // Generate unique filename with correct extension based on MIME type
+                const typeToExt: Record<string, string> = {
+                  'image/png': 'png',
+                  'image/jpeg': 'jpg',
+                  'image/webp': 'webp',
+                  'image/svg+xml': 'svg',
+                };
+                const detectedExt = typeToExt[editedFile.type] || (editedFile.name.split('.').pop()?.toLowerCase() || 'png');
+                const fileName = `flow-images/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${detectedExt}`;
                 
                 // Upload to Supabase storage
                 const { data: uploadData, error: uploadError } = await supabase.storage

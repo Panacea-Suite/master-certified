@@ -44,6 +44,7 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
   const [hasTransparentBackground, setHasTransparentBackground] = useState(false);
   const [isCropMode, setIsCropMode] = useState(false);
   const [cropRect, setCropRect] = useState<Rect | null>(null);
+  const [wasCropped, setWasCropped] = useState(false);
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -106,6 +107,22 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
         // Store the image source for reset functionality
         setTrulyOriginalImage(img);
         setOriginalAspectRatio((img.width || 1) / (img.height || 1));
+        
+        // Default output size = original image (capped at 2048px)
+        const MAX_EXPORT = 2048;
+        let naturalW = img.width || 300;
+        let naturalH = img.height || 300;
+        if (naturalW > MAX_EXPORT || naturalH > MAX_EXPORT) {
+          if (naturalW >= naturalH) {
+            naturalH = Math.round((naturalH * MAX_EXPORT) / naturalW);
+            naturalW = MAX_EXPORT;
+          } else {
+            naturalW = Math.round((naturalW * MAX_EXPORT) / naturalH);
+            naturalH = MAX_EXPORT;
+          }
+        }
+        setOutputWidth(naturalW);
+        setOutputHeight(naturalH);
         
         // Check if the loaded image has transparency (for PNG files)
         if (file.type === 'image/png') {
@@ -330,6 +347,7 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
       
       // Update the working image reference
       setOriginalImage(resetImage);
+      setWasCropped(false);
       
       toast.success("Image reset to original");
     } catch (error) {
@@ -565,6 +583,7 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
 
           setCropRect(null);
           setIsCropMode(false);
+          setWasCropped(true);
           URL.revokeObjectURL(croppedImageUrl);
           toast.success('Image cropped successfully!');
         })
@@ -604,6 +623,17 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
       // Draw directly from the source image element to avoid any editor borders/margins
       const imageElement = originalImage.getElement() as HTMLImageElement;
 
+      // Passthrough: if no edits and size equals original, return the original file
+      const naturalW = imageElement.naturalWidth;
+      const naturalH = imageElement.naturalHeight;
+      const resized = outputWidth !== naturalW || outputHeight !== naturalH;
+      const edited = resized || (rotation[0] !== 0) || hasTransparentBackground || wasCropped;
+      if (!edited) {
+        onSave(file);
+        toast.success('Image saved successfully!');
+        return;
+      }
+
       const out = document.createElement('canvas');
       out.width = outputWidth;
       out.height = outputHeight;
@@ -618,6 +648,8 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
       }
 
       // Scale the raw image to the requested output size (no outer padding)
+      ctx.imageSmoothingEnabled = true;
+      (ctx as any).imageSmoothingQuality = 'high';
       ctx.drawImage(
         imageElement,
         0,
