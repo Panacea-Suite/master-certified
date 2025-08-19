@@ -773,6 +773,22 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
         showOpacity={true}
         id="footerBackgroundColor"
       />
+      
+      <div className="space-y-2">
+        <Label htmlFor="logoSize">Logo Size (px)</Label>
+        <Input
+          id="logoSize"
+          type="number"
+          value={config.logoSize || 120}
+          onChange={(e) => {
+            const size = Math.max(80, parseInt(e.target.value) || 120);
+            updateConfig('logoSize', size);
+          }}
+          min={80}
+          placeholder="120"
+        />
+        <p className="text-xs text-muted-foreground">Minimum: 80px</p>
+      </div>
     </div>
   );
 

@@ -2,10 +2,12 @@ import React from 'react';
 
 interface PanaceaFooterProps {
   backgroundColor?: string;
+  logoSize?: number;
 }
 
 export const PanaceaFooter: React.FC<PanaceaFooterProps> = ({ 
-  backgroundColor = 'transparent' 
+  backgroundColor = 'transparent',
+  logoSize = 120
 }) => {
   return (
     <div 
@@ -15,7 +17,8 @@ export const PanaceaFooter: React.FC<PanaceaFooterProps> = ({
       <img 
         src="/lovable-uploads/4983a5bb-4435-4141-9e62-8240ed8dce24.png" 
         alt="Powered by Panacea" 
-        className="h-12 object-contain block opacity-80 hover:opacity-100 transition-opacity"
+        className="object-contain block opacity-80 hover:opacity-100 transition-opacity"
+        style={{ height: `${logoSize}px` }}
       />
     </div>
   );

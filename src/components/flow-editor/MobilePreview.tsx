@@ -33,6 +33,7 @@ interface MobilePreviewProps {
   };
   footerConfig?: {
     backgroundColor: string;
+    logoSize?: number;
   };
   deviceSpec?: DeviceSpec;
 }
@@ -217,7 +218,7 @@ export const MobilePreview: React.FC<MobilePreviewProps> = ({
         
         {/* Panacea Footer */}
         {footerConfig ? (
-          <PanaceaFooter backgroundColor={footerConfig.backgroundColor} />
+          <PanaceaFooter backgroundColor={footerConfig.backgroundColor} logoSize={footerConfig.logoSize} />
         ) : (
           <PanaceaFooter />
         )}

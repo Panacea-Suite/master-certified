@@ -454,7 +454,7 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
           )}
           
           {/* Panacea Footer */}
-          <PanaceaFooter backgroundColor={flowConfig?.footerConfig?.backgroundColor} />
+          <PanaceaFooter backgroundColor={flowConfig?.footerConfig?.backgroundColor} logoSize={flowConfig?.footerConfig?.logoSize} />
         </div>
       </div>
     );
@@ -766,7 +766,7 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
           
           {/* Panacea Footer - Always at bottom */}
           <div className="mt-8">
-            <PanaceaFooter backgroundColor={flowConfig?.footerConfig?.backgroundColor} />
+            <PanaceaFooter backgroundColor={flowConfig?.footerConfig?.backgroundColor} logoSize={flowConfig?.footerConfig?.logoSize} />
           </div>
         </div>
       </div>
@@ -824,7 +824,7 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
         
         {/* Panacea Footer */}
         <div className="max-w-sm mx-auto px-4">
-          <PanaceaFooter backgroundColor={flowConfig?.footerConfig?.backgroundColor} />
+          <PanaceaFooter backgroundColor={flowConfig?.footerConfig?.backgroundColor} logoSize={flowConfig?.footerConfig?.logoSize} />
         </div>
       </div>
     </div>
