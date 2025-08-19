@@ -85,9 +85,9 @@ const CERTIFICATION_FLOW_PAGES: FlowPage[] = [
         type: 'divider',
         config: {
           width: 100,
-          thickness: 1,
-          color: '#e5e7eb',
-          backgroundColor: '#f3f4f6',
+          thickness: 20,
+          color: 'var(--template-accent)',
+          backgroundColor: 'transparent',
           padding: 0
         }
       },
