@@ -460,6 +460,10 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
     if (!fabricCanvas || !originalImage || !cropRect) return;
     
     try {
+      // Remove the crop rectangle from canvas before processing
+      fabricCanvas.remove(cropRect);
+      fabricCanvas.renderAll();
+      
       // Get the actual displayed crop rectangle bounds
       const cropBounds = cropRect.getBoundingRect();
       console.log('Crop bounds:', cropBounds);
@@ -487,11 +491,6 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
       const sourceCropHeight = relativeHeight * sourceHeight;
       
       console.log('Source crop coordinates:', { sourceLeft, sourceTop, sourceCropWidth, sourceCropHeight });
-
-      // Hide the crop overlay
-      cropRect.visible = false;
-      fabricCanvas.discardActiveObject();
-      fabricCanvas.renderAll();
 
       // Create a temporary canvas for cropping
       const tempCanvas = document.createElement('canvas');
@@ -570,20 +569,12 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
           toast.success('Image cropped successfully!');
         })
         .catch((error) => {
-          // Restore crop rectangle visibility on failure
-          cropRect.visible = true;
-          fabricCanvas.renderAll();
           console.error('Crop failed:', error);
           toast.error('Failed to crop image. Please try again.');
         });
     } catch (error) {
       console.error('Crop failed:', error);
       toast.error('Failed to crop image. Please try again.');
-      // Restore crop rectangle if there was an error
-      if (cropRect) {
-        cropRect.visible = true;
-        fabricCanvas.renderAll();
-      }
     }
   };
 
