@@ -151,66 +151,62 @@ export const MobilePreview: React.FC<MobilePreviewProps> = ({
   }
 
   return (
-    <div className="flex" style={{ height: `${scaledHeight}px` }}>
-      <div 
-        className="bg-white rounded-3xl shadow-xl border border-gray-200 flex flex-col overflow-hidden"
-        style={{ width: `${scaledWidth}px`, height: `${scaledHeight}px` }}
-      >
-        {/* Global Header with Brand Logo */}
-        {globalHeader.showHeader && (
-          <FlowHeader globalHeader={globalHeader} />
-        )}
+    <div 
+      className="bg-white rounded-3xl shadow-xl border border-gray-200 flex flex-col overflow-hidden"
+      style={{ width: `${scaledWidth}px`, height: `${scaledHeight}px` }}
+    >
+      {/* Global Header with Brand Logo */}
+      {globalHeader.showHeader && (
+        <FlowHeader globalHeader={globalHeader} />
+      )}
 
-        {/* Content Container without scrollbar */}
-        <div className={`flex-1 overflow-hidden ${backgroundColor ? '' : getTemplateClasses('section')}`} style={{ backgroundColor, backgroundImage: backgroundColor ? 'none' : undefined }}>
-          <div className="h-full overflow-y-auto pr-4 -mr-4">
-            {/* Drop zone at top - minimal height to prevent gaps */}
-            <div
-              className={`transition-all ${dragOverIndex === 0 ? 'h-8 bg-primary/20 border-y-2 border-dashed border-primary' : 'h-0'}`}
-              onDragOver={(e) => handleDragOver(e, 0)}
-              onDragLeave={handleDragLeave}
-              onDrop={(e) => handleDrop(e, 0)}
-            >
-              {dragOverIndex === 0 && (
-                <div className="text-xs text-primary text-center pt-1">Drop here</div>
-              )}
-            </div>
-
-            {sections
-              .sort((a, b) => a.order - b.order)
-              .map((section, index) => (
-                <React.Fragment key={section.id}>
-                  <PageSection
-                    section={section}
-                    isSelected={section.id === selectedSectionId}
-                    onSelect={() => onSelectSection?.(section)}
-                    onDelete={() => {}}
-                    onAddSection={onAddSection}
-                    isPreview={true}
-                  />
-                  
-                  {/* Drop zone between sections - minimal height to prevent gaps */}
-                  <div
-                    className={`transition-all ${dragOverIndex === index + 1 ? 'h-8 bg-primary/20 border-y-2 border-dashed border-primary' : 'h-0'}`}
-                    onDragOver={(e) => handleDragOver(e, index + 1)}
-                    onDragLeave={handleDragLeave}
-                    onDrop={(e) => handleDrop(e, index + 1)}
-                  >
-                    {dragOverIndex === index + 1 && (
-                      <div className="text-xs text-primary text-center pt-1">Drop here</div>
-                    )}
-                  </div>
-                </React.Fragment>
-              ))}
-            
-            {/* Panacea Footer */}
-            {footerConfig ? (
-              <PanaceaFooter backgroundColor={footerConfig.backgroundColor} logoSize={footerConfig.logoSize} />
-            ) : (
-              <PanaceaFooter />
-            )}
-          </div>
+      {/* Content */}
+      <div className={`flex-1 overflow-y-auto ${backgroundColor ? '' : getTemplateClasses('section')}`} style={{ backgroundColor, backgroundImage: backgroundColor ? 'none' : undefined }}>
+        {/* Drop zone at top - minimal height to prevent gaps */}
+        <div
+          className={`transition-all ${dragOverIndex === 0 ? 'h-8 bg-primary/20 border-y-2 border-dashed border-primary' : 'h-0'}`}
+          onDragOver={(e) => handleDragOver(e, 0)}
+          onDragLeave={handleDragLeave}
+          onDrop={(e) => handleDrop(e, 0)}
+        >
+          {dragOverIndex === 0 && (
+            <div className="text-xs text-primary text-center pt-1">Drop here</div>
+          )}
         </div>
+
+        {sections
+          .sort((a, b) => a.order - b.order)
+          .map((section, index) => (
+            <React.Fragment key={section.id}>
+              <PageSection
+                section={section}
+                isSelected={section.id === selectedSectionId}
+                onSelect={() => onSelectSection?.(section)}
+                onDelete={() => {}}
+                onAddSection={onAddSection}
+                isPreview={true}
+              />
+              
+              {/* Drop zone between sections - minimal height to prevent gaps */}
+              <div
+                className={`transition-all ${dragOverIndex === index + 1 ? 'h-8 bg-primary/20 border-y-2 border-dashed border-primary' : 'h-0'}`}
+                onDragOver={(e) => handleDragOver(e, index + 1)}
+                onDragLeave={handleDragLeave}
+                onDrop={(e) => handleDrop(e, index + 1)}
+              >
+                {dragOverIndex === index + 1 && (
+                  <div className="text-xs text-primary text-center pt-1">Drop here</div>
+                )}
+              </div>
+            </React.Fragment>
+          ))}
+        
+        {/* Panacea Footer */}
+        {footerConfig ? (
+          <PanaceaFooter backgroundColor={footerConfig.backgroundColor} logoSize={footerConfig.logoSize} />
+        ) : (
+          <PanaceaFooter />
+        )}
       </div>
     </div>
   );
