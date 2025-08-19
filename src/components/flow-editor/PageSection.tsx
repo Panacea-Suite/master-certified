@@ -252,7 +252,9 @@ export const PageSection: React.FC<PageSectionProps> = ({
                     alt={config.alt || 'Section image'}
                     className={`w-full h-auto ${getBorderRadius()} cursor-pointer transition-opacity group-hover:opacity-80`}
                     style={{ maxHeight: config.height || 'auto' }}
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      console.log('Image clicked, selecting section and dispatching event', section.id);
                       onSelect();
                       // Ask editor to open image editor for this section
                       document.dispatchEvent(
@@ -260,6 +262,7 @@ export const PageSection: React.FC<PageSectionProps> = ({
                           detail: { sectionId: section.id, imageUrl: config.imageUrl },
                         })
                       );
+                      console.log('Event dispatched for section:', section.id);
                     }}
                   />
                   <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20 rounded">

@@ -41,17 +41,21 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
   useEffect(() => {
     const handler = async (event: Event) => {
       const e = event as CustomEvent<{ sectionId: string; imageUrl?: string }>;
+      console.log('Event received in ComponentEditor:', e.detail, 'Current section:', section.id, section.type);
       if (section.type !== 'image') return;
       if (!e.detail || e.detail.sectionId !== section.id) return;
       const url = e.detail.imageUrl || config.imageUrl;
       if (!url) return;
+      console.log('Opening image editor for section:', section.id, 'with URL:', url);
       try {
         const res = await fetch(url);
         const blob = await res.blob();
         const file = new File([blob], 'image.png', { type: blob.type || 'image/png' });
         setSelectedImageFile(file);
         setShowImageEditor(true);
+        console.log('Image editor opened successfully');
       } catch (err) {
+        console.error('Failed to open image editor:', err);
         // fallback: do nothing
       }
     };
