@@ -258,14 +258,14 @@ const CERTIFICATION_FLOW_PAGES: FlowPage[] = [
           borderRadius: '8px'
         }
       },
-      {
-        id: 'footer',
-        type: 'footer',
-        config: {
-          backgroundColor: 'transparent',
-          logoSize: 120
-        }
-      }
+       {
+         id: 'footer',
+         type: 'footer',
+         config: {
+           backgroundColor: 'hsl(var(--secondary))',
+           logoSize: 120
+         }
+       }
     ]
   }
 ];
