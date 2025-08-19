@@ -91,7 +91,7 @@ export function templateToFlowConfig(processedTemplate: ProcessedTemplateData, b
     showHeader: true,
     brandName: brandData?.name || '',
     logoUrl: brandData?.logo_url || '',
-    backgroundColor: brandData?.brand_colors?.primary || '#000000',
+    backgroundColor: brandData?.brand_colors?.secondary || '#6B7280',
     logoSize: 'medium' as const
   };
 
@@ -101,7 +101,7 @@ export function templateToFlowConfig(processedTemplate: ProcessedTemplateData, b
         // Override with brand data if available - prioritize brand data
         brandName: brandData?.name || processedTemplate.globalHeader.brandName || '',
         logoUrl: brandData?.logo_url || processedTemplate.globalHeader.logoUrl || '',
-        backgroundColor: brandData?.brand_colors?.primary || processedTemplate.globalHeader.backgroundColor || '#000000'
+        backgroundColor: brandData?.brand_colors?.secondary || processedTemplate.globalHeader.backgroundColor || '#6B7280'
       }
     : defaultGlobalHeader;
 

@@ -361,7 +361,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
     showHeader: templateToEdit?.flow_config?.globalHeader?.showHeader ?? true,
     brandName: templateToEdit?.flow_config?.globalHeader?.brandName || brandData?.name || 'Brand',
     logoUrl: withCacheBust(brandData?.logo_url || '', (brandData as any)?.updated_at || Date.now()),
-    backgroundColor: templateToEdit?.flow_config?.globalHeader?.backgroundColor || brandData?.brand_colors?.primary || '#3b82f6',
+    backgroundColor: templateToEdit?.flow_config?.globalHeader?.backgroundColor || brandData?.brand_colors?.secondary || '#6B7280',
     logoSize: templateToEdit?.flow_config?.globalHeader?.logoSize || '120'
   });
   const [selectedSection, setSelectedSection] = useState<SectionData | null>(null);
@@ -627,6 +627,14 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
         imageUrl: '',
         alt: '',
         height: '',
+        padding: 4
+      },
+      cta: {
+        text: 'Click here',
+        buttonColor: brandData?.brand_colors?.primary || '#3b82f6',
+        textColor: '#ffffff',
+        backgroundColor: 'transparent',
+        size: 'default',
         padding: 4
       },
       store_selector: {
