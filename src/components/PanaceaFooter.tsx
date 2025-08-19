@@ -6,7 +6,7 @@ interface PanaceaFooterProps {
 }
 
 export const PanaceaFooter: React.FC<PanaceaFooterProps> = ({ 
-  backgroundColor = 'transparent',
+  backgroundColor = 'hsl(var(--secondary))',
   logoSize = 60
 }) => {
   return (
