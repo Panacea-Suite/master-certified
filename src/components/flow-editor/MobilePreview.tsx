@@ -151,19 +151,17 @@ export const MobilePreview: React.FC<MobilePreviewProps> = ({
   }
 
   return (
-    <div className="relative" style={{ width: `${scaledWidth + 20}px`, height: `${scaledHeight}px` }}>
-      <div className="absolute inset-0 overflow-y-auto pr-5">
-        <div 
-          className="bg-white rounded-3xl shadow-xl border border-gray-200 flex flex-col overflow-hidden"
-          style={{ width: `${scaledWidth}px`, height: `${scaledHeight}px` }}
-        >
-          {/* Global Header with Brand Logo */}
-          {globalHeader.showHeader && (
-            <FlowHeader globalHeader={globalHeader} />
-          )}
+    <div 
+      className="bg-white rounded-3xl shadow-xl border border-gray-200 flex flex-col overflow-hidden"
+      style={{ width: `${scaledWidth}px` }}
+    >
+      {/* Global Header with Brand Logo */}
+      {globalHeader.showHeader && (
+        <FlowHeader globalHeader={globalHeader} />
+      )}
 
-          {/* Content */}
-          <div className={`flex-1 overflow-hidden ${backgroundColor ? '' : getTemplateClasses('section')}`} style={{ backgroundColor, backgroundImage: backgroundColor ? 'none' : undefined }}>
+      {/* Content */}
+      <div className={`flex-1 ${backgroundColor ? '' : getTemplateClasses('section')}`} style={{ backgroundColor, backgroundImage: backgroundColor ? 'none' : undefined }}>
         {/* Drop zone at top - minimal height to prevent gaps */}
         <div
           className={`transition-all ${dragOverIndex === 0 ? 'h-8 bg-primary/20 border-y-2 border-dashed border-primary' : 'h-0'}`}
@@ -209,8 +207,6 @@ export const MobilePreview: React.FC<MobilePreviewProps> = ({
         ) : (
           <PanaceaFooter />
         )}
-          </div>
-        </div>
       </div>
     </div>
   );
