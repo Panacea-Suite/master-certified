@@ -828,13 +828,41 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
           <ImageEditor
             file={selectedImageFile}
             onSave={async (editedFile) => {
-              // For all images, use data URLs for simplicity
-              const reader = new FileReader();
-              reader.onload = (e) => {
-                const dataUrl = e.target?.result as string;
-                updateConfig('imageUrl', dataUrl);
-              };
-              reader.readAsDataURL(editedFile);
+              try {
+                console.log('Uploading flow image to Supabase storage...');
+                
+                // Generate unique filename
+                const fileExt = editedFile.name.split('.').pop() || 'png';
+                const fileName = `flow-images/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+                
+                // Upload to Supabase storage
+                const { data: uploadData, error: uploadError } = await supabase.storage
+                  .from('flow-content')
+                  .upload(fileName, editedFile);
+
+                if (uploadError) {
+                  console.error('Storage upload error:', uploadError);
+                  throw new Error(`Upload failed: ${uploadError.message}`);
+                }
+
+                // Get public URL
+                const { data: { publicUrl } } = supabase.storage
+                  .from('flow-content')
+                  .getPublicUrl(fileName);
+
+                console.log('Flow image uploaded successfully:', publicUrl);
+                updateConfig('imageUrl', publicUrl);
+                
+              } catch (error) {
+                console.error('Failed to upload image:', error);
+                // Fallback to data URL if storage upload fails
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                  const dataUrl = e.target?.result as string;
+                  updateConfig('imageUrl', dataUrl);
+                };
+                reader.readAsDataURL(editedFile);
+              }
               
               setShowImageEditor(false);
               setSelectedImageFile(null);

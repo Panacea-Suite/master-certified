@@ -632,9 +632,22 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
 
       out.toBlob((blob) => {
         if (blob) {
-          const editedFile = new File([blob], file.name, { type: 'image/png' });
-          onSave(editedFile);
-          toast.success('Image saved successfully!');
+          // Use original file extension and ensure maximum quality
+          const fileExtension = file.name.split('.').pop()?.toLowerCase();
+          const outputType = fileExtension === 'jpg' || fileExtension === 'jpeg' ? 'image/jpeg' : 'image/png';
+          const outputQuality = outputType === 'image/jpeg' ? 1.0 : undefined; // Maximum quality for JPEG, PNG ignores quality
+          
+          // Re-create the blob with proper format and quality
+          out.toBlob((finalBlob) => {
+            if (finalBlob) {
+              const editedFile = new File([finalBlob], file.name, { type: outputType });
+              onSave(editedFile);
+              toast.success('Image saved successfully!');
+            } else {
+              console.error('Failed to create final blob from canvas');
+              toast.error('Failed to save image. Please try again.');
+            }
+          }, outputType, outputQuality);
         } else {
           console.error('Failed to create blob from canvas');
           toast.error('Failed to save image. Please try again.');
