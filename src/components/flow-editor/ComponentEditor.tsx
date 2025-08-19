@@ -779,13 +779,13 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
         <Input
           id="logoSize"
           type="number"
-          value={config.logoSize || 120}
+          value={config.logoSize || 60}
           onChange={(e) => {
-            const size = Math.max(20, parseInt(e.target.value) || 120);
+            const size = Math.max(20, parseInt(e.target.value) || 60);
             updateConfig('logoSize', size);
           }}
           min={20}
-          placeholder="120"
+          placeholder="60"
         />
         <p className="text-xs text-muted-foreground">Minimum: 20px</p>
       </div>
