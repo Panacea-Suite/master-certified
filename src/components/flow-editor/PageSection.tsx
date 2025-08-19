@@ -461,7 +461,10 @@ export const PageSection: React.FC<PageSectionProps> = ({
         className={`cursor-pointer transition-all ${
           isSelected ? 'ring-2 ring-primary ring-offset-2' : 'hover:ring-1 hover:ring-primary/50'
         }`}
-        onClick={onSelect}
+        onClick={(e) => {
+          console.log('Preview wrapper clicked, target:', e.target);
+          onSelect();
+        }}
       >
         {renderSectionContent()}
       </div>
