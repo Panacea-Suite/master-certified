@@ -474,7 +474,10 @@ export const PageSection: React.FC<PageSectionProps> = ({
         className={`cursor-pointer transition-colors ${
           isSelected ? 'ring-2 ring-primary bg-primary/5' : 'hover:bg-muted/50'
         }`}
-        onClick={onSelect}
+        onClick={(e) => {
+          console.log('Card clicked, target:', e.target, 'currentTarget:', e.currentTarget);
+          onSelect();
+        }}
       >
         <div className="p-3">
           <div className="flex items-center gap-2 mb-2">
