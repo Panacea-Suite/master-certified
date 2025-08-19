@@ -764,8 +764,10 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
             {sections.map((section: any) => renderTemplateSection(section))}
           </div>
           
-          {/* Panacea Footer */}
-          <PanaceaFooter />
+          {/* Panacea Footer - Always at bottom */}
+          <div className="mt-8">
+            <PanaceaFooter />
+          </div>
         </div>
       </div>
     );
