@@ -236,6 +236,7 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
             <Button
               variant="outline"
               size="sm"
+              data-edit-image={section.id}
               onClick={() => {
                 // Convert existing image URL to file for editing
                 fetch(config.imageUrl)
@@ -262,6 +263,7 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
               }}
             >
               <Edit2 className="h-4 w-4" />
+              Edit
             </Button>
           )}
         </div>

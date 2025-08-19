@@ -16,7 +16,8 @@ import {
   Layout,
   CheckCircle,
   MousePointer,
-  Package
+  Package,
+  Edit2
 } from 'lucide-react';
 
 interface SectionData {
@@ -245,12 +246,29 @@ export const PageSection: React.FC<PageSectionProps> = ({
           >
             <div className="space-y-2">
               {config.imageUrl ? (
-                <img 
-                  src={config.imageUrl} 
-                  alt={config.alt || 'Section image'}
-                  className={`w-full h-auto ${getBorderRadius()}`}
-                  style={{ maxHeight: config.height || 'auto' }}
-                />
+                <div className="relative group">
+                  <img 
+                    src={config.imageUrl} 
+                    alt={config.alt || 'Section image'}
+                    className={`w-full h-auto ${getBorderRadius()} cursor-pointer transition-opacity group-hover:opacity-80`}
+                    style={{ maxHeight: config.height || 'auto' }}
+                    onClick={() => {
+                      onSelect();
+                      // Trigger edit mode for this image
+                      setTimeout(() => {
+                        const editButton = document.querySelector(`[data-edit-image="${section.id}"]`) as HTMLButtonElement;
+                        if (editButton) {
+                          editButton.click();
+                        }
+                      }, 100);
+                    }}
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20 rounded">
+                    <div className="bg-white/90 rounded-full p-2">
+                      <Edit2 className="h-4 w-4 text-gray-700" />
+                    </div>
+                  </div>
+                </div>
               ) : (
                 <div 
                   className={`w-full h-32 ${config.backgroundColor ? '' : 'bg-muted'} ${getBorderRadius()} flex items-center justify-center`}
