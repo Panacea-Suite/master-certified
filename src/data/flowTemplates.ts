@@ -262,7 +262,7 @@ const CERTIFICATION_FLOW_PAGES: FlowPage[] = [
          id: 'footer',
          type: 'footer',
          config: {
-           backgroundColor: 'hsl(var(--secondary))',
+           backgroundColor: 'var(--template-secondary)',
            logoSize: 120
          }
        }

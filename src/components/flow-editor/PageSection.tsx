@@ -424,7 +424,7 @@ export const PageSection: React.FC<PageSectionProps> = ({
         return (
           <div className={paddingClass}>
             <PanaceaFooter 
-              backgroundColor={config.backgroundColor || 'transparent'} 
+              backgroundColor={config.backgroundColor} 
               logoSize={config.logoSize || 120}
             />
           </div>
