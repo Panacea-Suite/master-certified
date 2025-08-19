@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -36,6 +36,28 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
   const { config } = section;
+
+  // Listen for global requests to open the image editor from the preview pane
+  useEffect(() => {
+    const handler = async (event: Event) => {
+      const e = event as CustomEvent<{ sectionId: string; imageUrl?: string }>;
+      if (section.type !== 'image') return;
+      if (!e.detail || e.detail.sectionId !== section.id) return;
+      const url = e.detail.imageUrl || config.imageUrl;
+      if (!url) return;
+      try {
+        const res = await fetch(url);
+        const blob = await res.blob();
+        const file = new File([blob], 'image.png', { type: blob.type || 'image/png' });
+        setSelectedImageFile(file);
+        setShowImageEditor(true);
+      } catch (err) {
+        // fallback: do nothing
+      }
+    };
+    document.addEventListener('lov-open-image-editor', handler as EventListener);
+    return () => document.removeEventListener('lov-open-image-editor', handler as EventListener);
+  }, [section.id, section.type, config.imageUrl]);
 
   const updateConfig = (key: string, value: any) => {
     onUpdate({ [key]: value });

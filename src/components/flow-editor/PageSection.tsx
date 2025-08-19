@@ -254,13 +254,12 @@ export const PageSection: React.FC<PageSectionProps> = ({
                     style={{ maxHeight: config.height || 'auto' }}
                     onClick={() => {
                       onSelect();
-                      // Trigger edit mode for this image
-                      setTimeout(() => {
-                        const editButton = document.querySelector(`[data-edit-image="${section.id}"]`) as HTMLButtonElement;
-                        if (editButton) {
-                          editButton.click();
-                        }
-                      }, 100);
+                      // Ask editor to open image editor for this section
+                      document.dispatchEvent(
+                        new CustomEvent('lov-open-image-editor', {
+                          detail: { sectionId: section.id, imageUrl: config.imageUrl },
+                        })
+                      );
                     }}
                   />
                   <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20 rounded">
