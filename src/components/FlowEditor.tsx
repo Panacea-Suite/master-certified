@@ -627,6 +627,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
         imageUrl: '',
         alt: '',
         height: '',
+        backgroundColor: brandData?.brand_colors?.secondary || 'transparent',
         padding: 4
       },
       cta: {
