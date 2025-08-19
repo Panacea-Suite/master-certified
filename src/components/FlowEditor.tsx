@@ -264,7 +264,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
           ...prev,
           brandName: freshBrandData.name || prev.brandName,
           logoUrl: withCacheBust(freshBrandData.logo_url || '', freshBrandData.updated_at || Date.now()),
-          backgroundColor: (freshBrandData.brand_colors as any)?.primary || prev.backgroundColor
+          backgroundColor: (freshBrandData.brand_colors as any)?.secondary || prev.backgroundColor
         }));
 
         // Also update any logo images in sections to use the database URL
