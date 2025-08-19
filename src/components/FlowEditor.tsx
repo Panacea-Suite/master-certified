@@ -373,7 +373,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
               ...prev,
               backgroundColor: (prev.backgroundColor && prev.backgroundColor !== 'transparent')
                 ? prev.backgroundColor
-                : (activeBrandData?.brand_colors?.secondary || 'hsl(var(--secondary))')
+                : (activeBrandData?.brand_colors?.secondary || 'var(--template-secondary)')
             }));
           }
 
@@ -870,10 +870,10 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                 <CollapsibleContent className="space-y-2 pt-2">
                   <BrandColorPicker 
                     label="Background Color" 
-                    value={footerConfig.backgroundColor} 
+                    value={footerConfig.backgroundColor === 'transparent' ? '' : footerConfig.backgroundColor} 
                     onChange={color => setFooterConfig(prev => ({
                       ...prev,
-                      backgroundColor: color
+                      backgroundColor: color || 'transparent'
                     }))} 
                     brandColors={brandData?.brand_colors} 
                     showOpacity={true} 

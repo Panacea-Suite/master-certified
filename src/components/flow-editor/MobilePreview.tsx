@@ -204,7 +204,10 @@ export const MobilePreview: React.FC<MobilePreviewProps> = ({
         {/* Panacea Footer - only if no footer section present */}
         {sections.every((s) => s.type !== 'footer') && (
           footerConfig ? (
-            <PanaceaFooter backgroundColor={footerConfig.backgroundColor} logoSize={footerConfig.logoSize} />
+            <PanaceaFooter 
+              backgroundColor={footerConfig.backgroundColor === 'transparent' ? undefined : footerConfig.backgroundColor} 
+              logoSize={footerConfig.logoSize} 
+            />
           ) : (
             <PanaceaFooter />
           )
