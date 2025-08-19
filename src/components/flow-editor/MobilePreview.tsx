@@ -115,10 +115,6 @@ export const MobilePreview: React.FC<MobilePreviewProps> = ({
         className="bg-white rounded-3xl shadow-xl border border-gray-200 flex flex-col"
         style={{ width: `${scaledWidth}px`, height: `${scaledHeight}px` }}
       >
-        {/* Status Bar */}
-        <div className="h-6 bg-black rounded-t-3xl flex items-center justify-center">
-          <div className="w-20 h-1 bg-white rounded-full"></div>
-        </div>
 
         {/* Global Header with Brand Logo */}
         {globalHeader.showHeader && (
@@ -165,10 +161,6 @@ export const MobilePreview: React.FC<MobilePreviewProps> = ({
       className="bg-white rounded-3xl shadow-xl border border-gray-200 flex flex-col"
       style={{ width: `${scaledWidth}px`, height: `${scaledHeight}px` }}
     >
-      {/* Status Bar */}
-      <div className="h-6 bg-black rounded-t-3xl flex items-center justify-center">
-        <div className="w-20 h-1 bg-white rounded-full"></div>
-      </div>
 
       {/* Global Header with Brand Logo */}
       {globalHeader.showHeader && (
