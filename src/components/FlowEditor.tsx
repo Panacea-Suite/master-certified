@@ -335,10 +335,40 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
             });
           }
 
+          // Apply template-specific defaults (e.g., Classic Certification tweaks)
+          const adjustedPages = (() => {
+            if (processedTemplate.id === 'classic-certification') {
+              return convertedPages.map((page: any) => {
+                if (page.type === 'welcome' || page.name === 'Welcome') {
+                  return {
+                    ...page,
+                    sections: page.sections.map((section: any) => {
+                      if (
+                        section.type === 'image' &&
+                        (!section.config || !section.config.backgroundColor)
+                      ) {
+                        return {
+                          ...section,
+                          config: {
+                            ...section.config,
+                            backgroundColor: 'var(--template-secondary)'
+                          }
+                        };
+                      }
+                      return section;
+                    })
+                  };
+                }
+                return page;
+              });
+            }
+            return convertedPages;
+          })();
+
           // Update pages state after processing
-          setPages(convertedPages);
-          if (convertedPages.length > 0 && !currentPageId) {
-            setCurrentPageId(convertedPages[0].id);
+          setPages(adjustedPages);
+          if (adjustedPages.length > 0 && !currentPageId) {
+            setCurrentPageId(adjustedPages[0].id);
           }
         } catch (error) {
           console.error('Error processing template in editor:', error);
