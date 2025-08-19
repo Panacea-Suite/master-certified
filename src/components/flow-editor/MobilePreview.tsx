@@ -146,11 +146,6 @@ export const MobilePreview: React.FC<MobilePreviewProps> = ({
             </div>
           )}
         </div>
-
-        {/* Home Indicator */}
-        <div className="h-6 flex items-center justify-center">
-          <div className="w-32 h-1 bg-gray-300 rounded-full"></div>
-        </div>
       </div>
     );
   }
@@ -213,11 +208,6 @@ export const MobilePreview: React.FC<MobilePreviewProps> = ({
         ) : (
           <PanaceaFooter />
         )}
-      </div>
-
-      {/* Home Indicator */}
-      <div className="h-6 flex items-center justify-center">
-        <div className="w-32 h-1 bg-gray-300 rounded-full"></div>
       </div>
     </div>
   );
