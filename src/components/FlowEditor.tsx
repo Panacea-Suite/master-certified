@@ -955,7 +955,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
               </div>
             </div>
             
-            <div className="flex-1 flex items-center justify-center p-8">
+            <div className="flex-1 overflow-y-auto flex justify-center p-8">
               <MobilePreview
                 sections={currentPage?.sections.sort((a, b) => a.order - b.order) || []}
                 selectedSectionId={selectedSection?.id}
