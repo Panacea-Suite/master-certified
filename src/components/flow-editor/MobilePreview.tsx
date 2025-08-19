@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { PageSection } from './PageSection';
+import { PanaceaFooter } from '@/components/PanaceaFooter';
 export interface DeviceSpec {
   name: string;
   displayName: string;
@@ -209,6 +210,9 @@ export const MobilePreview: React.FC<MobilePreviewProps> = ({
               </div>
             </React.Fragment>
           ))}
+        
+        {/* Panacea Footer */}
+        <PanaceaFooter />
       </div>
 
       {/* Home Indicator */}
