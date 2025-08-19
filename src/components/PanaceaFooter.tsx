@@ -9,10 +9,8 @@ export const PanaceaFooter: React.FC<PanaceaFooterProps> = ({
   backgroundColor,
   logoSize = 60
 }) => {
-  // Use brand's secondary color as default
-  const finalBackgroundColor = backgroundColor || '#f8bc55';
-  
-  console.log('PanaceaFooter render:', { backgroundColor, finalBackgroundColor });
+  // Use secondary brand color as default for certification flows
+  const finalBackgroundColor = backgroundColor || 'hsl(var(--secondary))';
   
   return (
     <div 
