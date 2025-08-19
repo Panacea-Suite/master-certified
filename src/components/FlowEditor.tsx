@@ -338,7 +338,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
               brandName: flowConfig.globalHeader.brandName,
               logoUrl: withCacheBust(activeBrandData?.logo_url || '', (activeBrandData as any)?.updated_at || Date.now()),
               backgroundColor: flowConfig.globalHeader.backgroundColor,
-              logoSize: flowConfig.globalHeader.logoSize || '120'
+              logoSize: flowConfig.globalHeader.logoSize || '60'
             });
           }
 
@@ -410,7 +410,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
     brandName: templateToEdit?.flow_config?.globalHeader?.brandName || brandData?.name || 'Brand',
     logoUrl: withCacheBust(brandData?.logo_url || '', (brandData as any)?.updated_at || Date.now()),
     backgroundColor: templateToEdit?.flow_config?.globalHeader?.backgroundColor || brandData?.brand_colors?.secondary || '#6B7280',
-    logoSize: templateToEdit?.flow_config?.globalHeader?.logoSize || '120'
+    logoSize: templateToEdit?.flow_config?.globalHeader?.logoSize || '60'
   });
   const [footerConfig, setFooterConfig] = useState({
     backgroundColor: templateToEdit?.flow_config?.footerConfig?.backgroundColor || 'transparent',
@@ -833,7 +833,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                             ...prev,
                             logoSize: e.target.value
                           }))} 
-                          placeholder="48" 
+                          placeholder="60" 
                         />
                       </div>
                       
