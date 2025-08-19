@@ -31,6 +31,9 @@ interface MobilePreviewProps {
     backgroundColor: string;
     logoSize: string;
   };
+  footerConfig?: {
+    backgroundColor: string;
+  };
   deviceSpec?: DeviceSpec;
 }
 
@@ -47,6 +50,7 @@ export const MobilePreview: React.FC<MobilePreviewProps> = ({
     backgroundColor: '#ffffff',
     logoSize: '120'
   },
+  footerConfig,
   deviceSpec = { name: 'iphone14', displayName: 'iPhone 14', width: 390, height: 844 }
 }) => {
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
@@ -212,7 +216,11 @@ export const MobilePreview: React.FC<MobilePreviewProps> = ({
           ))}
         
         {/* Panacea Footer */}
-        <PanaceaFooter />
+        {footerConfig ? (
+          <PanaceaFooter backgroundColor={footerConfig.backgroundColor} />
+        ) : (
+          <PanaceaFooter />
+        )}
       </div>
 
       {/* Home Indicator */}

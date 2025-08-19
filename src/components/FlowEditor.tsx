@@ -396,6 +396,9 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
     backgroundColor: templateToEdit?.flow_config?.globalHeader?.backgroundColor || brandData?.brand_colors?.secondary || '#6B7280',
     logoSize: templateToEdit?.flow_config?.globalHeader?.logoSize || '120'
   });
+  const [footerConfig, setFooterConfig] = useState({
+    backgroundColor: templateToEdit?.flow_config?.footerConfig?.backgroundColor || 'transparent'
+  });
   const [selectedSection, setSelectedSection] = useState<SectionData | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -408,6 +411,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
     pages: false,
     globalHeader: false,
     pageSettings: false,
+    footer: false,
     designTemplate: false,
     components: false,
     sections: false
@@ -597,6 +601,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
           sections: page.sections.sort((a, b) => a.order - b.order)
         })),
         globalHeader,
+        footerConfig,
         design_template_id: selectedTemplateId,
         theme: {
           primaryColor: '#3b82f6',
@@ -839,6 +844,31 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
 
               <Separator />
               
+              {/* Footer Settings */}
+              <Collapsible open={!collapsedSections.footer} onOpenChange={() => toggleSection('footer')}>
+                <CollapsibleTrigger asChild>
+                  <Button variant="ghost" className="w-full justify-between text-sm font-medium p-2 h-auto hover:bg-accent">
+                    <span>Footer</span>
+                    {collapsedSections.footer ? <ChevronRight className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="space-y-2 pt-2">
+                  <BrandColorPicker 
+                    label="Background Color" 
+                    value={footerConfig.backgroundColor} 
+                    onChange={color => setFooterConfig(prev => ({
+                      ...prev,
+                      backgroundColor: color
+                    }))} 
+                    brandColors={brandData?.brand_colors} 
+                    showOpacity={true} 
+                    id="footerBackground" 
+                  />
+                </CollapsibleContent>
+              </Collapsible>
+
+              <Separator />
+              
               {/* Drag Sections */}
               <Collapsible open={!collapsedSections.components} onOpenChange={() => toggleSection('components')}>
                 <CollapsibleTrigger asChild>
@@ -909,6 +939,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                 onAddSection={handleAddSection}
                 backgroundColor={pageSettings.backgroundColor}
                 globalHeader={globalHeader}
+                footerConfig={footerConfig}
                 deviceSpec={selectedDevice}
               />
             </div>

@@ -1,8 +1,17 @@
 import React from 'react';
 
-export const PanaceaFooter: React.FC = () => {
+interface PanaceaFooterProps {
+  backgroundColor?: string;
+}
+
+export const PanaceaFooter: React.FC<PanaceaFooterProps> = ({ 
+  backgroundColor = 'transparent' 
+}) => {
   return (
-    <div className="mt-8 pt-6 pb-8 border-t border-border/50 flex justify-center">
+    <div 
+      className="mt-8 pt-6 pb-8 border-t border-border/50 flex justify-center"
+      style={{ backgroundColor }}
+    >
       <img 
         src="/lovable-uploads/4983a5bb-4435-4141-9e62-8240ed8dce24.png" 
         alt="Powered by Panacea" 

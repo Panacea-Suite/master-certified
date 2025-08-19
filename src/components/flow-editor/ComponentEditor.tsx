@@ -735,6 +735,19 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
     </div>
   );
 
+  const renderFooterEditor = () => (
+    <div className="space-y-4">
+      <BrandColorPicker
+        label="Background Color"
+        value={config.backgroundColor || 'transparent'}
+        onChange={(color) => updateConfig('backgroundColor', color)}
+        brandColors={brandColors}
+        showOpacity={true}
+        id="footerBackgroundColor"
+      />
+    </div>
+  );
+
   return (
     <div className="space-y-4">
       <Card>
@@ -762,6 +775,7 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
             {section.type === 'store_selector' && renderStoreSelector()}
             {section.type === 'divider' && renderDividerEditor()}
             {section.type === 'column' && renderColumnEditor()}
+            {section.type === 'footer' && renderFooterEditor()}
           </div>
         </CardContent>
         
