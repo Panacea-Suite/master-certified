@@ -590,103 +590,59 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
   };
 
   const handleSave = () => {
-    if (!fabricCanvas) {
-      console.error("No fabric canvas available for save");
+    if (!originalImage) {
+      console.error("No image available for save");
       toast.error("Editor not ready. Please try again.");
       return;
     }
 
-    console.log("Starting image save process...");
-    console.log("Canvas dimensions:", fabricCanvas.getWidth(), "x", fabricCanvas.getHeight());
+    console.log("Starting direct image save (no canvas margins)...");
     console.log("Output dimensions:", outputWidth, "x", outputHeight);
     console.log("Has transparent background:", hasTransparentBackground);
 
     try {
-      // Ensure canvas is properly rendered before export
-      fabricCanvas.renderAll();
-      
-      // For transparent images, use the fabric canvas's built-in export with transparency
-      if (hasTransparentBackground) {
-        console.log("Exporting with transparency preserved");
-        
-        // Create a temporary canvas at the desired output size with transparency
-        const tempCanvas = document.createElement('canvas');
-        tempCanvas.width = outputWidth;
-        tempCanvas.height = outputHeight;
-        const tempCtx = tempCanvas.getContext('2d');
-        
-        if (!tempCtx) {
-          throw new Error('Could not get canvas context for output');
-        }
-        
-        // Don't fill background - keep it transparent
-        // Get the fabric canvas content with transparency
-        const fabricCanvasElement = fabricCanvas.toCanvasElement();
-        
-        // Draw the fabric canvas onto the output canvas, scaling to fit
-        tempCtx.drawImage(
-          fabricCanvasElement,
-          0, 0, fabricCanvasElement.width, fabricCanvasElement.height,
-          0, 0, outputWidth, outputHeight
-        );
-        
-        // Convert to blob with transparency
-        tempCanvas.toBlob((blob) => {
-          if (blob) {
-            console.log("Transparent blob created successfully:", blob.size, "bytes");
-            const editedFile = new File([blob], file.name, { type: "image/png" });
-            onSave(editedFile);
-            toast.success("Image saved with transparency!");
-          } else {
-            console.error("Failed to create transparent blob from canvas");
-            toast.error("Failed to save image. Please try again.");
-          }
-        }, "image/png", 1.0);
-        
+      // Draw directly from the source image element to avoid any editor borders/margins
+      const imageElement = originalImage.getElement() as HTMLImageElement;
+
+      const out = document.createElement('canvas');
+      out.width = outputWidth;
+      out.height = outputHeight;
+      const ctx = out.getContext('2d');
+      if (!ctx) throw new Error('Could not get canvas context for output');
+
+      if (!hasTransparentBackground) {
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, outputWidth, outputHeight);
       } else {
-        // For non-transparent images, add white background
-        console.log("Exporting with white background");
-        
-        const outputCanvas = document.createElement('canvas');
-        outputCanvas.width = outputWidth;
-        outputCanvas.height = outputHeight;
-        const outputCtx = outputCanvas.getContext('2d');
-
-        if (!outputCtx) {
-          throw new Error('Could not get canvas context for output');
-        }
-
-        // Set white background for non-transparent images
-        outputCtx.fillStyle = '#ffffff';
-        outputCtx.fillRect(0, 0, outputWidth, outputHeight);
-
-        // Get the fabric canvas as a regular canvas element
-        const fabricCanvasElement = fabricCanvas.toCanvasElement();
-        
-        // Scale and draw the fabric canvas onto the output canvas
-        outputCtx.drawImage(
-          fabricCanvasElement,
-          0, 0, fabricCanvasElement.width, fabricCanvasElement.height,
-          0, 0, outputWidth, outputHeight
-        );
-
-        // Convert to blob
-        outputCanvas.toBlob((blob) => {
-          if (blob) {
-            console.log("Blob created successfully:", blob.size, "bytes");
-            const editedFile = new File([blob], file.name, { type: "image/png" });
-            onSave(editedFile);
-            toast.success("Image saved successfully!");
-          } else {
-            console.error("Failed to create blob from canvas");
-            toast.error("Failed to save image. Please try again.");
-          }
-        }, "image/png", 1.0);
+        ctx.clearRect(0, 0, outputWidth, outputHeight);
       }
 
+      // Scale the raw image to the requested output size (no outer padding)
+      ctx.drawImage(
+        imageElement,
+        0,
+        0,
+        imageElement.naturalWidth,
+        imageElement.naturalHeight,
+        0,
+        0,
+        outputWidth,
+        outputHeight
+      );
+
+      out.toBlob((blob) => {
+        if (blob) {
+          const editedFile = new File([blob], file.name, { type: 'image/png' });
+          onSave(editedFile);
+          toast.success('Image saved successfully!');
+        } else {
+          console.error('Failed to create blob from canvas');
+          toast.error('Failed to save image. Please try again.');
+        }
+      }, 'image/png', 1.0);
     } catch (error) {
-      console.error("Error during save process:", error);
-      toast.error("Failed to save image. Please try again.");
+      console.error('Error during save process:', error);
+      toast.error('Failed to save image. Please try again.');
     }
   };
 
@@ -722,12 +678,12 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
             <div className={`relative ${hasTransparentBackground ? 'checkerboard-bg' : ''}`}>
               <canvas
                 ref={canvasRef}
-                className={`border border-border rounded shadow-lg max-w-full max-h-full ${
+                className={`max-w-full max-h-full ${
                   hasTransparentBackground ? 'canvas-transparent' : ''
                 }`}
               />
               {hasTransparentBackground && (
-                <div className="absolute inset-0 pointer-events-none border border-border rounded shadow-lg checkerboard-pattern" />
+                <div className="absolute inset-0 pointer-events-none checkerboard-pattern" />
               )}
             </div>
           </div>
