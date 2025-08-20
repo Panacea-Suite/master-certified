@@ -1001,9 +1001,6 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                   </div>
                   <div className="flex items-center gap-4">
                     <div className="text-xs text-muted-foreground">
-                      {currentPage?.name || 'No page selected'}
-                    </div>
-                    <div className="text-xs text-muted-foreground">
                       {selectedDevice.width} × {selectedDevice.height}px
                     </div>
                     <Button onClick={handleSave} disabled={isSaving} size="sm">
