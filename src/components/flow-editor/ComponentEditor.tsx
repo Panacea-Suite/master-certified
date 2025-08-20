@@ -539,18 +539,11 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
         />
       </div>
       
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-1 gap-2">
         <BrandColorPicker
           label="Border"
           value={config.borderColor || brandColors?.primary || '#3b82f6'}
           onChange={(color) => updateConfig('borderColor', color)}
-          brandColors={brandColors}
-          showOpacity={true}
-        />
-        <BrandColorPicker
-          label="Focus Border"
-          value={config.focusBorderColor || brandColors?.primary || '#3b82f6'}
-          onChange={(color) => updateConfig('focusBorderColor', color)}
           brandColors={brandColors}
           showOpacity={true}
         />
