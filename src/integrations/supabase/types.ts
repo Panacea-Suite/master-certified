@@ -481,6 +481,35 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_get_all_brands: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+          user_display_name: string
+          user_email: string
+          user_id: string
+        }[]
+      }
+      admin_publish_system_template: {
+        Args: { tpl_id: string }
+        Returns: Json
+      }
+      brand_fork_system_template: {
+        Args: { system_tpl_id: string; target_brand_id: string }
+        Returns: Json
+      }
+      create_campaign_from_template: {
+        Args: {
+          p_brand_id: string
+          p_campaign_name: string
+          p_template_id: string
+          p_template_version?: number
+        }
+        Returns: Json
+      }
       create_flow_with_campaign: {
         Args: {
           p_brand_id: string
