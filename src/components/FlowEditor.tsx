@@ -1040,27 +1040,31 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                         }}
                       />
                       
-                      <div className="flex-1">
-                        {currentPage?.sections.sort((a, b) => a.order - b.order).map((section) => (
-                          <div 
-                            key={section.id}
-                            className={`${section.id === selectedSection?.id ? 'ring-2 ring-primary ring-offset-2' : ''} cursor-pointer hover:ring-1 hover:ring-primary/50 transition-all`}
-                            onClick={() => setSelectedSection(section)}
-                          >
-                            <SectionRenderer
-                              section={section}
-                              isPreview={true}
-                              isRuntimeMode={true}
-                              storeOptions={[]}
-                            />
-                          </div>
-                        ))}
+                      <div className="flex-1 flex flex-col min-h-0">
+                        <div>
+                          {currentPage?.sections.sort((a, b) => a.order - b.order).map((section) => (
+                            <div 
+                              key={section.id}
+                              className={`${section.id === selectedSection?.id ? 'ring-2 ring-primary ring-offset-2' : ''} cursor-pointer hover:ring-1 hover:ring-primary/50 transition-all`}
+                              onClick={() => setSelectedSection(section)}
+                            >
+                              <SectionRenderer
+                                section={section}
+                                isPreview={true}
+                                isRuntimeMode={true}
+                                storeOptions={[]}
+                              />
+                            </div>
+                          ))}
+                        </div>
                         {/* Default footer if none present, matching editor preview */}
                         {currentPage && currentPage.sections.every(s => s.type !== 'footer') && (
-                          <PanaceaFooter 
-                            backgroundColor={footerConfig.backgroundColor === 'transparent' ? undefined : footerConfig.backgroundColor}
-                            logoSize={footerConfig.logoSize}
-                          />
+                          <div className="mt-auto shrink-0">
+                            <PanaceaFooter 
+                              backgroundColor={footerConfig.backgroundColor === 'transparent' ? undefined : footerConfig.backgroundColor}
+                              logoSize={footerConfig.logoSize}
+                            />
+                          </div>
                         )}
                       </div>
                     </div>
