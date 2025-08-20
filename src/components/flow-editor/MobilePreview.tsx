@@ -159,6 +159,7 @@ export const MobilePreview: React.FC<MobilePreviewProps> = ({
       className="bg-white rounded-3xl shadow-xl border border-gray-200 flex flex-col overflow-hidden"
       style={{ 
         width: `${scaledWidth}px`,
+        height: `${scaledHeight}px`,
         '--device-width-px': `${deviceWidth}px` 
       } as React.CSSProperties}
     >
