@@ -305,7 +305,7 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
     const sectionsToRender = (currentPageData.sections || []).sort((a: any, b: any) => a.order - b.order);
 
     return (
-      <div className="flex flex-col bg-background" style={{ '--device-width-px': '390px' } as React.CSSProperties}>
+      <div className="flex flex-col min-h-screen bg-background" style={{ '--device-width-px': '390px' } as React.CSSProperties}>
         {/* Header */}
         {flow?.flow_config?.globalHeader?.showHeader && (
           <FlowHeader 
@@ -317,14 +317,18 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
         )}
 
         {/* Page Content */}
-        <div className="flex-1">
-          {sectionsToRender.map((section: any) => 
-            renderTemplateSection(section)
-          )}
+        <div className="flex-1 flex flex-col">
+          <div className="flex-1">
+            {sectionsToRender.map((section: any) => 
+              renderTemplateSection(section)
+            )}
+          </div>
 
-          {/* Default footer */}
+          {/* Default footer - sticks to bottom */}
           {sectionsToRender.every((s: any) => s.type !== 'footer') && (
-            <PanaceaFooter backgroundColor="var(--template-secondary)" logoSize={60} />
+            <div className="mt-auto">
+              <PanaceaFooter backgroundColor="var(--template-secondary)" logoSize={60} />
+            </div>
           )}
         </div>
 

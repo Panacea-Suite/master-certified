@@ -168,7 +168,7 @@ export const MobilePreview: React.FC<MobilePreviewProps> = ({
       )}
 
       {/* Content */}
-      <div className={`flex-1 ${backgroundColor ? '' : getTemplateClasses('section')}`} style={{ backgroundColor, backgroundImage: backgroundColor ? 'none' : undefined }}>
+      <div className={`flex-1 flex flex-col ${backgroundColor ? '' : getTemplateClasses('section')}`} style={{ backgroundColor, backgroundImage: backgroundColor ? 'none' : undefined }}>
         {/* Drop zone at top - minimal height to prevent gaps */}
         <div
           className={`transition-all ${dragOverIndex === 0 ? 'h-8 bg-primary/20 border-y-2 border-dashed border-primary' : 'h-0'}`}
@@ -181,43 +181,47 @@ export const MobilePreview: React.FC<MobilePreviewProps> = ({
           )}
         </div>
 
-        {sections
-          .sort((a, b) => a.order - b.order)
-          .map((section, index) => (
-            <React.Fragment key={section.id}>
-              <PageSection
-                section={section}
-                isSelected={section.id === selectedSectionId}
-                onSelect={() => onSelectSection?.(section)}
-                onDelete={() => {}}
-                onAddSection={onAddSection}
-                isPreview={true}
-              />
-              
-              {/* Drop zone between sections - minimal height to prevent gaps */}
-              <div
-                className={`transition-all ${dragOverIndex === index + 1 ? 'h-8 bg-primary/20 border-y-2 border-dashed border-primary' : 'h-0'}`}
-                onDragOver={(e) => handleDragOver(e, index + 1)}
-                onDragLeave={handleDragLeave}
-                onDrop={(e) => handleDrop(e, index + 1)}
-              >
-                {dragOverIndex === index + 1 && (
-                  <div className="text-xs text-primary text-center pt-1">Drop here</div>
-                )}
-              </div>
-            </React.Fragment>
-          ))}
+        <div className="flex-1">
+          {sections
+            .sort((a, b) => a.order - b.order)
+            .map((section, index) => (
+              <React.Fragment key={section.id}>
+                <PageSection
+                  section={section}
+                  isSelected={section.id === selectedSectionId}
+                  onSelect={() => onSelectSection?.(section)}
+                  onDelete={() => {}}
+                  onAddSection={onAddSection}
+                  isPreview={true}
+                />
+                
+                {/* Drop zone between sections - minimal height to prevent gaps */}
+                <div
+                  className={`transition-all ${dragOverIndex === index + 1 ? 'h-8 bg-primary/20 border-y-2 border-dashed border-primary' : 'h-0'}`}
+                  onDragOver={(e) => handleDragOver(e, index + 1)}
+                  onDragLeave={handleDragLeave}
+                  onDrop={(e) => handleDrop(e, index + 1)}
+                >
+                  {dragOverIndex === index + 1 && (
+                    <div className="text-xs text-primary text-center pt-1">Drop here</div>
+                  )}
+                </div>
+              </React.Fragment>
+            ))}
+        </div>
         
-        {/* Panacea Footer - only if no footer section present */}
+        {/* Panacea Footer - only if no footer section present - sticks to bottom */}
         {sections.every((s) => s.type !== 'footer') && (
-          footerConfig ? (
-            <PanaceaFooter 
-              backgroundColor={footerConfig.backgroundColor === 'transparent' ? undefined : footerConfig.backgroundColor} 
-              logoSize={footerConfig.logoSize} 
-            />
-          ) : (
-            <PanaceaFooter />
-          )
+          <div className="mt-auto">
+            {footerConfig ? (
+              <PanaceaFooter 
+                backgroundColor={footerConfig.backgroundColor === 'transparent' ? undefined : footerConfig.backgroundColor} 
+                logoSize={footerConfig.logoSize} 
+              />
+            ) : (
+              <PanaceaFooter />
+            )}
+          </div>
         )}
       </div>
     </div>
