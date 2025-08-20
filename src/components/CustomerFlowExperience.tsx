@@ -405,11 +405,9 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
                   src={brandLogo} 
                   alt="Brand Logo"
                   className="object-contain"
-                  style={{ 
-                    height: /^\d+$/.test(globalHeader.logoSize) ? `${globalHeader.logoSize}px` :
-                           globalHeader.logoSize === 'small' ? '32px' :
-                           globalHeader.logoSize === 'large' ? '56px' : '48px'
-                  }}
+                   style={{ 
+                     height: `${parseInt(globalHeader.logoSize) || 60}px`
+                   }}
                 />
               )}
               {globalHeader.brandName && (

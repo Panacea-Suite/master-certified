@@ -829,10 +829,13 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                           type="number" 
                           min="12" 
                           value={globalHeader.logoSize} 
-                          onChange={e => setGlobalHeader(prev => ({
-                            ...prev,
-                            logoSize: e.target.value
-                          }))} 
+                           onChange={e => {
+                             console.log('Logo size changed to:', e.target.value);
+                             setGlobalHeader(prev => ({
+                               ...prev,
+                               logoSize: e.target.value
+                             }))
+                           }}
                           placeholder="60" 
                         />
                       </div>
