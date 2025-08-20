@@ -135,7 +135,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
         type: 'text',
         order: 0,
         config: {
-          content: 'Select Your Store Location',
+          content: 'Lets quickly confirm your product\'s authenticity to protect you from counterfeit products.',
           fontSize: 24,
           textColor: '#000000',
           backgroundColor: 'transparent',

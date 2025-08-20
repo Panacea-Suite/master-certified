@@ -399,7 +399,7 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
             <div className="text-center mb-6">
               <h2 className="text-xl font-bold mb-2">Store Location</h2>
               <p className="text-muted-foreground">
-                Where did you purchase this product?
+                Lets quickly confirm your product's authenticity to protect you from counterfeit products.
               </p>
             </div>
             
