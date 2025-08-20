@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { ColumnDropZone } from './ColumnDropZone';
 import { PanaceaFooter } from '../PanaceaFooter';
 import { useTemplateStyle } from '@/components/TemplateStyleProvider';
+import { SectionRenderer } from '@/components/shared/SectionRenderer';
 import { 
   GripVertical, 
   Trash2, 
@@ -317,52 +318,13 @@ export const PageSection: React.FC<PageSectionProps> = ({
         );
         
       case 'store_selector':
-        const storeOptions = config.storeOptions ? config.storeOptions.split('\n').filter(option => option.trim()) : ['Downtown Location', 'Mall Branch', 'Airport Store'];
         return (
-          <div 
-            className={`store-selector-section ${paddingClass}`}
-            style={{ backgroundColor: config.backgroundColor || 'transparent' }}
-          >
-            <div className="space-y-2">
-              {config.label && (
-                <label 
-                  className="block text-sm font-medium"
-                  style={{ color: config.textColor || '#000000' }}
-                >
-                  {config.label}
-                </label>
-              )}
-              <div className="relative">
-                <select
-                  className="w-full px-3 py-2 text-sm rounded-md border appearance-none focus:outline-none focus:ring-2 focus:ring-offset-2 bg-background z-50"
-                  style={{
-                    borderColor: config.borderColor || '#e5e7eb',
-                    color: config.textColor || '#000000',
-                    backgroundColor: config.backgroundColor || '#ffffff'
-                  }}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = config.focusBorderColor || '#3b82f6';
-                    e.target.style.boxShadow = `0 0 0 1px ${config.focusBorderColor || '#3b82f6'}`;
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = config.borderColor || '#e5e7eb';
-                    e.target.style.boxShadow = 'none';
-                  }}
-                >
-                  <option value="">{config.placeholder || 'Choose a store...'}</option>
-                  {storeOptions.map((option, index) => (
-                    <option key={index} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown 
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 pointer-events-none"
-                  style={{ color: config.textColor || '#000000' }}
-                />
-              </div>
-            </div>
-          </div>
+          <SectionRenderer
+            section={section}
+            isPreview={isPreview}
+            onSelect={onSelect}
+            storeOptions={config.storeOptions ? config.storeOptions.split('\n').filter((option: string) => option.trim()) : []}
+          />
         );
         
       case 'divider':

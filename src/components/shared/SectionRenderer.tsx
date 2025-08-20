@@ -1,0 +1,402 @@
+import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+import { PanaceaFooter } from '@/components/PanaceaFooter';
+import { useTemplateStyle } from '@/components/TemplateStyleProvider';
+import { 
+  ChevronDown,
+  CheckCircle,
+  Package,
+  Edit2,
+  ImageIcon,
+  Minus,
+  Type
+} from 'lucide-react';
+
+interface SectionData {
+  id: string;
+  type: string;
+  order: number;
+  config: any;
+  children?: SectionData[][];
+}
+
+interface SectionRendererProps {
+  section: SectionData;
+  isPreview?: boolean;
+  onSelect?: () => void;
+  storeOptions?: string[];
+  isRuntimeMode?: boolean;
+}
+
+// Cache bust utility
+const withCacheBust = (url: string, seed?: string | number): string => {
+  if (!url) return url;
+  const separator = url.includes('?') ? '&' : '?';
+  const timestamp = seed || Date.now();
+  return `${url}${separator}cb=${timestamp}`;
+};
+
+export const SectionRenderer: React.FC<SectionRendererProps> = ({
+  section,
+  isPreview = false,
+  onSelect,
+  storeOptions = [],
+  isRuntimeMode = false
+}) => {
+  const { getTemplateClasses, getBorderRadius } = useTemplateStyle();
+  const { config } = section;
+  
+  // Local state for store selector preview
+  const [previewPurchaseChannel, setPreviewPurchaseChannel] = useState<string>('');
+  const [previewSelectedStore, setPreviewSelectedStore] = useState<string>('');
+  
+  const paddingClass = `p-${config.padding ?? 4}`;
+  const templateClasses = getTemplateClasses('card');
+  
+  // Generate drop shadow style for all sections (except images which use filter shadows)
+  const getSectionStyle = () => {
+    const shadowStyle = (config.dropShadow && section.type !== 'image') ? {
+      boxShadow: `${config.shadowOffsetX || 0}px ${config.shadowOffsetY || 4}px ${config.shadowBlur || 10}px ${config.shadowSpread || 0}px ${config.shadowColor || 'rgba(0,0,0,0.1)'}`
+    } : {
+      boxShadow: 'none'
+    };
+
+    return {
+      backgroundColor: config.backgroundColor || undefined,
+      color: config.textColor || undefined,
+      border: config.backgroundColor ? 'none' : undefined,
+      padding: `${(config.padding ?? 4) * 0.25}rem`,
+      ...shadowStyle
+    };
+  };
+
+  // Generate filter drop shadow style for images
+  const getImageFilterStyle = () => {
+    return config.dropShadow ? {
+      filter: `drop-shadow(${config.shadowOffsetX || 0}px ${config.shadowOffsetY || 4}px ${config.shadowBlur || 10}px ${config.shadowColor || 'rgba(0,0,0,0.1)'})`
+    } : {};
+  };
+
+  const getSectionClassName = () => {
+    // Start with template card classes but strip visual backgrounds/borders so sections inherit page background
+    let classes = config.dropShadow 
+      ? templateClasses 
+      : templateClasses.replace(/shadow-\w+/g, '');
+
+    // Remove any background, border, and backdrop blur/gradient classes to avoid lightening
+    classes = classes
+      .replace(/\bbg-[^\s]+/g, '')
+      .replace(/\bborder[^\s]*/g, '')
+      .replace(/\bbackdrop-blur[^\s]*/g, '')
+      .replace(/\bfrom-[^\s]+\b|\bto-[^\s]+\b|\bvia-[^\s]+\b/g, '');
+    
+    return classes.trim();
+  };
+
+  switch (section.type) {
+    case 'header':
+      return (
+        <div className={`header-section ${paddingClass} ${section.config?.backgroundColor === 'primary' ? 'bg-primary' : 'bg-background'}`}>
+          {section.config?.logo && (
+            <div className="flex justify-center">
+              <div className="w-16 h-16 bg-background/20 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold">LOGO</span>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+
+    case 'hero':
+      return (
+        <div className={`hero-section ${paddingClass} ${section.config?.align === 'center' ? 'text-center' : ''}`}>
+          {section.config?.title && (
+            <h1 className="text-2xl font-bold text-foreground mb-2">
+              {section.config.title}
+            </h1>
+          )}
+          {section.config?.subtitle && (
+            <h2 className="text-lg font-medium text-muted-foreground mb-2">
+              {section.config.subtitle}
+            </h2>
+          )}
+          {section.config?.description && (
+            <p className="text-sm text-muted-foreground">
+              {section.config.description}
+            </p>
+          )}
+        </div>
+      );
+
+    case 'features':
+      return (
+        <div 
+          className={`features-section ${paddingClass} ${getSectionClassName()}`}
+          style={getSectionStyle()}
+        >
+          <div className="space-y-3">
+            {section.config?.items?.map((item: string, index: number) => (
+              <div key={index} className="flex items-center gap-3">
+                <CheckCircle className="w-5 h-5 text-primary flex-shrink-0" />
+                <span className="text-sm text-foreground">{item}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+
+    case 'cta':
+      return (
+        <div 
+          className={`cta-section ${paddingClass} ${getSectionClassName()} flex justify-center`}
+          style={getSectionStyle()}
+        >
+          <button 
+            className={`px-6 py-3 rounded-lg font-medium transition-colors ${
+              section.config?.size === 'lg' ? 'text-lg px-8 py-4' : 
+              section.config?.size === 'sm' ? 'text-sm px-4 py-2' : ''
+            }`}
+            style={{
+              backgroundColor: section.config?.buttonColor || (section.config?.color === 'secondary' ? 'var(--template-secondary)' : section.config?.color === 'accent' ? 'var(--template-accent)' : 'var(--template-primary)'),
+              color: section.config?.textColor || '#ffffff'
+            }}
+          >
+            {section.config?.text || 'Click here'}
+          </button>
+        </div>
+      );
+
+    case 'product_showcase':
+      return (
+        <div 
+          className={`product-showcase-section ${paddingClass} ${getSectionClassName()}`}
+          style={getSectionStyle()}
+        >
+          <div className={`p-6 rounded-lg ${section.config?.backgroundColor === 'primary' ? 'bg-primary/10' : 'bg-muted'}`}>
+            <div className="flex justify-center">
+              <div className="w-32 h-32 bg-muted border-2 border-dashed border-muted-foreground/30 rounded-lg flex items-center justify-center">
+                <Package className="w-12 h-12 text-muted-foreground" />
+              </div>
+            </div>
+            {section.config?.caption && (
+              <p className="text-center text-sm text-muted-foreground mt-3">
+                {section.config.caption}
+              </p>
+            )}
+          </div>
+        </div>
+      );
+
+    case 'text':
+      const formatContent = (content: string) => {
+        if (!content) return 'Click to edit text...';
+        
+        return content
+          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+          .replace(/\*(.*?)\*/g, '<em>$1</em>')
+          .replace(/__(.*?)__/g, '<u>$1</u>')
+          .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-blue-600 underline">$1</a>')
+          .replace(/\n/g, '<br/>');
+      };
+
+      return (
+        <div 
+          className={`text-section ${paddingClass} ${getSectionClassName()}`}
+          style={getSectionStyle()}
+        >
+          <div 
+            className="prose prose-sm max-w-none"
+            style={{ 
+              fontSize: `${config.fontSize || 16}px`,
+              fontWeight: config.fontWeight || 'normal',
+              textAlign: config.align || 'left'
+            }}
+            dangerouslySetInnerHTML={{ __html: formatContent(config.content) }}
+          />
+        </div>
+      );
+        
+    case 'image':        
+      return (
+        <div 
+          className={`image-section ${paddingClass} ${getSectionClassName()}`}
+          style={getSectionStyle()}
+        >
+          <div className="space-y-2">
+            {config.imageUrl ? (
+              <div 
+                className={`relative group ${!isPreview ? 'cursor-pointer' : ''}`}
+                onClick={(e) => {
+                  if (!isPreview && onSelect) {
+                    e.stopPropagation();
+                    onSelect();
+                    setTimeout(() => {
+                      document.dispatchEvent(
+                        new CustomEvent('lov-open-image-editor', {
+                          detail: { sectionId: section.id, imageUrl: config.imageUrl },
+                        })
+                      );
+                    }, 250);
+                  }
+                }}
+              >
+                <img 
+                  src={config.imageUrl} 
+                  alt={config.alt || 'Section image'}
+                  className={`w-full h-auto ${getBorderRadius()} select-none pointer-events-none transition-opacity ${!isPreview ? 'group-hover:opacity-80' : ''}`}
+                  style={{ 
+                    maxHeight: config.height || 'auto',
+                    ...getImageFilterStyle()
+                  }}
+                />
+                {!isPreview && (
+                  <div className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20 rounded">
+                    <div className="pointer-events-none bg-white/90 rounded-full p-2">
+                      <Edit2 className="h-4 w-4 text-gray-700" />
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div 
+                className={`w-full h-32 ${config.backgroundColor ? '' : 'bg-muted'} ${getBorderRadius()} flex items-center justify-center`}
+              >
+                <div className="text-center text-muted-foreground">
+                  <ImageIcon className="h-8 w-8 mx-auto mb-2" />
+                  <p className="text-sm">No image selected</p>
+                </div>
+              </div>
+            )}
+            {config.caption && (
+              <p className="text-sm text-muted-foreground text-center">
+                {config.caption}
+              </p>
+            )}
+          </div>
+        </div>
+      );
+        
+    case 'store_selector':
+      // Use actual store options if provided, otherwise fall back to config
+      const availableStores = storeOptions.length > 0 ? storeOptions : 
+        (config.storeOptions ? config.storeOptions.split('\n').filter((option: string) => option.trim()) : 
+        ['Downtown Location', 'Mall Branch', 'Airport Store']);
+
+      return (
+        <div 
+          className={`store-selector-section ${paddingClass}`}
+          style={{ backgroundColor: config.backgroundColor || 'transparent' }}
+        >
+          <div className="space-y-4">
+            <div className="text-center mb-6">
+              <h2 className="text-xl font-bold mb-2">Store Location</h2>
+              <p className="text-muted-foreground">
+                Where did you purchase this product?
+              </p>
+            </div>
+            
+            {!previewPurchaseChannel ? (
+              // Step 1: Purchase Channel Selection
+              <div className="space-y-3">
+                <Button
+                  className="w-full"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setPreviewPurchaseChannel('in-store');
+                  }}
+                >
+                  In-store
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setPreviewPurchaseChannel('online');
+                  }}
+                >
+                  Online
+                </Button>
+              </div>
+            ) : (
+              // Step 2: Store Selection
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <span>Purchase channel:</span>
+                  <span className="font-medium">
+                    {previewPurchaseChannel === 'in-store' ? 'In-store' : 'Online'}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setPreviewPurchaseChannel('');
+                      setPreviewSelectedStore('');
+                    }}
+                    className="text-xs underline h-auto p-0"
+                  >
+                    Change
+                  </Button>
+                </div>
+                
+                <div>
+                  <Label htmlFor="store">Select Store</Label>
+                  <Select 
+                    value={previewSelectedStore} 
+                    onValueChange={(value) => {
+                      setPreviewSelectedStore(value);
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Choose your store" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableStores.map((store: string) => (
+                        <SelectItem key={store} value={store}>{store}</SelectItem>
+                      ))}
+                      <SelectItem value="other">Other Store</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+        
+    case 'divider':
+      return (
+        <div className={`divider-section ${paddingClass} ${getSectionClassName()}`} style={getSectionStyle()}>
+          <hr 
+            className="border-0"
+            style={{
+              height: `${config.thickness || 1}px`,
+              backgroundColor: config.color || '#e5e7eb',
+              width: `${config.width || 100}%`,
+              margin: config.fullWidth ? '0' : '0 auto'
+            }}
+          />
+        </div>
+      );
+        
+    case 'footer':
+      return (
+        <div className={paddingClass}>
+          <PanaceaFooter 
+            backgroundColor={config.backgroundColor} 
+            logoSize={config.logoSize || 120}
+          />
+        </div>
+      );
+        
+    default:
+      return (
+        <div className={paddingClass}>
+          <p className="text-muted-foreground">Unknown section type</p>
+        </div>
+      );
+  }
+};

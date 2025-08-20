@@ -12,19 +12,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Slider } from '@/components/ui/slider';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ImageEditor } from '@/components/ImageEditor';
+import { BrandColorPicker } from '@/components/ui/brand-color-picker';
+import { PageManager } from './flow-editor/PageManager';
 import { ComponentPalette } from './flow-editor/ComponentPalette';
 import { MobilePreview } from './flow-editor/MobilePreview';
-import { PageSection } from './flow-editor/PageSection';
 import { ComponentEditor } from './flow-editor/ComponentEditor';
-import { PageManager, PageData } from './flow-editor/PageManager';
-import { Smartphone, Save, ArrowLeft, Upload, ChevronDown, ChevronRight, Palette } from 'lucide-react';
+import { PageSection } from './flow-editor/PageSection';
+import { FlowHeader } from './flow-editor/FlowHeader';
+import { TemplateStyleProvider } from './TemplateStyleProvider';
+import { SectionRenderer } from '@/components/shared/SectionRenderer';
+import { Smartphone, Save, ChevronDown, ChevronRight, ArrowLeft, Eye, Code } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { DesignTemplateSelector } from './DesignTemplateSelector';
-import { TemplateStyleProvider } from './TemplateStyleProvider';
-import { FlowHeader } from './flow-editor/FlowHeader';
-import { BrandColorPicker } from '@/components/ui/brand-color-picker';
 import { ScrollArea } from '@/components/ui/scroll-area';
 interface FlowTemplate {
   id: string;
@@ -33,6 +34,17 @@ interface FlowTemplate {
   flow_config: any;
   created_by: string | null;
 }
+
+interface PageData {
+  id: string;
+  type: 'landing' | 'store_selection' | 'account_creation' | 'authentication' | 'content_display' | 'thank_you';
+  name: string;
+  sections: SectionData[];
+  settings: any;
+  isMandatory?: boolean;
+  order: number;
+}
+
 interface FlowEditorProps {
   isOpen: boolean;
   onClose: () => void;
@@ -45,6 +57,7 @@ interface FlowEditorProps {
     brand_colors?: any;
   } | null;
 }
+
 interface SectionData {
   id: string;
   type: string;
@@ -421,6 +434,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
   const [isSaving, setIsSaving] = useState(false);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(templateToEdit?.flow_config?.design_template_id || null);
   const [showTemplateSelector, setShowTemplateSelector] = useState(false);
+  const [isRuntimePreview, setIsRuntimePreview] = useState(false);
 
   // Collapsible sections state
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({
@@ -959,6 +973,26 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                 <div className="flex items-center gap-2 flex-1">
                   <Smartphone className="h-5 w-5 text-primary" />
                   <h3 className="font-semibold">Flow Preview</h3>
+                  <div className="flex items-center gap-1 ml-4">
+                    <Button
+                      variant={!isRuntimePreview ? "default" : "ghost"}
+                      size="sm"
+                      onClick={() => setIsRuntimePreview(false)}
+                      className="h-7 px-2 text-xs"
+                    >
+                      <Code className="h-3 w-3 mr-1" />
+                      Editor
+                    </Button>
+                    <Button
+                      variant={isRuntimePreview ? "default" : "ghost"}
+                      size="sm"
+                      onClick={() => setIsRuntimePreview(true)}
+                      className="h-7 px-2 text-xs"
+                    >
+                      <Eye className="h-3 w-3 mr-1" />
+                      Runtime
+                    </Button>
+                  </div>
                 </div>
                 <div className="flex justify-center flex-1">
                   <span className="text-sm text-muted-foreground">
@@ -976,16 +1010,78 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
             
             <ScrollArea className="flex-1">
               <div className="p-8 flex justify-center">
-                <MobilePreview
-                  sections={currentPage?.sections.sort((a, b) => a.order - b.order) || []}
-                  selectedSectionId={selectedSection?.id}
-                  onSelectSection={setSelectedSection}
-                  onAddSection={handleAddSection}
-                  backgroundColor={pageSettings.backgroundColor}
-                  globalHeader={globalHeader}
-                  footerConfig={footerConfig}
-                  deviceSpec={selectedDevice}
-                />
+                {isRuntimePreview ? (
+                  // Runtime Preview - shows actual customer experience
+                  <div className="bg-white rounded-lg shadow-lg overflow-hidden" style={{ width: selectedDevice.width, height: selectedDevice.height }}>
+                    <div className="transform scale-75 origin-top-left" style={{ width: selectedDevice.width / 0.75, height: selectedDevice.height / 0.75 }}>
+                      {/* Runtime preview content using SectionRenderer */}
+                      <div 
+                        className="min-h-full"
+                        style={{ backgroundColor: pageSettings.backgroundColor }}
+                      >
+                        {/* Global Header */}
+                        {globalHeader.showHeader && (brandData?.logo_url || globalHeader.brandName) && (
+                          <div 
+                            className="h-16 flex items-center justify-center text-white"
+                            style={{ backgroundColor: globalHeader.backgroundColor }}
+                          >
+                            <div className="flex items-center justify-center gap-3">
+                              {brandData?.logo_url && (
+                                <img 
+                                  src={brandData.logo_url} 
+                                  alt="Brand Logo"
+                                  className="object-contain"
+                                   style={{ 
+                                     height: `${parseInt(globalHeader.logoSize) || 60}px`
+                                   }}
+                                />
+                              )}
+                              {globalHeader.brandName && (
+                                <h1 className={`font-semibold ${
+                                  globalHeader.logoSize === 'small' ? 'text-lg' :
+                                  globalHeader.logoSize === 'large' ? 'text-2xl' : 'text-xl'
+                                }`}>
+                                  {globalHeader.brandName}
+                                </h1>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                        
+                        <div className="max-w-sm mx-auto px-4 py-6">
+                          <div className="space-y-4">
+                            {currentPage?.sections.sort((a, b) => a.order - b.order).map((section) => (
+                              <div 
+                                key={section.id}
+                                className={`${section.id === selectedSection?.id ? 'ring-2 ring-primary ring-offset-2' : ''}`}
+                                onClick={() => setSelectedSection(section)}
+                              >
+                                <SectionRenderer
+                                  section={section}
+                                  isPreview={true}
+                                  storeOptions={[]}
+                                  isRuntimeMode={true}
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  // Editor Preview - shows drag-and-drop interface
+                  <MobilePreview
+                    sections={currentPage?.sections.sort((a, b) => a.order - b.order) || []}
+                    selectedSectionId={selectedSection?.id}
+                    onSelectSection={setSelectedSection}
+                    onAddSection={handleAddSection}
+                    backgroundColor={pageSettings.backgroundColor}
+                    globalHeader={globalHeader}
+                    footerConfig={footerConfig}
+                    deviceSpec={selectedDevice}
+                  />
+                )}
               </div>
             </ScrollArea>
           </div>
