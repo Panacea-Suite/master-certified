@@ -529,6 +529,8 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
         );
 
       case 'store_location':
+        console.log('Store location stage - userInputs:', userInputs);
+        console.log('Purchase channel:', userInputs.purchaseChannel);
         return (
           <div className="space-y-4">
             <div className="text-center mb-6">
