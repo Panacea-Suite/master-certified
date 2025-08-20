@@ -25,9 +25,14 @@ interface SectionData {
 interface SectionRendererProps {
   section: SectionData;
   isPreview?: boolean;
+  isRuntimeMode?: boolean;
   onSelect?: () => void;
   storeOptions?: string[];
-  isRuntimeMode?: boolean;
+  // Controlled store selector props for runtime binding
+  purchaseChannel?: 'in-store' | 'online' | '';
+  selectedStore?: string;
+  onPurchaseChannelChange?: (channel: 'in-store' | 'online' | '') => void;
+  onSelectedStoreChange?: (store: string) => void;
 }
 
 // Cache bust utility
@@ -41,16 +46,42 @@ const withCacheBust = (url: string, seed?: string | number): string => {
 export const SectionRenderer: React.FC<SectionRendererProps> = ({
   section,
   isPreview = false,
+  isRuntimeMode = false,
   onSelect,
   storeOptions = [],
-  isRuntimeMode = false
+  purchaseChannel,
+  selectedStore,
+  onPurchaseChannelChange,
+  onSelectedStoreChange
 }) => {
   const { getTemplateClasses, getBorderRadius } = useTemplateStyle();
   const { config } = section;
   
-  // Local state for store selector preview
+  // Local state for store selector preview (uncontrolled mode)
   const [previewPurchaseChannel, setPreviewPurchaseChannel] = useState<string>('');
   const [previewSelectedStore, setPreviewSelectedStore] = useState<string>('');
+  
+  // Use controlled props if provided, otherwise use internal state
+  const isControlled = purchaseChannel !== undefined && onPurchaseChannelChange !== undefined;
+  const currentPurchaseChannel = isControlled ? purchaseChannel! : previewPurchaseChannel;
+  const currentSelectedStore = isControlled ? (selectedStore || '') : previewSelectedStore;
+  
+  const handlePurchaseChannelChange = (channel: 'in-store' | 'online' | '') => {
+    if (isControlled && onPurchaseChannelChange) {
+      onPurchaseChannelChange(channel);
+    } else {
+      setPreviewPurchaseChannel(channel);
+      setPreviewSelectedStore(''); // Reset store selection
+    }
+  };
+  
+  const handleSelectedStoreChange = (store: string) => {
+    if (isControlled && onSelectedStoreChange) {
+      onSelectedStoreChange(store);
+    } else {
+      setPreviewSelectedStore(store);
+    }
+  };
   
   const paddingClass = `p-${config.padding ?? 4}`;
   const templateClasses = getTemplateClasses('card');
@@ -297,14 +328,14 @@ export const SectionRenderer: React.FC<SectionRendererProps> = ({
               </p>
             </div>
             
-            {!previewPurchaseChannel ? (
+            {!currentPurchaseChannel ? (
               // Step 1: Purchase Channel Selection
               <div className="space-y-3">
                 <Button
                   className="w-full"
                   onClick={(e) => {
                     e.stopPropagation();
-                    setPreviewPurchaseChannel('in-store');
+                    handlePurchaseChannelChange('in-store');
                   }}
                 >
                   In-store
@@ -314,7 +345,7 @@ export const SectionRenderer: React.FC<SectionRendererProps> = ({
                   className="w-full"
                   onClick={(e) => {
                     e.stopPropagation();
-                    setPreviewPurchaseChannel('online');
+                    handlePurchaseChannelChange('online');
                   }}
                 >
                   Online
@@ -326,15 +357,14 @@ export const SectionRenderer: React.FC<SectionRendererProps> = ({
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <span>Purchase channel:</span>
                   <span className="font-medium">
-                    {previewPurchaseChannel === 'in-store' ? 'In-store' : 'Online'}
+                    {currentPurchaseChannel === 'in-store' ? 'In-store' : 'Online'}
                   </span>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={(e) => {
                       e.stopPropagation();
-                      setPreviewPurchaseChannel('');
-                      setPreviewSelectedStore('');
+                      handlePurchaseChannelChange('');
                     }}
                     className="text-xs underline h-auto p-0"
                   >
@@ -345,10 +375,8 @@ export const SectionRenderer: React.FC<SectionRendererProps> = ({
                 <div>
                   <Label htmlFor="store">Select Store</Label>
                   <Select 
-                    value={previewSelectedStore} 
-                    onValueChange={(value) => {
-                      setPreviewSelectedStore(value);
-                    }}
+                    value={currentSelectedStore} 
+                    onValueChange={handleSelectedStoreChange}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Choose your store" />

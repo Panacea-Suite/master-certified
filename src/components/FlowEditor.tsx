@@ -1011,64 +1011,51 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
             <ScrollArea className="flex-1">
               <div className="p-8 flex justify-center">
                 {isRuntimePreview ? (
-                  // Runtime Preview - shows actual customer experience
-                  <div className="bg-white rounded-lg shadow-lg overflow-hidden" style={{ width: selectedDevice.width, height: selectedDevice.height }}>
-                    <div className="transform scale-75 origin-top-left" style={{ width: selectedDevice.width / 0.75, height: selectedDevice.height / 0.75 }}>
-                      {/* Runtime preview content using SectionRenderer */}
-                      <div 
-                        className="min-h-full"
-                        style={{ backgroundColor: pageSettings.backgroundColor }}
-                      >
-                        {/* Global Header */}
-                        {globalHeader.showHeader && (brandData?.logo_url || globalHeader.brandName) && (
-                          <div 
-                            className="h-16 flex items-center justify-center text-white"
-                            style={{ backgroundColor: globalHeader.backgroundColor }}
-                          >
-                            <div className="flex items-center justify-center gap-3">
-                              {brandData?.logo_url && (
-                                <img 
-                                  src={brandData.logo_url} 
-                                  alt="Brand Logo"
-                                  className="object-contain"
-                                   style={{ 
-                                     height: `${parseInt(globalHeader.logoSize) || 60}px`
-                                   }}
-                                />
-                              )}
-                              {globalHeader.brandName && (
-                                <h1 className={`font-semibold ${
-                                  globalHeader.logoSize === 'small' ? 'text-lg' :
-                                  globalHeader.logoSize === 'large' ? 'text-2xl' : 'text-xl'
-                                }`}>
-                                  {globalHeader.brandName}
-                                </h1>
-                              )}
+                  // Runtime Preview - wrapped with TemplateStyleProvider for consistency
+                  <TemplateStyleProvider 
+                    templateId={selectedTemplateId} 
+                    brandColors={brandData?.brand_colors}
+                  >
+                    <div className="bg-white rounded-lg shadow-lg overflow-hidden" style={{ width: selectedDevice.width, height: selectedDevice.height }}>
+                      <div className="transform scale-75 origin-top-left" style={{ width: selectedDevice.width / 0.75, height: selectedDevice.height / 0.75 }}>
+                        {/* Runtime preview content using SectionRenderer */}
+                        <div 
+                          className="min-h-full"
+                          style={{ backgroundColor: pageSettings.backgroundColor }}
+                        >
+                          {/* Use FlowHeader for consistency with editor and runtime */}
+                          <FlowHeader 
+                            globalHeader={{
+                              showHeader: globalHeader.showHeader,
+                              brandName: globalHeader.brandName || brandData?.name || '',
+                              logoUrl: brandData?.logo_url || '',
+                              backgroundColor: globalHeader.backgroundColor,
+                              logoSize: globalHeader.logoSize || '60'
+                            }}
+                          />
+                          
+                          <div className="max-w-sm mx-auto px-4 py-6">
+                            <div className="space-y-4">
+                              {currentPage?.sections.sort((a, b) => a.order - b.order).map((section) => (
+                                <div 
+                                  key={section.id}
+                                  className={`${section.id === selectedSection?.id ? 'ring-2 ring-primary ring-offset-2' : ''}`}
+                                  onClick={() => setSelectedSection(section)}
+                                >
+                                  <SectionRenderer
+                                    section={section}
+                                    isPreview={true}
+                                    isRuntimeMode={true}
+                                    storeOptions={[]}
+                                  />
+                                </div>
+                              ))}
                             </div>
-                          </div>
-                        )}
-                        
-                        <div className="max-w-sm mx-auto px-4 py-6">
-                          <div className="space-y-4">
-                            {currentPage?.sections.sort((a, b) => a.order - b.order).map((section) => (
-                              <div 
-                                key={section.id}
-                                className={`${section.id === selectedSection?.id ? 'ring-2 ring-primary ring-offset-2' : ''}`}
-                                onClick={() => setSelectedSection(section)}
-                              >
-                                <SectionRenderer
-                                  section={section}
-                                  isPreview={true}
-                                  storeOptions={[]}
-                                  isRuntimeMode={true}
-                                />
-                              </div>
-                            ))}
                           </div>
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </TemplateStyleProvider>
                 ) : (
                   // Editor Preview - shows drag-and-drop interface
                   <MobilePreview

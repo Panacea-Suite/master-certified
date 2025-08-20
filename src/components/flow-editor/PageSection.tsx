@@ -125,300 +125,77 @@ export const PageSection: React.FC<PageSectionProps> = ({
   };
 
   const renderSectionContent = () => {
-    switch (section.type) {
-      case 'header':
-        return (
-          <div className={`header-section ${paddingClass} ${section.config?.backgroundColor === 'primary' ? 'bg-primary' : 'bg-background'}`}>
-            {section.config?.logo && (
-              <div className="flex justify-center">
-                <div className="w-16 h-16 bg-background/20 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold">LOGO</span>
-                </div>
-              </div>
+    // Delegate all section rendering to SectionRenderer, but retain column layout logic here
+    if (section.type === 'column') {
+      return (
+        <div 
+          className={`column-section ${paddingClass}`}
+          style={{ backgroundColor: config.backgroundColor || 'transparent' }}
+        >
+          <div 
+            className={`grid ${getColumnGridClass(config.layout)}`}
+            style={{ gap: `${(config.gap || 4) * 0.25}rem` }}
+          >
+            {getColumnCount(config.layout) === 1 && (
+              <ColumnDropZone 
+                columnIndex={0}
+                sections={Array.isArray(section.children?.[0]) ? section.children[0] : []}
+                onAddSection={onAddSection}
+                parentId={section.id}
+              />
             )}
-          </div>
-        );
-
-      case 'hero':
-        return (
-          <div className={`hero-section ${paddingClass} ${section.config?.align === 'center' ? 'text-center' : ''}`}>
-            {section.config?.title && (
-              <h1 className="text-2xl font-bold text-foreground mb-2">
-                {section.config.title}
-              </h1>
-            )}
-            {section.config?.subtitle && (
-              <h2 className="text-lg font-medium text-muted-foreground mb-2">
-                {section.config.subtitle}
-              </h2>
-            )}
-            {section.config?.description && (
-              <p className="text-sm text-muted-foreground">
-                {section.config.description}
-              </p>
-            )}
-          </div>
-        );
-
-      case 'features':
-        return (
-          <div 
-            className={`features-section ${paddingClass} ${getSectionClassName()}`}
-            style={getSectionStyle()}
-          >
-            <div className="space-y-3">
-              {section.config?.items?.map((item: string, index: number) => (
-                <div key={index} className="flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5 text-primary flex-shrink-0" />
-                  <span className="text-sm text-foreground">{item}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        );
-
-      case 'cta':
-        return (
-          <div 
-            className={`cta-section ${paddingClass} ${getSectionClassName()} flex justify-center`}
-            style={getSectionStyle()}
-          >
-            <button 
-              className={`px-6 py-3 rounded-lg font-medium transition-colors ${
-                section.config?.size === 'lg' ? 'text-lg px-8 py-4' : 
-                section.config?.size === 'sm' ? 'text-sm px-4 py-2' : ''
-              }`}
-              style={{
-                backgroundColor: section.config?.buttonColor || (section.config?.color === 'secondary' ? 'var(--template-secondary)' : section.config?.color === 'accent' ? 'var(--template-accent)' : 'var(--template-primary)'),
-                color: section.config?.textColor || '#ffffff'
-              }}
-            >
-              {section.config?.text || 'Click here'}
-            </button>
-          </div>
-        );
-
-      case 'product_showcase':
-        return (
-          <div 
-            className={`product-showcase-section ${paddingClass} ${getSectionClassName()}`}
-            style={getSectionStyle()}
-          >
-            <div className={`p-6 rounded-lg ${section.config?.backgroundColor === 'primary' ? 'bg-primary/10' : 'bg-muted'}`}>
-              <div className="flex justify-center">
-                <div className="w-32 h-32 bg-muted border-2 border-dashed border-muted-foreground/30 rounded-lg flex items-center justify-center">
-                  <Package className="w-12 h-12 text-muted-foreground" />
-                </div>
-              </div>
-              {section.config?.caption && (
-                <p className="text-center text-sm text-muted-foreground mt-3">
-                  {section.config.caption}
-                </p>
-              )}
-            </div>
-          </div>
-        );
-
-      case 'text':
-        const formatContent = (content: string) => {
-          if (!content) return 'Click to edit text...';
-          
-          return content
-            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-            .replace(/\*(.*?)\*/g, '<em>$1</em>')
-            .replace(/__(.*?)__/g, '<u>$1</u>')
-            .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-blue-600 underline">$1</a>')
-            .replace(/\n/g, '<br/>');
-        };
-
-        return (
-          <div 
-            className={`text-section ${paddingClass} ${getSectionClassName()}`}
-            style={getSectionStyle()}
-          >
-            <div 
-              className="prose prose-sm max-w-none"
-              style={{ 
-                fontSize: `${config.fontSize || 16}px`,
-                fontWeight: config.fontWeight || 'normal',
-                textAlign: config.align || 'left'
-              }}
-              dangerouslySetInnerHTML={{ __html: formatContent(config.content) }}
-            />
-          </div>
-        );
-        
-      case 'image':        
-        return (
-          <div 
-            className={`image-section ${paddingClass} ${getSectionClassName()}`}
-            style={getSectionStyle()}
-          >
-            <div className="space-y-2">
-              {config.imageUrl ? (
-                <div 
-                  className="relative group cursor-pointer"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    console.log('Image wrapper clicked, selecting section and dispatching event', section.id);
-                    onSelect();
-                    // Delay dispatch slightly to allow the ComponentEditor to mount for this section
-                    setTimeout(() => {
-                      document.dispatchEvent(
-                        new CustomEvent('lov-open-image-editor', {
-                          detail: { sectionId: section.id, imageUrl: config.imageUrl },
-                        })
-                      );
-                      console.log('lov-open-image-editor dispatched for', section.id);
-                    }, 250);
-                  }}
-                >
-                  <img 
-                    src={config.imageUrl} 
-                    alt={config.alt || 'Section image'}
-                    onLoad={(e) => {
-                      const img = e.currentTarget;
-                      console.log('Flow image loaded', {
-                        naturalWidth: img.naturalWidth,
-                        naturalHeight: img.naturalHeight,
-                        renderedWidth: img.clientWidth,
-                        renderedHeight: img.clientHeight,
-                        src: img.currentSrc
-                      });
-                    }}
-                    className={`w-full h-auto ${getBorderRadius()} select-none pointer-events-none transition-opacity group-hover:opacity-80`}
-                    style={{ 
-                      maxHeight: config.height || 'auto',
-                      ...getImageFilterStyle()
-                    }}
-                  />
-                  <div className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20 rounded">
-                    <div className="pointer-events-none bg-white/90 rounded-full p-2">
-                      <Edit2 className="h-4 w-4 text-gray-700" />
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div 
-                  className={`w-full h-32 ${config.backgroundColor ? '' : 'bg-muted'} ${getBorderRadius()} flex items-center justify-center`}
-                >
-                  <div className="text-center text-muted-foreground">
-                    <ImageIcon className="h-8 w-8 mx-auto mb-2" />
-                    <p className="text-sm">No image selected</p>
-                  </div>
-                </div>
-              )}
-              {config.caption && (
-                <p className="text-sm text-muted-foreground text-center">
-                  {config.caption}
-                </p>
-              )}
-            </div>
-          </div>
-        );
-        
-      case 'store_selector':
-        return (
-          <SectionRenderer
-            section={section}
-            isPreview={isPreview}
-            onSelect={onSelect}
-            storeOptions={config.storeOptions ? config.storeOptions.split('\n').filter((option: string) => option.trim()) : []}
-          />
-        );
-        
-      case 'divider':
-        return (
-          <div className={`divider-section ${paddingClass} ${getSectionClassName()}`} style={getSectionStyle()}>
-            <hr 
-              className="border-0"
-              style={{
-                height: `${config.thickness || 1}px`,
-                backgroundColor: config.color || '#e5e7eb',
-                width: `${config.width || 100}%`,
-                margin: config.fullWidth ? '0' : '0 auto'
-              }}
-            />
-          </div>
-        );
-        
-      case 'column':
-        return (
-          <div 
-            className={`column-section ${paddingClass}`}
-            style={{ backgroundColor: config.backgroundColor || 'transparent' }}
-          >
-            <div 
-              className={`grid ${getColumnGridClass(config.layout)}`}
-              style={{ gap: `${(config.gap || 4) * 0.25}rem` }}
-            >
-              {getColumnCount(config.layout) === 1 && (
+            {getColumnCount(config.layout) === 2 && (
+              <>
                 <ColumnDropZone 
                   columnIndex={0}
                   sections={Array.isArray(section.children?.[0]) ? section.children[0] : []}
                   onAddSection={onAddSection}
                   parentId={section.id}
                 />
-              )}
-              {getColumnCount(config.layout) === 2 && (
-                <>
-                  <ColumnDropZone 
-                    columnIndex={0}
-                    sections={Array.isArray(section.children?.[0]) ? section.children[0] : []}
-                    onAddSection={onAddSection}
-                    parentId={section.id}
-                  />
-                  <ColumnDropZone 
-                    columnIndex={1}
-                    sections={Array.isArray(section.children?.[1]) ? section.children[1] : []}
-                    onAddSection={onAddSection}
-                    parentId={section.id}
-                  />
-                </>
-              )}
-              {getColumnCount(config.layout) === 3 && (
-                <>
-                  <ColumnDropZone 
-                    columnIndex={0}
-                    sections={Array.isArray(section.children?.[0]) ? section.children[0] : []}
-                    onAddSection={onAddSection}
-                    parentId={section.id}
-                  />
-                  <ColumnDropZone 
-                    columnIndex={1}
-                    sections={Array.isArray(section.children?.[1]) ? section.children[1] : []}
-                    onAddSection={onAddSection}
-                    parentId={section.id}
-                  />
-                  <ColumnDropZone 
-                    columnIndex={2}
-                    sections={Array.isArray(section.children?.[2]) ? section.children[2] : []}
-                    onAddSection={onAddSection}
-                    parentId={section.id}
-                  />
-                </>
-              )}
-            </div>
+                <ColumnDropZone 
+                  columnIndex={1}
+                  sections={Array.isArray(section.children?.[1]) ? section.children[1] : []}
+                  onAddSection={onAddSection}
+                  parentId={section.id}
+                />
+              </>
+            )}
+            {getColumnCount(config.layout) === 3 && (
+              <>
+                <ColumnDropZone 
+                  columnIndex={0}
+                  sections={Array.isArray(section.children?.[0]) ? section.children[0] : []}
+                  onAddSection={onAddSection}
+                  parentId={section.id}
+                />
+                <ColumnDropZone 
+                  columnIndex={1}
+                  sections={Array.isArray(section.children?.[1]) ? section.children[1] : []}
+                  onAddSection={onAddSection}
+                  parentId={section.id}
+                />
+                <ColumnDropZone 
+                  columnIndex={2}
+                  sections={Array.isArray(section.children?.[2]) ? section.children[2] : []}
+                  onAddSection={onAddSection}
+                  parentId={section.id}
+                />
+              </>
+            )}
           </div>
-        );
-        
-      case 'footer':
-        return (
-          <div className={paddingClass}>
-            <PanaceaFooter 
-              backgroundColor={config.backgroundColor} 
-              logoSize={config.logoSize || 120}
-            />
-          </div>
-        );
-        
-      default:
-        return (
-          <div className={paddingClass}>
-            <p className="text-muted-foreground">Unknown section type</p>
-          </div>
-        );
+        </div>
+      );
     }
+
+    // All other section types delegate to SectionRenderer
+    return (
+      <SectionRenderer
+        section={section}
+        isPreview={isPreview}
+        onSelect={onSelect}
+        storeOptions={config.storeOptions ? config.storeOptions.split('\n').filter((option: string) => option.trim()) : []}
+      />
+    );
   };
 
   const getColumnGridClass = (layout: string) => {

@@ -7,6 +7,9 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { CheckCircle, XCircle, ArrowRight, ArrowLeft, Shield, FileText, Package, Truck } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { SectionRenderer } from '@/components/shared/SectionRenderer';
+import { TemplateStyleProvider } from '@/components/TemplateStyleProvider';
+import { FlowHeader } from '@/components/flow-editor/FlowHeader';
 
 
 // Cache-busting utility
@@ -42,7 +45,14 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
   const [pages, setPages] = useState<any[]>([]);
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
   const [error, setError] = useState<string | null>(null);
-  const [userInputs, setUserInputs] = useState({
+  const [userInputs, setUserInputs] = useState<{
+    purchaseChannel: 'in-store' | 'online' | '';
+    selectedStore: string;
+    email: string;
+    password: string;
+    firstName: string;
+    lastName: string;
+  }>({
     purchaseChannel: '', // 'in-store' or 'online'
     selectedStore: '',
     email: '',
@@ -255,136 +265,21 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
     );
   }
 
+  // Use SectionRenderer for consistent rendering (editor is the single source of truth)
   const renderTemplateSection = (section: any) => {
-    const paddingClass = `p-${section.config?.padding || 4}`;
-    
     return (
-      <div key={section.id} className={paddingClass}>
-        {section.type === 'text' && (
-          <div 
-            style={{ 
-              backgroundColor: section.config?.backgroundColor || 'transparent',
-              color: section.config?.textColor || '#000000'
-            }}
-            className={`rounded ${section.config?.align === 'center' ? 'text-center' : ''}`}
-          >
-            <div 
-              style={{ 
-                fontSize: `${section.config?.fontSize || 16}px`,
-                fontWeight: section.config?.fontWeight || 'normal'
-              }}
-            >
-              {section.config?.content || 'No content'}
-            </div>
-          </div>
-        )}
-        
-        {section.type === 'image' && (
-          <div className="space-y-2">
-            {section.config?.imageUrl ? (
-              <img 
-                src={section.config.imageUrl} 
-                alt={section.config?.alt || 'Section image'}
-                className="w-full h-auto rounded-lg"
-                style={{ maxHeight: section.config?.height || 'auto' }}
-              />
-            ) : (
-              <div className="w-full h-32 bg-muted rounded-lg flex items-center justify-center">
-                <p className="text-muted-foreground">No image</p>
-              </div>
-            )}
-            {section.config?.caption && (
-              <p className="text-sm text-muted-foreground text-center">
-                {section.config.caption}
-              </p>
-            )}
-          </div>
-        )}
-        
-        {section.type === 'store_selector' && (
-          <div className="space-y-4">
-            {section.config?.label && (
-              <label className="block text-sm font-medium mb-2">
-                {section.config.label}
-              </label>
-            )}
-            
-            {!userInputs.purchaseChannel ? (
-              // Step 1: Purchase Channel Selection
-              <div className="space-y-3">
-                <Button
-                  className="w-full"
-                  onClick={() => setUserInputs({ ...userInputs, purchaseChannel: 'in-store' })}
-                >
-                  In-store
-                </Button>
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  onClick={() => setUserInputs({ ...userInputs, purchaseChannel: 'online' })}
-                >
-                  Online
-                </Button>
-              </div>
-            ) : (
-              // Step 2: Store Selection
-              <div className="space-y-3">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <span>Purchase channel:</span>
-                  <span className="font-medium">
-                    {userInputs.purchaseChannel === 'in-store' ? 'In-store' : 'Online'}
-                  </span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setUserInputs({ ...userInputs, purchaseChannel: '', selectedStore: '' })}
-                    className="text-xs underline h-auto p-0"
-                  >
-                    Change
-                  </Button>
-                </div>
-                
-                <select
-                  className="w-full px-3 py-2 text-sm rounded-md border bg-background"
-                  value={userInputs.selectedStore}
-                  onChange={(e) => handleStoreSelection(e.target.value)}
-                >
-                  <option value="">{section.config?.placeholder || 'Choose a store...'}</option>
-                  {campaign?.approved_stores?.map((store: string) => (
-                    <option key={store} value={store}>{store}</option>
-                  ))}
-                </select>
-              </div>
-            )}
-          </div>
-        )}
-        
-        {section.type === 'divider' && (
-          <hr 
-            className="border-0"
-            style={{
-              height: `${section.config?.thickness || 1}px`,
-              backgroundColor: section.config?.color || '#e5e7eb',
-              width: `${section.config?.width || 100}%`,
-              margin: '0 auto'
-            }}
-          />
-        )}
-        
-        {section.type === 'column' && (
-          <div 
-            className="grid grid-cols-2"
-            style={{ 
-              gap: `${(section.config?.gap || 4) * 0.25}rem`,
-              backgroundColor: section.config?.backgroundColor || 'transparent'
-            }}
-          >
-            <div className="p-4 border border-dashed border-muted-foreground/30 rounded text-center text-muted-foreground">
-              Column layout ({section.config?.layout || '2-col-50-50'})
-            </div>
-          </div>
-        )}
-      </div>
+      <SectionRenderer
+        key={section.id}
+        section={section}
+        isPreview={true}
+        isRuntimeMode={true}
+        storeOptions={campaign?.approved_stores || []}
+        // Controlled store selector props for runtime binding
+        purchaseChannel={userInputs.purchaseChannel}
+        selectedStore={userInputs.selectedStore}
+        onPurchaseChannelChange={(channel) => setUserInputs(prev => ({ ...prev, purchaseChannel: channel, selectedStore: '' }))}
+        onSelectedStoreChange={(store) => setUserInputs(prev => ({ ...prev, selectedStore: store }))}
+      />
     );
   };
 
@@ -428,71 +323,58 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
     };
     
     return (
-      <div 
-        className="min-h-screen"
-        style={{ backgroundColor }}
+      <TemplateStyleProvider 
+        templateId={flow?.flow_config?.design_template_id} 
+        brandColors={brandData?.brand_colors || campaign?.brands?.brand_colors}
       >
-        {/* Global Header */}
-        {globalHeader.showHeader && (brandLogo || globalHeader.brandName) && (
-          <div 
-            className="sticky top-0 z-50 h-16 flex items-center justify-center text-white"
-            style={{ backgroundColor: globalHeader.backgroundColor }}
-          >
-            <div className="flex items-center justify-center gap-3">
-              {brandLogo && (
-                <img 
-                  src={brandLogo} 
-                  alt="Brand Logo"
-                  className="object-contain"
-                   style={{ 
-                     height: `${parseInt(globalHeader.logoSize) || 60}px`
-                   }}
-                />
-              )}
-              {globalHeader.brandName && (
-                <h1 className={`font-semibold ${
-                  globalHeader.logoSize === 'small' ? 'text-lg' :
-                  globalHeader.logoSize === 'large' ? 'text-2xl' : 'text-xl'
-                }`}>
-                  {globalHeader.brandName}
-                </h1>
-              )}
-            </div>
-          </div>
-        )}
-        
-        <div className="max-w-sm mx-auto px-4 py-6">
-          <div className="space-y-4">
-            {currentPage.sections.map((section: any) => renderTemplateSection(section))}
-          </div>
+        <div 
+          className="min-h-screen"
+          style={{ backgroundColor }}
+        >
+          {/* Use FlowHeader for consistency with editor */}
+          <FlowHeader 
+            globalHeader={{
+              showHeader: globalHeader.showHeader,
+              brandName: globalHeader.brandName || brandData?.name || campaign?.brands?.name || '',
+              logoUrl: brandLogo || '',
+              backgroundColor: globalHeader.backgroundColor,
+              logoSize: globalHeader.logoSize || '60'
+            }}
+          />
           
-          {/* Navigation for multi-page templates - only show if not externally controlled */}
-          {pages.length > 1 && !hideInternalNavigation && (
-            <div className="flex justify-between items-center mt-8 pt-4 border-t">
-              <Button
-                variant="outline"
-                onClick={() => setCurrentPageIndex(Math.max(0, currentPageIndex - 1))}
-                disabled={currentPageIndex === 0}
-              >
-                Previous
-              </Button>
-              
-              <span className="text-sm text-muted-foreground">
-                {currentPageIndex + 1} of {pages.length}
-              </span>
-              
-              <Button
-                variant="outline"
-                onClick={() => setCurrentPageIndex(Math.min(pages.length - 1, currentPageIndex + 1))}
-                disabled={currentPageIndex === pages.length - 1}
-              >
-                Next
-              </Button>
+          <div className="max-w-sm mx-auto px-4 py-6">
+            <div className="space-y-4">
+              {currentPage.sections.map((section: any) => renderTemplateSection(section))}
             </div>
-          )}
-          
+            
+            {/* Navigation for multi-page templates - only show if not externally controlled */}
+            {pages.length > 1 && !hideInternalNavigation && (
+              <div className="flex justify-between items-center mt-8 pt-4 border-t">
+                <Button
+                  variant="outline"
+                  onClick={() => setCurrentPageIndex(Math.max(0, currentPageIndex - 1))}
+                  disabled={currentPageIndex === 0}
+                >
+                  Previous
+                </Button>
+                
+                <span className="text-sm text-muted-foreground">
+                  {currentPageIndex + 1} of {pages.length}
+                </span>
+                
+                <Button
+                  variant="outline"
+                  onClick={() => setCurrentPageIndex(Math.min(pages.length - 1, currentPageIndex + 1))}
+                  disabled={currentPageIndex === pages.length - 1}
+                >
+                  Next
+                </Button>
+              </div>
+            )}
+            
+          </div>
         </div>
-      </div>
+      </TemplateStyleProvider>
     );
   };
 
@@ -545,14 +427,14 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
               <div className="space-y-3">
                 <Button
                   className="w-full"
-                  onClick={() => setUserInputs({ ...userInputs, purchaseChannel: 'in-store' })}
+                  onClick={() => setUserInputs({ ...userInputs, purchaseChannel: 'in-store' as const })}
                 >
                   In-store
                 </Button>
                 <Button
                   variant="outline"
                   className="w-full"
-                  onClick={() => setUserInputs({ ...userInputs, purchaseChannel: 'online' })}
+                  onClick={() => setUserInputs({ ...userInputs, purchaseChannel: 'online' as const })}
                 >
                   Online
                 </Button>
@@ -568,7 +450,7 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => setUserInputs({ ...userInputs, purchaseChannel: '', selectedStore: '' })}
+                    onClick={() => setUserInputs({ ...userInputs, purchaseChannel: '' as const, selectedStore: '' })}
                     className="text-xs underline h-auto p-0"
                   >
                     Change
