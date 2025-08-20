@@ -169,7 +169,7 @@ export const MobilePreview: React.FC<MobilePreviewProps> = ({
       )}
 
       {/* Content */}
-      <div className={`flex-1 flex flex-col ${backgroundColor ? '' : getTemplateClasses('section')}`} style={{ backgroundColor, backgroundImage: backgroundColor ? 'none' : undefined }}>
+      <div className={`flex-1 flex flex-col min-h-0 justify-between ${backgroundColor ? '' : getTemplateClasses('section')}`} style={{ backgroundColor, backgroundImage: backgroundColor ? 'none' : undefined }}>
         {/* Drop zone at top - minimal height to prevent gaps */}
         <div
           className={`transition-all ${dragOverIndex === 0 ? 'h-8 bg-primary/20 border-y-2 border-dashed border-primary' : 'h-0'}`}
@@ -182,7 +182,7 @@ export const MobilePreview: React.FC<MobilePreviewProps> = ({
           )}
         </div>
 
-        <div className="flex-1">
+        <div className="flex-1 min-h-0">
           {sections
             .sort((a, b) => a.order - b.order)
             .map((section, index) => (
@@ -213,7 +213,7 @@ export const MobilePreview: React.FC<MobilePreviewProps> = ({
         
         {/* Panacea Footer - only if no footer section present - sticks to bottom */}
         {sections.every((s) => s.type !== 'footer') && (
-          <div className="mt-auto">
+          <div className="mt-auto shrink-0">
             {footerConfig ? (
               <PanaceaFooter 
                 backgroundColor={footerConfig.backgroundColor === 'transparent' ? undefined : footerConfig.backgroundColor} 
