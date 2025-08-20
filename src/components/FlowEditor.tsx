@@ -88,12 +88,14 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
       return `${url}${url.includes('?') ? '&' : '?'}v=${version ?? Date.now()}`;
     }
   };
-  const selectedDevice = {
-    name: 'iphone14',
-    displayName: 'iPhone 14',
-    width: 390,
-    height: 844
-  };
+  const deviceOptions = [
+    { name: 'iphone13', displayName: 'iPhone 13', width: 390, height: 844 },
+    { name: 'iphoneSE', displayName: 'iPhone SE', width: 375, height: 667 },
+    { name: 'iphone15ProMax', displayName: 'iPhone 15 Pro Max', width: 430, height: 932 },
+    { name: 'pixel7', displayName: 'Pixel 7', width: 412, height: 915 }
+  ];
+  
+  const [selectedDevice, setSelectedDevice] = useState(deviceOptions[0]);
   const [flowName, setFlowName] = useState(templateToEdit && 'name' in templateToEdit ? templateToEdit.name : 'Untitled Flow');
 
   // Initialize pages from template or create mandatory pages with landing page
@@ -969,45 +971,65 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
 
           {/* Center Panel - Flow Preview */}
           <div className="flex-1 flex flex-col bg-gray-50">
-            <div className="p-4 bg-white border-b">
-              <div className="flex items-center">
-                <div className="flex items-center gap-2 flex-1">
-                  <Smartphone className="h-5 w-5 text-primary" />
-                  <h3 className="font-semibold">Flow Preview</h3>
-                  <div className="flex items-center gap-1 ml-4">
-                    <Button
-                      variant={!isRuntimePreview ? "default" : "ghost"}
-                      size="sm"
-                      onClick={() => setIsRuntimePreview(false)}
-                      className="h-7 px-2 text-xs"
-                    >
-                      <Code className="h-3 w-3 mr-1" />
-                      Editor
-                    </Button>
-                    <Button
-                      variant={isRuntimePreview ? "default" : "ghost"}
-                      size="sm"
-                      onClick={() => setIsRuntimePreview(true)}
-                      className="h-7 px-2 text-xs"
-                    >
-                      <Eye className="h-3 w-3 mr-1" />
-                      Runtime
+              <div className="p-4 bg-white border-b">
+                <div className="flex items-center">
+                  <div className="flex items-center gap-2 flex-1">
+                    <Smartphone className="h-5 w-5 text-primary" />
+                    <h3 className="font-semibold">Flow Preview</h3>
+                    <div className="flex items-center gap-1 ml-4">
+                      <Button
+                        variant={!isRuntimePreview ? "default" : "ghost"}
+                        size="sm"
+                        onClick={() => setIsRuntimePreview(false)}
+                        className="h-7 px-2 text-xs"
+                      >
+                        <Code className="h-3 w-3 mr-1" />
+                        Editor
+                      </Button>
+                      <Button
+                        variant={isRuntimePreview ? "default" : "ghost"}
+                        size="sm"
+                        onClick={() => setIsRuntimePreview(true)}
+                        className="h-7 px-2 text-xs"
+                      >
+                        <Eye className="h-3 w-3 mr-1" />
+                        Runtime
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="flex justify-center flex-1">
+                    <div className="flex items-center gap-2">
+                      <Select 
+                        value={selectedDevice.name} 
+                        onValueChange={(value) => {
+                          const device = deviceOptions.find(d => d.name === value);
+                          if (device) setSelectedDevice(device);
+                        }}
+                      >
+                        <SelectTrigger className="w-40 h-7 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {deviceOptions.map((device) => (
+                            <SelectItem key={device.name} value={device.name}>
+                              {device.displayName}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <span className="text-sm text-muted-foreground">
+                        {currentPage?.name || 'No page selected'}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex justify-end flex-1">
+                    <Button onClick={handleSave} disabled={isSaving}>
+                      <Save className="h-4 w-4 mr-2" />
+                      {isSaving ? 'Saving...' : templateToEdit ? 'Save my template' : 'Save Flow'}
                     </Button>
                   </div>
                 </div>
-                <div className="flex justify-center flex-1">
-                  <span className="text-sm text-muted-foreground">
-                    Editing: {currentPage?.name || 'No page selected'}
-                  </span>
-                </div>
-                <div className="flex justify-end flex-1">
-                  <Button onClick={handleSave} disabled={isSaving}>
-                    <Save className="h-4 w-4 mr-2" />
-                    {isSaving ? 'Saving...' : templateToEdit ? 'Save my template' : 'Save Flow'}
-                  </Button>
-                </div>
               </div>
-            </div>
             
             <ScrollArea className="flex-1">
               <div className="p-8 flex justify-center">
@@ -1017,47 +1039,52 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                     templateId={selectedTemplateId} 
                     brandColors={brandData?.brand_colors}
                   >
-                    <div className="bg-white rounded-lg shadow-lg overflow-hidden" style={{ width: selectedDevice.width, height: selectedDevice.height }}>
-                      <div className="transform scale-75 origin-top-left" style={{ width: selectedDevice.width / 0.75, height: selectedDevice.height / 0.75 }}>
-                        {/* Runtime preview content using SectionRenderer */}
-                        <div 
-                          className="min-h-full"
-                          style={{ backgroundColor: pageSettings.backgroundColor }}
-                        >
-                          {/* Use FlowHeader for consistency with editor and runtime */}
-                          <FlowHeader 
-                            globalHeader={{
-                              showHeader: globalHeader.showHeader,
-                              brandName: '',
-                              logoUrl: brandData?.logo_url || '',
-                              backgroundColor: globalHeader.backgroundColor,
-                              logoSize: globalHeader.logoSize || '60'
-                            }}
-                          />
-                          
-                          <div>
-                            {currentPage?.sections.sort((a, b) => a.order - b.order).map((section) => (
-                              <div 
-                                key={section.id}
-                                className={`${section.id === selectedSection?.id ? 'ring-2 ring-primary ring-offset-2' : ''}`}
-                                onClick={() => setSelectedSection(section)}
-                              >
-                                <SectionRenderer
-                                  section={section}
-                                  isPreview={true}
-                                  isRuntimeMode={true}
-                                  storeOptions={[]}
-                                />
-                              </div>
-                            ))}
-                            {/* Default footer if none present, matching editor preview */}
-                            {currentPage && currentPage.sections.every(s => s.type !== 'footer') && (
-                              <PanaceaFooter 
-                                backgroundColor={footerConfig.backgroundColor === 'transparent' ? undefined : footerConfig.backgroundColor}
-                                logoSize={footerConfig.logoSize}
+                    <div 
+                      className="bg-white rounded-lg shadow-lg overflow-hidden" 
+                      style={{ 
+                        width: `${selectedDevice.width}px`, 
+                        height: `${selectedDevice.height}px`,
+                        '--device-width-px': `${selectedDevice.width}px` 
+                      } as React.CSSProperties}
+                    >
+                      {/* Runtime preview content using SectionRenderer */}
+                      <div 
+                        className="h-full flex flex-col"
+                        style={{ backgroundColor: pageSettings.backgroundColor }}
+                      >
+                        {/* Use FlowHeader for consistency with editor and runtime */}
+                        <FlowHeader 
+                          globalHeader={{
+                            showHeader: globalHeader.showHeader,
+                            brandName: '',
+                            logoUrl: globalHeader.logoUrl || '',
+                            backgroundColor: globalHeader.backgroundColor,
+                            logoSize: globalHeader.logoSize || '60'
+                          }}
+                        />
+                        
+                        <div className="flex-1">
+                          {currentPage?.sections.sort((a, b) => a.order - b.order).map((section) => (
+                            <div 
+                              key={section.id}
+                              className={`${section.id === selectedSection?.id ? 'ring-2 ring-primary ring-offset-2' : ''}`}
+                              onClick={() => setSelectedSection(section)}
+                            >
+                              <SectionRenderer
+                                section={section}
+                                isPreview={true}
+                                isRuntimeMode={true}
+                                storeOptions={[]}
                               />
-                            )}
-                          </div>
+                            </div>
+                          ))}
+                          {/* Default footer if none present, matching editor preview */}
+                          {currentPage && currentPage.sections.every(s => s.type !== 'footer') && (
+                            <PanaceaFooter 
+                              backgroundColor={footerConfig.backgroundColor === 'transparent' ? undefined : footerConfig.backgroundColor}
+                              logoSize={footerConfig.logoSize}
+                            />
+                          )}
                         </div>
                       </div>
                     </div>

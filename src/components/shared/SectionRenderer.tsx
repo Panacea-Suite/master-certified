@@ -86,8 +86,16 @@ export const SectionRenderer: React.FC<SectionRendererProps> = ({
   const paddingClass = `p-${config.padding ?? 4}`;
   const templateClasses = getTemplateClasses('card');
   
-  // Generate drop shadow style for all sections (except images which use filter shadows)
-  const getSectionStyle = () => {
+  // Full-bleed background wrapper style - only backgrounds here
+  const getOuterStyle = () => {
+    return {
+      backgroundColor: config.backgroundColor || undefined,
+      width: '100%'
+    };
+  };
+
+  // Inner content style - shadows, borders, text color, but NO backgroundColor
+  const getInnerStyle = () => {
     const shadowStyle = (config.dropShadow && section.type !== 'image') ? {
       boxShadow: `${config.shadowOffsetX || 0}px ${config.shadowOffsetY || 4}px ${config.shadowBlur || 10}px ${config.shadowSpread || 0}px ${config.shadowColor || 'rgba(0,0,0,0.1)'}`
     } : {
@@ -95,10 +103,11 @@ export const SectionRenderer: React.FC<SectionRendererProps> = ({
     };
 
     return {
-      backgroundColor: config.backgroundColor || undefined,
       color: config.textColor || undefined,
       border: config.backgroundColor ? 'none' : undefined,
       padding: `${(config.padding ?? 4) * 0.25}rem`,
+      maxWidth: 'var(--device-width-px, 390px)',
+      margin: '0 auto',
       ...shadowStyle
     };
   };
@@ -126,98 +135,108 @@ export const SectionRenderer: React.FC<SectionRendererProps> = ({
     return classes.trim();
   };
 
+  // Wrapper component for full-bleed sections
+  const FullBleedWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+    <div style={getOuterStyle()}>
+      <div style={getInnerStyle()}>
+        {children}
+      </div>
+    </div>
+  );
+
   switch (section.type) {
     case 'header':
       return (
-        <div className={`header-section ${paddingClass} ${section.config?.backgroundColor === 'primary' ? 'bg-primary' : 'bg-background'}`}>
-          {section.config?.logo && (
-            <div className="flex justify-center">
-              <div className="w-16 h-16 bg-background/20 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold">LOGO</span>
+        <FullBleedWrapper>
+          <div className={`header-section ${paddingClass} ${section.config?.backgroundColor === 'primary' ? 'bg-primary' : 'bg-background'}`}>
+            {section.config?.logo && (
+              <div className="flex justify-center">
+                <div className="w-16 h-16 bg-background/20 rounded-lg flex items-center justify-center">
+                  <span className="text-white font-bold">LOGO</span>
+                </div>
               </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        </FullBleedWrapper>
       );
 
     case 'hero':
       return (
-        <div className={`hero-section ${paddingClass} ${section.config?.align === 'center' ? 'text-center' : ''}`}>
-          {section.config?.title && (
-            <h1 className="text-2xl font-bold text-foreground mb-2">
-              {section.config.title}
-            </h1>
-          )}
-          {section.config?.subtitle && (
-            <h2 className="text-lg font-medium text-muted-foreground mb-2">
-              {section.config.subtitle}
-            </h2>
-          )}
-          {section.config?.description && (
-            <p className="text-sm text-muted-foreground">
-              {section.config.description}
-            </p>
-          )}
-        </div>
+        <FullBleedWrapper>
+          <div className={`hero-section ${paddingClass} ${section.config?.align === 'center' ? 'text-center' : ''}`}>
+            {section.config?.title && (
+              <h1 className="text-2xl font-bold text-foreground mb-2">
+                {section.config.title}
+              </h1>
+            )}
+            {section.config?.subtitle && (
+              <h2 className="text-lg font-medium text-muted-foreground mb-2">
+                {section.config.subtitle}
+              </h2>
+            )}
+            {section.config?.description && (
+              <p className="text-sm text-muted-foreground">
+                {section.config.description}
+              </p>
+            )}
+          </div>
+        </FullBleedWrapper>
       );
 
     case 'features':
       return (
-        <div 
-          className={`features-section ${paddingClass} ${getSectionClassName()}`}
-          style={getSectionStyle()}
-        >
-          <div className="space-y-3">
-            {section.config?.items?.map((item: string, index: number) => (
-              <div key={index} className="flex items-center gap-3">
-                <CheckCircle className="w-5 h-5 text-primary flex-shrink-0" />
-                <span className="text-sm text-foreground">{item}</span>
-              </div>
-            ))}
+        <FullBleedWrapper>
+          <div className={`features-section ${getSectionClassName()}`}>
+            <div className="space-y-3">
+              {section.config?.items?.map((item: string, index: number) => (
+                <div key={index} className="flex items-center gap-3">
+                  <CheckCircle className="w-5 h-5 text-primary flex-shrink-0" />
+                  <span className="text-sm text-foreground">{item}</span>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
+        </FullBleedWrapper>
       );
 
     case 'cta':
       return (
-        <div 
-          className={`cta-section ${paddingClass} ${getSectionClassName()} flex justify-center`}
-          style={getSectionStyle()}
-        >
-          <button 
-            className={`px-6 py-3 rounded-lg font-medium transition-colors ${
-              section.config?.size === 'lg' ? 'text-lg px-8 py-4' : 
-              section.config?.size === 'sm' ? 'text-sm px-4 py-2' : ''
-            }`}
-            style={{
-              backgroundColor: section.config?.buttonColor || (section.config?.color === 'secondary' ? 'var(--template-secondary)' : section.config?.color === 'accent' ? 'var(--template-accent)' : 'var(--template-primary)'),
-              color: section.config?.textColor || '#ffffff'
-            }}
-          >
-            {section.config?.text || 'Click here'}
-          </button>
-        </div>
+        <FullBleedWrapper>
+          <div className={`cta-section ${getSectionClassName()} flex justify-center`}>
+            <button 
+              className={`px-6 py-3 rounded-lg font-medium transition-colors ${
+                section.config?.size === 'lg' ? 'text-lg px-8 py-4' : 
+                section.config?.size === 'sm' ? 'text-sm px-4 py-2' : ''
+              }`}
+              style={{
+                backgroundColor: section.config?.buttonColor || (section.config?.color === 'secondary' ? 'var(--template-secondary)' : section.config?.color === 'accent' ? 'var(--template-accent)' : 'var(--template-primary)'),
+                color: section.config?.textColor || '#ffffff'
+              }}
+            >
+              {section.config?.text || 'Click here'}
+            </button>
+          </div>
+        </FullBleedWrapper>
       );
 
     case 'product_showcase':
       return (
-        <div 
-          className={`product-showcase-section ${paddingClass} ${getSectionClassName()}`}
-          style={getSectionStyle()}
-        >
-          <div className={`p-6 rounded-lg ${section.config?.backgroundColor === 'primary' ? 'bg-primary/10' : 'bg-muted'}`}>
-            <div className="flex justify-center">
-              <div className="w-32 h-32 bg-muted border-2 border-dashed border-muted-foreground/30 rounded-lg flex items-center justify-center">
-                <Package className="w-12 h-12 text-muted-foreground" />
+        <FullBleedWrapper>
+          <div className={`product-showcase-section ${getSectionClassName()}`}>
+            <div className={`p-6 rounded-lg ${section.config?.backgroundColor === 'primary' ? 'bg-primary/10' : 'bg-muted'}`}>
+              <div className="flex justify-center">
+                <div className="w-32 h-32 bg-muted border-2 border-dashed border-muted-foreground/30 rounded-lg flex items-center justify-center">
+                  <Package className="w-12 h-12 text-muted-foreground" />
+                </div>
               </div>
+              {section.config?.caption && (
+                <p className="text-center text-sm text-muted-foreground mt-3">
+                  {section.config.caption}
+                </p>
+              )}
             </div>
-            {section.config?.caption && (
-              <p className="text-center text-sm text-muted-foreground mt-3">
-                {section.config.caption}
-              </p>
-            )}
           </div>
-        </div>
+        </FullBleedWrapper>
       );
 
     case 'text':
@@ -233,80 +252,78 @@ export const SectionRenderer: React.FC<SectionRendererProps> = ({
       };
 
       return (
-        <div 
-          className={`text-section ${paddingClass} ${getSectionClassName()}`}
-          style={getSectionStyle()}
-        >
-          <div 
-            className="prose prose-sm max-w-none"
-            style={{ 
-              fontSize: `${config.fontSize || 16}px`,
-              fontWeight: config.fontWeight || 'normal',
-              textAlign: config.align || 'left'
-            }}
-            dangerouslySetInnerHTML={{ __html: formatContent(config.content) }}
-          />
-        </div>
+        <FullBleedWrapper>
+          <div className={`text-section ${getSectionClassName()}`}>
+            <div 
+              className="prose prose-sm max-w-none"
+              style={{ 
+                fontSize: `${config.fontSize || 16}px`,
+                fontWeight: config.fontWeight || 'normal',
+                textAlign: config.align || 'left'
+              }}
+              dangerouslySetInnerHTML={{ __html: formatContent(config.content) }}
+            />
+          </div>
+        </FullBleedWrapper>
       );
         
     case 'image':        
       return (
-        <div 
-          className={`image-section ${paddingClass} ${getSectionClassName()}`}
-          style={getSectionStyle()}
-        >
-          <div className="space-y-2">
-            {config.imageUrl ? (
-              <div 
-                className={`relative group ${!isPreview ? 'cursor-pointer' : ''}`}
-                onClick={(e) => {
-                  if (!isPreview && onSelect) {
-                    e.stopPropagation();
-                    onSelect();
-                    setTimeout(() => {
-                      document.dispatchEvent(
-                        new CustomEvent('lov-open-image-editor', {
-                          detail: { sectionId: section.id, imageUrl: config.imageUrl },
-                        })
-                      );
-                    }, 250);
-                  }
-                }}
-              >
-                <img 
-                  src={config.imageUrl} 
-                  alt={config.alt || 'Section image'}
-                  className={`w-full h-auto ${getBorderRadius()} select-none pointer-events-none transition-opacity ${!isPreview ? 'group-hover:opacity-80' : ''}`}
-                  style={{ 
-                    maxHeight: config.height || 'auto',
-                    ...getImageFilterStyle()
+        <FullBleedWrapper>
+          <div className={`image-section ${getSectionClassName()}`}>
+            <div className="space-y-2">
+              {config.imageUrl ? (
+                <div 
+                  className={`relative group ${!isPreview ? 'cursor-pointer' : ''}`}
+                  onClick={(e) => {
+                    if (!isPreview && onSelect) {
+                      e.stopPropagation();
+                      onSelect();
+                      setTimeout(() => {
+                        document.dispatchEvent(
+                          new CustomEvent('lov-open-image-editor', {
+                            detail: { sectionId: section.id, imageUrl: config.imageUrl },
+                          })
+                        );
+                      }, 250);
+                    }
                   }}
-                />
-                {!isPreview && (
-                  <div className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20 rounded">
-                    <div className="pointer-events-none bg-white/90 rounded-full p-2">
-                      <Edit2 className="h-4 w-4 text-gray-700" />
+                >
+                  <img 
+                    src={config.imageUrl} 
+                    alt={config.alt || 'Section image'}
+                    className={`w-full h-auto ${getBorderRadius()} select-none pointer-events-none transition-opacity ${!isPreview ? 'group-hover:opacity-80' : ''}`}
+                    style={{ 
+                      maxHeight: config.height || 'auto',
+                      ...getImageFilterStyle()
+                    }}
+                  />
+                  {!isPreview && (
+                    <div className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20 rounded">
+                      <div className="pointer-events-none bg-white/90 rounded-full p-2">
+                        <Edit2 className="h-4 w-4 text-gray-700" />
+                      </div>
                     </div>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div 
-                className={`w-full h-32 ${config.backgroundColor ? '' : 'bg-muted'} ${getBorderRadius()} flex items-center justify-center`}
-              >
-                <div className="text-center text-muted-foreground">
-                  <ImageIcon className="h-8 w-8 mx-auto mb-2" />
-                  <p className="text-sm">No image selected</p>
+                  )}
                 </div>
-              </div>
-            )}
-            {config.caption && (
-              <p className="text-sm text-muted-foreground text-center">
-                {config.caption}
-              </p>
-            )}
+              ) : (
+                <div 
+                  className={`w-full h-32 ${config.backgroundColor ? '' : 'bg-muted'} ${getBorderRadius()} flex items-center justify-center`}
+                >
+                  <div className="text-center text-muted-foreground">
+                    <ImageIcon className="h-8 w-8 mx-auto mb-2" />
+                    <p className="text-sm">No image selected</p>
+                  </div>
+                </div>
+              )}
+              {config.caption && (
+                <p className="text-sm text-muted-foreground text-center">
+                  {config.caption}
+                </p>
+              )}
+            </div>
           </div>
-        </div>
+        </FullBleedWrapper>
       );
         
     case 'store_selector':
@@ -316,11 +333,8 @@ export const SectionRenderer: React.FC<SectionRendererProps> = ({
         ['Downtown Location', 'Mall Branch', 'Airport Store']);
 
       return (
-        <div 
-          className={`store-selector-section ${paddingClass}`}
-          style={{ backgroundColor: config.backgroundColor || 'transparent' }}
-        >
-          <div className="space-y-4">
+        <FullBleedWrapper>
+          <div className="store-selector-section space-y-4">
             <div className="text-center mb-6">
               <h2 className="text-xl font-bold mb-2">Store Location</h2>
               <p className="text-muted-foreground">
@@ -392,39 +406,41 @@ export const SectionRenderer: React.FC<SectionRendererProps> = ({
               </div>
             )}
           </div>
-        </div>
+        </FullBleedWrapper>
       );
         
     case 'divider':
       return (
-        <div className={`divider-section ${paddingClass} ${getSectionClassName()}`} style={getSectionStyle()}>
-          <hr 
-            className="border-0"
-            style={{
-              height: `${config.thickness || 1}px`,
-              backgroundColor: config.color || '#e5e7eb',
-              width: `${config.width || 100}%`,
-              margin: config.fullWidth ? '0' : '0 auto'
-            }}
-          />
-        </div>
+        <FullBleedWrapper>
+          <div className={`divider-section ${getSectionClassName()}`}>
+            <hr 
+              className="border-0"
+              style={{
+                height: `${config.thickness || 1}px`,
+                backgroundColor: config.color || '#e5e7eb',
+                width: `${config.width || 100}%`,
+                margin: config.fullWidth ? '0' : '0 auto'
+              }}
+            />
+          </div>
+        </FullBleedWrapper>
       );
         
     case 'footer':
       return (
-        <div className={paddingClass}>
+        <FullBleedWrapper>
           <PanaceaFooter 
             backgroundColor={config.backgroundColor} 
             logoSize={config.logoSize || 120}
           />
-        </div>
+        </FullBleedWrapper>
       );
         
     default:
       return (
-        <div className={paddingClass}>
+        <FullBleedWrapper>
           <p className="text-muted-foreground">Unknown section type</p>
-        </div>
+        </FullBleedWrapper>
       );
   }
 };

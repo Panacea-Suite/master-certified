@@ -52,7 +52,7 @@ export const MobilePreview: React.FC<MobilePreviewProps> = ({
     logoSize: '60'
   },
   footerConfig,
-  deviceSpec = { name: 'iphone14', displayName: 'iPhone 14', width: 390, height: 844 }
+  deviceSpec = { name: 'iphone13', displayName: 'iPhone 13', width: 390, height: 844 }
 }) => {
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const { getTemplateClasses, getBorderRadius, getShadowClass } = useTemplateStyle();
@@ -113,7 +113,11 @@ export const MobilePreview: React.FC<MobilePreviewProps> = ({
     return (
       <div 
         className="bg-white rounded-3xl shadow-xl border border-gray-200 flex flex-col overflow-hidden"
-        style={{ width: `${scaledWidth}px`, height: `${scaledHeight}px` }}
+        style={{ 
+          width: `${scaledWidth}px`, 
+          height: `${scaledHeight}px`,
+          '--device-width-px': `${deviceWidth}px` 
+        } as React.CSSProperties}
       >
         {/* Global Header with Brand Logo */}
         {globalHeader.showHeader && (
@@ -153,7 +157,10 @@ export const MobilePreview: React.FC<MobilePreviewProps> = ({
   return (
     <div 
       className="bg-white rounded-3xl shadow-xl border border-gray-200 flex flex-col overflow-hidden"
-      style={{ width: `${scaledWidth}px` }}
+      style={{ 
+        width: `${scaledWidth}px`,
+        '--device-width-px': `${deviceWidth}px` 
+      } as React.CSSProperties}
     >
       {/* Global Header with Brand Logo */}
       {globalHeader.showHeader && (

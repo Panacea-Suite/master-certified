@@ -287,97 +287,70 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
   const renderTemplateFlow = () => {
     if (!pages || pages.length === 0) {
       return (
-        <div className="min-h-screen bg-background flex items-center justify-center">
-          <div className="text-center">
-            <p className="text-muted-foreground">No template content available</p>
-          </div>
+        <div style={{ '--device-width-px': '390px' } as React.CSSProperties}>
+          <div className="text-center p-4">No content available</div>
         </div>
       );
     }
 
-    // Get the current page
-    const currentPage = pages[Math.min(currentPageIndex, pages.length - 1)];
-    
-    if (!currentPage?.sections) {
+    const currentPageData = pages[externalPageIndex ?? currentPageIndex];
+    if (!currentPageData) {
       return (
-        <div className="min-h-screen bg-background flex items-center justify-center">
-          <div className="text-center">
-            <p className="text-muted-foreground">No sections found on this page</p>
-          </div>
+        <div style={{ '--device-width-px': '390px' } as React.CSSProperties}>
+          <div className="text-center p-4">Page not found</div>
         </div>
       );
     }
 
-    const backgroundColor = flow?.flow_config?.theme?.backgroundColor || '#ffffff';
-    
-    // Get brand logo from brand settings (single source of truth)
-    const brandLogo = withCacheBust(
-      brandData?.logo_url || campaign?.brands?.logo_url,
-      brandData?.updated_at
-    );
-    
-    const globalHeader = flow?.flow_config?.globalHeader || {
-      showHeader: true,
-      brandName: '',
-      backgroundColor: '#3b82f6',
-      logoSize: '60'
-    };
-    
+    const sectionsToRender = (currentPageData.sections || []).sort((a: any, b: any) => a.order - b.order);
+
     return (
-      <TemplateStyleProvider 
-        templateId={flow?.flow_config?.design_template_id} 
-        brandColors={brandData?.brand_colors || campaign?.brands?.brand_colors}
-      >
-        <div 
-          className="min-h-screen"
-          style={{ backgroundColor }}
-        >
-          {/* Use FlowHeader for consistency with editor */}
+      <div className="flex flex-col bg-background" style={{ '--device-width-px': '390px' } as React.CSSProperties}>
+        {/* Header */}
+        {flow?.flow_config?.globalHeader?.showHeader && (
           <FlowHeader 
             globalHeader={{
-              showHeader: globalHeader.showHeader,
-              brandName: '',
-              logoUrl: brandLogo || '',
-              backgroundColor: globalHeader.backgroundColor,
-              logoSize: globalHeader.logoSize || '60'
-            }}
+              ...flow.flow_config.globalHeader,
+              brandName: '' // Remove brand text
+            }} 
           />
-          
-          <div className="mx-auto" style={{ maxWidth: 390 }}>
-            {currentPage.sections.map((section: any) => renderTemplateSection(section))}
-            {/* Default footer if no footer section present */}
-            {currentPage.sections.every((s: any) => s.type !== 'footer') && (
-              <PanaceaFooter />
-            )}
-            
-            {/* Navigation for multi-page templates - only show if not externally controlled */}
-            {pages.length > 1 && !hideInternalNavigation && (
-              <div className="flex justify-between items-center mt-8 pt-4 border-t px-4">
-                <Button
-                  variant="outline"
-                  onClick={() => setCurrentPageIndex(Math.max(0, currentPageIndex - 1))}
-                  disabled={currentPageIndex === 0}
-                >
-                  Previous
-                </Button>
-                
-                <span className="text-sm text-muted-foreground">
-                  {currentPageIndex + 1} of {pages.length}
-                </span>
-                
-                <Button
-                  variant="outline"
-                  onClick={() => setCurrentPageIndex(Math.min(pages.length - 1, currentPageIndex + 1))}
-                  disabled={currentPageIndex === pages.length - 1}
-                >
-                  Next
-                </Button>
-              </div>
-            )}
-            
-          </div>
+        )}
+
+        {/* Page Content */}
+        <div className="flex-1">
+          {sectionsToRender.map((section: any) => 
+            renderTemplateSection(section)
+          )}
+
+          {/* Default footer */}
+          {sectionsToRender.every((s: any) => s.type !== 'footer') && (
+            <PanaceaFooter backgroundColor="var(--template-secondary)" logoSize={60} />
+          )}
         </div>
-      </TemplateStyleProvider>
+
+        {/* Navigation */}
+        {!hideInternalNavigation && (
+          <div className="bg-background border-t" style={{ maxWidth: 'var(--device-width-px, 390px)', margin: '0 auto', width: '100%' }}>
+            <div className="p-4 flex justify-between">
+              <Button
+                variant="outline"
+                onClick={() => setCurrentPageIndex(Math.max(0, currentPageIndex - 1))}
+                disabled={currentPageIndex === 0}
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Previous
+              </Button>
+              <Button
+                onClick={() => setCurrentPageIndex(Math.min(pages.length - 1, currentPageIndex + 1))}
+                disabled={currentPageIndex === pages.length - 1}
+              >
+                Next
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
     );
   };
 
