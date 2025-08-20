@@ -43,6 +43,7 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [userInputs, setUserInputs] = useState({
+    purchaseChannel: '', // 'in-store' or 'online'
     selectedStore: '',
     email: '',
     password: '',
@@ -301,22 +302,60 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
         )}
         
         {section.type === 'store_selector' && (
-          <div className="space-y-2">
+          <div className="space-y-4">
             {section.config?.label && (
-              <label className="block text-sm font-medium">
+              <label className="block text-sm font-medium mb-2">
                 {section.config.label}
               </label>
             )}
-            <select
-              className="w-full px-3 py-2 text-sm rounded-md border bg-background"
-              value={userInputs.selectedStore}
-              onChange={(e) => handleStoreSelection(e.target.value)}
-            >
-              <option value="">{section.config?.placeholder || 'Choose a store...'}</option>
-              {campaign?.approved_stores?.map((store: string) => (
-                <option key={store} value={store}>{store}</option>
-              ))}
-            </select>
+            
+            {!userInputs.purchaseChannel ? (
+              // Step 1: Purchase Channel Selection
+              <div className="space-y-3">
+                <Button
+                  className="w-full"
+                  onClick={() => setUserInputs({ ...userInputs, purchaseChannel: 'in-store' })}
+                >
+                  In-store
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => setUserInputs({ ...userInputs, purchaseChannel: 'online' })}
+                >
+                  Online
+                </Button>
+              </div>
+            ) : (
+              // Step 2: Store Selection
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <span>Purchase channel:</span>
+                  <span className="font-medium">
+                    {userInputs.purchaseChannel === 'in-store' ? 'In-store' : 'Online'}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setUserInputs({ ...userInputs, purchaseChannel: '', selectedStore: '' })}
+                    className="text-xs underline h-auto p-0"
+                  >
+                    Change
+                  </Button>
+                </div>
+                
+                <select
+                  className="w-full px-3 py-2 text-sm rounded-md border bg-background"
+                  value={userInputs.selectedStore}
+                  onChange={(e) => handleStoreSelection(e.target.value)}
+                >
+                  <option value="">{section.config?.placeholder || 'Choose a store...'}</option>
+                  {campaign?.approved_stores?.map((store: string) => (
+                    <option key={store} value={store}>{store}</option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
         )}
         
@@ -498,20 +537,58 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
                 Where did you purchase this product?
               </p>
             </div>
-            <div>
-              <Label htmlFor="store">Select Store</Label>
-              <Select value={userInputs.selectedStore} onValueChange={handleStoreSelection}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Choose your store" />
-                </SelectTrigger>
-                <SelectContent>
-                  {campaign?.approved_stores?.map((store: string) => (
-                    <SelectItem key={store} value={store}>{store}</SelectItem>
-                  ))}
-                  <SelectItem value="other">Other Store</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            
+            {!userInputs.purchaseChannel ? (
+              // Step 1: Purchase Channel Selection
+              <div className="space-y-3">
+                <Button
+                  className="w-full"
+                  onClick={() => setUserInputs({ ...userInputs, purchaseChannel: 'in-store' })}
+                >
+                  In-store
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => setUserInputs({ ...userInputs, purchaseChannel: 'online' })}
+                >
+                  Online
+                </Button>
+              </div>
+            ) : (
+              // Step 2: Store Selection
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <span>Purchase channel:</span>
+                  <span className="font-medium">
+                    {userInputs.purchaseChannel === 'in-store' ? 'In-store' : 'Online'}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setUserInputs({ ...userInputs, purchaseChannel: '', selectedStore: '' })}
+                    className="text-xs underline h-auto p-0"
+                  >
+                    Change
+                  </Button>
+                </div>
+                
+                <div>
+                  <Label htmlFor="store">Select Store</Label>
+                  <Select value={userInputs.selectedStore} onValueChange={handleStoreSelection}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Choose your store" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {campaign?.approved_stores?.map((store: string) => (
+                        <SelectItem key={store} value={store}>{store}</SelectItem>
+                      ))}
+                      <SelectItem value="other">Other Store</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            )}
           </div>
         );
 
@@ -807,7 +884,7 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
             <Button 
               onClick={nextStage}
               className="flex-1"
-              disabled={currentStage === 1 && !userInputs.selectedStore}
+              disabled={currentStage === 1 && (!userInputs.purchaseChannel || !userInputs.selectedStore)}
             >
               Continue
               <ArrowRight className="w-4 h-4 ml-2" />
