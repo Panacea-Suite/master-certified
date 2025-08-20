@@ -113,7 +113,7 @@ const CERTIFICATION_FLOW_PAGES: FlowPage[] = [
         id: 'store-title',
         type: 'text',
         config: {
-          content: 'Where did you purchase this product?',
+          content: 'Lets quickly confirm your product\'s authenticity to protect you from counterfeit products.',
           fontSize: 24,
           textColor: '#1a1a1a',
           backgroundColor: 'transparent',
