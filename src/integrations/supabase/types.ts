@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      audit_log: {
+        Row: {
+          action: string
+          actor: string
+          at: string
+          id: number
+          meta: Json
+          object_id: string
+          object_type: string
+        }
+        Insert: {
+          action: string
+          actor: string
+          at?: string
+          id?: number
+          meta?: Json
+          object_id: string
+          object_type: string
+        }
+        Update: {
+          action?: string
+          actor?: string
+          at?: string
+          id?: number
+          meta?: Json
+          object_id?: string
+          object_type?: string
+        }
+        Relationships: []
+      }
       batches: {
         Row: {
           campaign_id: string
@@ -97,7 +127,10 @@ export type Database = {
           final_redirect_url: string | null
           flow_settings: Json | null
           id: string
+          locked_template: Json | null
           name: string
+          template_id: string | null
+          template_version: number | null
           updated_at: string
         }
         Insert: {
@@ -108,7 +141,10 @@ export type Database = {
           final_redirect_url?: string | null
           flow_settings?: Json | null
           id?: string
+          locked_template?: Json | null
           name: string
+          template_id?: string | null
+          template_version?: number | null
           updated_at?: string
         }
         Update: {
@@ -119,7 +155,10 @@ export type Database = {
           final_redirect_url?: string | null
           flow_settings?: Json | null
           id?: string
+          locked_template?: Json | null
           name?: string
+          template_id?: string | null
+          template_version?: number | null
           updated_at?: string
         }
         Relationships: [
@@ -128,6 +167,13 @@ export type Database = {
             columns: ["brand_id"]
             isOneToOne: false
             referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaigns_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "templates"
             referencedColumns: ["id"]
           },
         ]
@@ -367,6 +413,69 @@ export type Database = {
           },
         ]
       }
+      templates: {
+        Row: {
+          base_template_id: string | null
+          brand_id: string | null
+          content: Json
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          kind: Database["public"]["Enums"]["template_kind"]
+          name: string
+          schema: Json
+          status: Database["public"]["Enums"]["template_status"]
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          base_template_id?: string | null
+          brand_id?: string | null
+          content: Json
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          kind: Database["public"]["Enums"]["template_kind"]
+          name: string
+          schema: Json
+          status?: Database["public"]["Enums"]["template_status"]
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          base_template_id?: string | null
+          brand_id?: string | null
+          content?: Json
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          kind?: Database["public"]["Enums"]["template_kind"]
+          name?: string
+          schema?: Json
+          status?: Database["public"]["Enums"]["template_status"]
+          updated_at?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "templates_base_template_id_fkey"
+            columns: ["base_template_id"]
+            isOneToOne: false
+            referencedRelation: "templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "templates_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -420,6 +529,8 @@ export type Database = {
         | "authentication"
         | "content_display"
         | "thank_you"
+      template_kind: "system" | "brand"
+      template_status: "draft" | "published" | "deprecated"
       user_role: "master_admin" | "brand_admin" | "customer"
     }
     CompositeTypes: {
@@ -556,6 +667,8 @@ export const Constants = {
         "content_display",
         "thank_you",
       ],
+      template_kind: ["system", "brand"],
+      template_status: ["draft", "published", "deprecated"],
       user_role: ["master_admin", "brand_admin", "customer"],
     },
   },
