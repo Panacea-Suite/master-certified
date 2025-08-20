@@ -92,7 +92,7 @@ export function templateToFlowConfig(processedTemplate: ProcessedTemplateData, b
     brandName: brandData?.name || '',
     logoUrl: brandData?.logo_url || '',
     backgroundColor: brandData?.brand_colors?.secondary || '#6B7280',
-    logoSize: 'medium' as const
+    logoSize: '60' as const
   };
 
   const globalHeader = processedTemplate.globalHeader 

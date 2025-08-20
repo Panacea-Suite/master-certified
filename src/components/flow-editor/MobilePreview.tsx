@@ -49,7 +49,7 @@ export const MobilePreview: React.FC<MobilePreviewProps> = ({
     brandName: 'Brand',
     logoUrl: '',
     backgroundColor: '#ffffff',
-    logoSize: '120'
+    logoSize: '60'
   },
   footerConfig,
   deviceSpec = { name: 'iphone14', displayName: 'iPhone 14', width: 390, height: 844 }

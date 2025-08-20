@@ -385,7 +385,7 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
       showHeader: true,
       brandName: '',
       backgroundColor: '#3b82f6',
-      logoSize: 'medium'
+      logoSize: '60'
     };
     
     return (
@@ -406,8 +406,9 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
                   alt="Brand Logo"
                   className="object-contain"
                   style={{ 
-                    height: globalHeader.logoSize === 'small' ? '50%' :
-                           globalHeader.logoSize === 'large' ? '90%' : '70%'
+                    height: /^\d+$/.test(globalHeader.logoSize) ? `${globalHeader.logoSize}px` :
+                           globalHeader.logoSize === 'small' ? '32px' :
+                           globalHeader.logoSize === 'large' ? '56px' : '48px'
                   }}
                 />
               )}

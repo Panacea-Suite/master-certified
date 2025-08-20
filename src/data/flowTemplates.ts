@@ -13,7 +13,7 @@ export interface FlowTemplateData {
     brandName: string;
     logoUrl: string;
     backgroundColor: string;
-    logoSize: 'small' | 'medium' | 'large';
+    logoSize: string;
   };
 }
 
@@ -293,7 +293,7 @@ export const FLOW_TEMPLATES: FlowTemplateData[] = [
       brandName: '',
       logoUrl: '',
       backgroundColor: '#000000',
-      logoSize: 'medium'
+      logoSize: '60'
     }
   }
 ];
