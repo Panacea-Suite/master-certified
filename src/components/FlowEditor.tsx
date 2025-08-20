@@ -974,21 +974,12 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
               templateId={selectedTemplateId} 
               brandColors={brandData?.brand_colors}
             >
-              <div className="p-4 bg-white border-b space-y-3">
-                <div className="flex items-center">
-                  <div className="flex items-center gap-2 flex-1 min-w-0">
-                    <Smartphone className="h-5 w-5 text-primary flex-shrink-0" />
-                    <h3 className="font-semibold flex-shrink-0">Flow Preview</h3>
-                  </div>
-                  <div className="flex justify-end flex-shrink-0">
-                    <Button onClick={handleSave} disabled={isSaving} size="sm">
-                      <Save className="h-4 w-4 mr-2" />
-                      {isSaving ? 'Saving...' : templateToEdit ? 'Save my template' : 'Save Flow'}
-                    </Button>
-                  </div>
-                </div>
+              <div className="p-4 bg-white border-b">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3 min-w-0">
+                  <div className="flex items-center gap-3">
+                    <Smartphone className="h-5 w-5 text-primary flex-shrink-0" />
+                    <h3 className="font-semibold">Flow Preview</h3>
+                    <span className="text-xs text-muted-foreground">•</span>
                     <Select 
                       value={selectedDevice.name} 
                       onValueChange={(value) => {
@@ -1007,13 +998,18 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                         ))}
                       </SelectContent>
                     </Select>
-                    <span className="text-xs text-muted-foreground">•</span>
-                    <span className="text-sm text-muted-foreground truncate">
-                      {currentPage?.name || 'No page selected'}
-                    </span>
                   </div>
-                  <div className="text-xs text-muted-foreground flex-shrink-0">
-                    {selectedDevice.width} × {selectedDevice.height}px
+                  <div className="flex items-center gap-4">
+                    <div className="text-xs text-muted-foreground">
+                      {currentPage?.name || 'No page selected'}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {selectedDevice.width} × {selectedDevice.height}px
+                    </div>
+                    <Button onClick={handleSave} disabled={isSaving} size="sm">
+                      <Save className="h-4 w-4 mr-2" />
+                      {isSaving ? 'Saving...' : templateToEdit ? 'Save my template' : 'Save Flow'}
+                    </Button>
                   </div>
                 </div>
               </div>
