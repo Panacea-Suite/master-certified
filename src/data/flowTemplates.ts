@@ -147,6 +147,17 @@ const CERTIFICATION_FLOW_PAGES: FlowPage[] = [
           focusBorderColor: '#3b82f6',
           padding: 4
         }
+      },
+      {
+        id: 'store-divider',
+        type: 'divider',
+        config: {
+          width: 100,
+          thickness: 20,
+          color: 'var(--template-accent)',
+          backgroundColor: 'transparent',
+          padding: 0
+        }
       }
     ]
   },
