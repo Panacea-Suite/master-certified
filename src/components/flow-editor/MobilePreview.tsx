@@ -184,7 +184,7 @@ export const MobilePreview: React.FC<MobilePreviewProps> = ({
           )}
         </div>
 
-        <div className="flex-1">
+        <div>
           {sections
             .sort((a, b) => a.order - b.order)
             .map((section, index) => (
@@ -215,7 +215,7 @@ export const MobilePreview: React.FC<MobilePreviewProps> = ({
         
         {/* Panacea Footer - only if no footer section present - sticks to bottom */}
         {sections.every((s) => s.type !== 'footer') && (
-          <div className="mt-auto">
+          <div className="mt-auto shrink-0">
             {footerConfig ? (
               <PanaceaFooter 
                 backgroundColor={footerConfig.backgroundColor === 'transparent' ? undefined : footerConfig.backgroundColor} 
