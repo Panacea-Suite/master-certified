@@ -975,11 +975,13 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
               brandColors={brandData?.brand_colors}
             >
               <div className="p-4 bg-white border-b">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Smartphone className="h-5 w-5 text-primary flex-shrink-0" />
+                <div className="flex items-center justify-center gap-6">
+                  <div className="flex items-center gap-2">
+                    <Smartphone className="h-5 w-5 text-primary" />
                     <h3 className="font-semibold">Flow Preview</h3>
-                    <span className="text-xs text-muted-foreground">•</span>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
                     <Select 
                       value={selectedDevice.name} 
                       onValueChange={(value) => {
@@ -999,15 +1001,15 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <div className="text-xs text-muted-foreground">
-                      {selectedDevice.width} × {selectedDevice.height}px
-                    </div>
-                    <Button onClick={handleSave} disabled={isSaving} size="sm">
-                      <Save className="h-4 w-4 mr-2" />
-                      {isSaving ? 'Saving...' : templateToEdit ? 'Save my template' : 'Save Flow'}
-                    </Button>
+
+                  <div className="text-xs text-muted-foreground">
+                    {selectedDevice.width} × {selectedDevice.height}px
                   </div>
+
+                  <Button onClick={handleSave} disabled={isSaving} size="sm">
+                    <Save className="h-4 w-4 mr-2" />
+                    {isSaving ? 'Saving...' : templateToEdit ? 'Save my template' : 'Save Flow'}
+                  </Button>
                 </div>
               </div>
             
