@@ -126,7 +126,8 @@ export const SectionRenderer: React.FC<SectionRendererProps> = ({
 
   const getSectionClassName = () => {
     // Start with template card classes but strip visual backgrounds/borders so sections inherit page background
-    let classes = config.dropShadow 
+    // For image sections, also strip shadows since they go on the image directly
+    let classes = (config.dropShadow && section.type !== 'image') 
       ? templateClasses 
       : templateClasses.replace(/shadow-\w+/g, '');
 
