@@ -1048,12 +1048,13 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                                 className={`${section.id === selectedSection?.id ? 'ring-2 ring-primary ring-offset-2' : ''} cursor-pointer hover:ring-1 hover:ring-primary/50 transition-all`}
                                 onClick={() => setSelectedSection(section)}
                               >
-                                <SectionRenderer
-                                  section={section}
-                                  isPreview={true}
-                                  isRuntimeMode={true}
-                                  storeOptions={[]}
-                                />
+                              <SectionRenderer
+                                section={section}
+                                isPreview={true}
+                                isRuntimeMode={true}
+                                storeOptions={[]}
+                                brandColors={brandData?.brand_colors}
+                              />
                               </div>
                             ))}
                           </div>

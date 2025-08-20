@@ -28,6 +28,11 @@ interface SectionRendererProps {
   isRuntimeMode?: boolean;
   onSelect?: () => void;
   storeOptions?: string[];
+  brandColors?: {
+    primary: string;
+    secondary: string;
+    accent: string;
+  } | null;
   // Controlled store selector props for runtime binding
   purchaseChannel?: 'in-store' | 'online' | '';
   selectedStore?: string;
@@ -49,6 +54,7 @@ export const SectionRenderer: React.FC<SectionRendererProps> = ({
   isRuntimeMode = false,
   onSelect,
   storeOptions = [],
+  brandColors,
   purchaseChannel,
   selectedStore,
   onPurchaseChannelChange,
@@ -352,6 +358,10 @@ export const SectionRenderer: React.FC<SectionRendererProps> = ({
               <div className="space-y-3">
                 <Button
                   className="w-full"
+                  style={{
+                    borderColor: config.borderColor || brandColors?.primary || '#3b82f6',
+                    '--tw-ring-color': config.focusBorderColor || brandColors?.primary || '#3b82f6'
+                  } as React.CSSProperties}
                   onClick={(e) => {
                     e.stopPropagation();
                     handlePurchaseChannelChange('in-store');
@@ -361,7 +371,11 @@ export const SectionRenderer: React.FC<SectionRendererProps> = ({
                 </Button>
                 <Button
                   variant="outline"
-                  className="w-full"
+                  className="w-full focus:ring-2"
+                  style={{
+                    borderColor: config.borderColor || brandColors?.primary || '#3b82f6',
+                    '--tw-ring-color': config.focusBorderColor || brandColors?.primary || '#3b82f6'
+                  } as React.CSSProperties}
                   onClick={(e) => {
                     e.stopPropagation();
                     handlePurchaseChannelChange('online');

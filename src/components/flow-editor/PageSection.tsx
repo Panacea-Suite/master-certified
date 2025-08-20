@@ -195,12 +195,13 @@ export const PageSection: React.FC<PageSectionProps> = ({
 
     // All other section types delegate to SectionRenderer
     return (
-      <SectionRenderer
-        section={section}
-        isPreview={isPreview}
-        onSelect={onSelect}
-        storeOptions={config.storeOptions ? config.storeOptions.split('\n').filter((option: string) => option.trim()) : []}
-      />
+        <SectionRenderer
+          section={section}
+          isPreview={isPreview}
+          onSelect={onSelect}
+          brandColors={null}
+          storeOptions={config.storeOptions ? config.storeOptions.split('\n').filter((option: string) => option.trim()) : []}
+        />
     );
   };
 

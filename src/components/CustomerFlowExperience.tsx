@@ -275,6 +275,7 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
         isPreview={true}
         isRuntimeMode={true}
         storeOptions={campaign?.approved_stores || []}
+        brandColors={null}
         // Controlled store selector props for runtime binding
         purchaseChannel={userInputs.purchaseChannel}
         selectedStore={userInputs.selectedStore}
