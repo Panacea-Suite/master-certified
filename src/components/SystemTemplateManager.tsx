@@ -94,6 +94,13 @@ export const SystemTemplateManager: React.FC = () => {
     }
   };
 
+  const handleMoveToDraft = async (template: SystemTemplate) => {
+    const result = await updateSystemTemplate(template.id, { status: 'draft' });
+    if (result.success) {
+      toast.success(`Template "${template.name}" has been moved back to draft status`);
+    }
+  };
+
   const handleDeleteTemplate = async (template: SystemTemplate) => {
     if (!confirm(`Are you sure you want to delete "${template.name}"?`)) return;
     
@@ -297,6 +304,14 @@ export const SystemTemplateManager: React.FC = () => {
                     >
                       <Eye className="w-4 h-4 mr-1" />
                       View
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleMoveToDraft(template)}
+                    >
+                      <Edit className="w-4 h-4 mr-1" />
+                      Move to Draft
                     </Button>
                     <Button
                       variant="outline"
