@@ -1020,13 +1020,13 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                     className="bg-white rounded-lg shadow-lg overflow-hidden" 
                     style={{ 
                       width: `${selectedDevice.width}px`, 
-                      height: `${selectedDevice.height}px`,
+                      minHeight: `${selectedDevice.height}px`,
                       '--device-width-px': `${selectedDevice.width}px` 
                     } as React.CSSProperties}
                   >
                     {/* Runtime preview content using SectionRenderer */}
                     <div 
-                      className="h-full flex flex-col"
+                      className="flex flex-col"
                       style={{ backgroundColor: pageSettings.backgroundColor }}
                     >
                       {/* Use FlowHeader for consistency with editor and runtime */}
@@ -1040,7 +1040,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                         }}
                       />
                       
-                      <div className="flex-1 flex flex-col min-h-0">
+                      <div className="min-h-full flex flex-col">
                         <div>
                           {currentPage?.sections.sort((a, b) => a.order - b.order).map((section) => (
                             <div 
@@ -1059,7 +1059,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                         </div>
                         {/* Default footer if none present, matching editor preview */}
                         {currentPage && currentPage.sections.every(s => s.type !== 'footer') && (
-                          <div className="mt-auto shrink-0">
+                          <div className="mt-auto">
                             <PanaceaFooter 
                               backgroundColor={footerConfig.backgroundColor === 'transparent' ? undefined : footerConfig.backgroundColor}
                               logoSize={footerConfig.logoSize}
