@@ -969,13 +969,17 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
             </div>
           </div>
 
-          {/* Center Panel - Flow Preview */}
-          <div className="flex-1 flex flex-col bg-gray-50">
-              <div className="p-4 bg-white border-b">
+          {/* Middle Panel - Preview */}
+          <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+            <TemplateStyleProvider 
+              templateId={selectedTemplateId} 
+              brandColors={brandData?.brand_colors}
+            >
+              <div className="p-4 bg-white border-b space-y-3">
                 <div className="flex items-center">
-                  <div className="flex items-center gap-2 flex-1">
-                    <Smartphone className="h-5 w-5 text-primary" />
-                    <h3 className="font-semibold">Flow Preview</h3>
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <Smartphone className="h-5 w-5 text-primary flex-shrink-0" />
+                    <h3 className="font-semibold flex-shrink-0">Flow Preview</h3>
                     <div className="flex items-center gap-1 ml-4">
                       <Button
                         variant={!isRuntimePreview ? "default" : "ghost"}
@@ -997,48 +1001,48 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                       </Button>
                     </div>
                   </div>
-                  <div className="flex justify-center flex-1">
-                    <div className="flex items-center gap-2">
-                      <Select 
-                        value={selectedDevice.name} 
-                        onValueChange={(value) => {
-                          const device = deviceOptions.find(d => d.name === value);
-                          if (device) setSelectedDevice(device);
-                        }}
-                      >
-                        <SelectTrigger className="w-40 h-7 text-xs">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {deviceOptions.map((device) => (
-                            <SelectItem key={device.name} value={device.name}>
-                              {device.displayName}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <span className="text-sm text-muted-foreground">
-                        {currentPage?.name || 'No page selected'}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex justify-end flex-1">
-                    <Button onClick={handleSave} disabled={isSaving}>
+                  <div className="flex justify-end flex-shrink-0">
+                    <Button onClick={handleSave} disabled={isSaving} size="sm">
                       <Save className="h-4 w-4 mr-2" />
                       {isSaving ? 'Saving...' : templateToEdit ? 'Save my template' : 'Save Flow'}
                     </Button>
                   </div>
                 </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <Select 
+                      value={selectedDevice.name} 
+                      onValueChange={(value) => {
+                        const device = deviceOptions.find(d => d.name === value);
+                        if (device) setSelectedDevice(device);
+                      }}
+                    >
+                      <SelectTrigger className="w-36 h-8 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {deviceOptions.map((device) => (
+                          <SelectItem key={device.name} value={device.name}>
+                            {device.displayName}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <span className="text-xs text-muted-foreground">•</span>
+                    <span className="text-sm text-muted-foreground truncate">
+                      {currentPage?.name || 'No page selected'}
+                    </span>
+                  </div>
+                  <div className="text-xs text-muted-foreground flex-shrink-0">
+                    {selectedDevice.width} × {selectedDevice.height}px
+                  </div>
+                </div>
               </div>
             
-            <ScrollArea className="flex-1">
-              <div className="p-8 flex justify-center">
-                {isRuntimePreview ? (
-                  // Runtime Preview - wrapped with TemplateStyleProvider for consistency
-                  <TemplateStyleProvider 
-                    templateId={selectedTemplateId} 
-                    brandColors={brandData?.brand_colors}
-                  >
+              <ScrollArea className="flex-1">
+                <div className="p-8 flex justify-center">
+                  {isRuntimePreview ? (
+                    // Runtime Preview - wrapped with TemplateStyleProvider for consistency
                     <div 
                       className="bg-white rounded-lg shadow-lg overflow-hidden" 
                       style={{ 
@@ -1088,34 +1092,44 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                         </div>
                       </div>
                     </div>
-                  </TemplateStyleProvider>
-                ) : (
-                  // Editor Preview - shows drag-and-drop interface
-                  <MobilePreview
-                    sections={currentPage?.sections.sort((a, b) => a.order - b.order) || []}
-                    selectedSectionId={selectedSection?.id}
-                    onSelectSection={setSelectedSection}
-                    onAddSection={handleAddSection}
-                    backgroundColor={pageSettings.backgroundColor}
-                    globalHeader={globalHeader}
-                    footerConfig={footerConfig}
-                    deviceSpec={selectedDevice}
-                  />
-                )}
-              </div>
-            </ScrollArea>
+                  ) : (
+                    // Editor Preview - shows drag-and-drop interface
+                    <MobilePreview
+                      sections={currentPage?.sections.sort((a, b) => a.order - b.order) || []}
+                      selectedSectionId={selectedSection?.id}
+                      onSelectSection={setSelectedSection}
+                      onAddSection={handleAddSection}
+                      backgroundColor={pageSettings.backgroundColor}
+                      globalHeader={globalHeader}
+                      footerConfig={footerConfig}
+                      deviceSpec={selectedDevice}
+                    />
+                  )}
+                </div>
+              </ScrollArea>
+            </TemplateStyleProvider>
           </div>
 
           {/* Right Panel - Section Properties */}
-          <div className="w-80 border-l bg-muted/30 p-4 overflow-y-auto">
-            {selectedSection ? <ComponentEditor section={selectedSection} onUpdate={config => handleUpdateSection(selectedSection.id, config)} brandColors={brandData?.brand_colors} /> : <div className="text-center py-8 text-muted-foreground">
-                <div className="space-y-2">
-                  <div className="w-12 h-12 rounded-lg bg-muted mx-auto flex items-center justify-center">
-                    ⚙️
+          <div className="w-80 border-l bg-muted/30 flex flex-col overflow-hidden">
+            <ScrollArea className="flex-1 p-4">
+              {selectedSection ? (
+                <ComponentEditor 
+                  section={selectedSection} 
+                  onUpdate={config => handleUpdateSection(selectedSection.id, config)} 
+                  brandColors={brandData?.brand_colors} 
+                />
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <div className="space-y-2">
+                    <div className="w-12 h-12 rounded-lg bg-muted mx-auto flex items-center justify-center">
+                      ⚙️
+                    </div>
+                    <p className="text-sm">Select a section to edit its properties</p>
                   </div>
-                  <p className="text-sm">Select a section to edit its properties</p>
                 </div>
-              </div>}
+              )}
+            </ScrollArea>
           </div>
         </div>
       </DialogContent>
