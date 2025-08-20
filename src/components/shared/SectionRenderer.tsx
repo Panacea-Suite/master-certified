@@ -346,11 +346,6 @@ export const SectionRenderer: React.FC<SectionRendererProps> = ({
       return (
         <FullBleedWrapper>
           <div className="store-selector-section space-y-4">
-            <div className="text-center mb-6">
-              <h1 className="text-2xl font-bold">
-                Lets quickly confirm your product's authenticity to protect you from counterfeit products.
-              </h1>
-            </div>
             
             {!currentPurchaseChannel ? (
               // Step 1: Purchase Channel Selection
