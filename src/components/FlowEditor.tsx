@@ -22,7 +22,7 @@ import { FlowHeader } from './flow-editor/FlowHeader';
 import { TemplateStyleProvider } from './TemplateStyleProvider';
 import { SectionRenderer } from '@/components/shared/SectionRenderer';
 import { PanaceaFooter } from '@/components/PanaceaFooter';
-import { Smartphone, Save, ChevronDown, ChevronRight, ArrowLeft, Eye, Code } from 'lucide-react';
+import { Smartphone, Save, ChevronDown, ChevronRight, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -437,7 +437,6 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
   const [isSaving, setIsSaving] = useState(false);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(templateToEdit?.flow_config?.design_template_id || null);
   const [showTemplateSelector, setShowTemplateSelector] = useState(false);
-  const [isRuntimePreview, setIsRuntimePreview] = useState(false);
 
   // Collapsible sections state
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({
@@ -980,26 +979,6 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                   <div className="flex items-center gap-2 flex-1 min-w-0">
                     <Smartphone className="h-5 w-5 text-primary flex-shrink-0" />
                     <h3 className="font-semibold flex-shrink-0">Flow Preview</h3>
-                    <div className="flex items-center gap-1 ml-4">
-                      <Button
-                        variant={!isRuntimePreview ? "default" : "ghost"}
-                        size="sm"
-                        onClick={() => setIsRuntimePreview(false)}
-                        className="h-7 px-2 text-xs"
-                      >
-                        <Code className="h-3 w-3 mr-1" />
-                        Editor
-                      </Button>
-                      <Button
-                        variant={isRuntimePreview ? "default" : "ghost"}
-                        size="sm"
-                        onClick={() => setIsRuntimePreview(true)}
-                        className="h-7 px-2 text-xs"
-                      >
-                        <Eye className="h-3 w-3 mr-1" />
-                        Runtime
-                      </Button>
-                    </div>
                   </div>
                   <div className="flex justify-end flex-shrink-0">
                     <Button onClick={handleSave} disabled={isSaving} size="sm">
@@ -1041,70 +1020,56 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
             
               <ScrollArea className="flex-1">
                 <div className="p-8 flex justify-center">
-                  {isRuntimePreview ? (
-                    // Runtime Preview - wrapped with TemplateStyleProvider for consistency
+                  {/* Always show runtime preview for direct editing */}
+                  <div 
+                    className="bg-white rounded-lg shadow-lg overflow-hidden" 
+                    style={{ 
+                      width: `${selectedDevice.width}px`, 
+                      height: `${selectedDevice.height}px`,
+                      '--device-width-px': `${selectedDevice.width}px` 
+                    } as React.CSSProperties}
+                  >
+                    {/* Runtime preview content using SectionRenderer */}
                     <div 
-                      className="bg-white rounded-lg shadow-lg overflow-hidden" 
-                      style={{ 
-                        width: `${selectedDevice.width}px`, 
-                        height: `${selectedDevice.height}px`,
-                        '--device-width-px': `${selectedDevice.width}px` 
-                      } as React.CSSProperties}
+                      className="h-full flex flex-col"
+                      style={{ backgroundColor: pageSettings.backgroundColor }}
                     >
-                      {/* Runtime preview content using SectionRenderer */}
-                      <div 
-                        className="h-full flex flex-col"
-                        style={{ backgroundColor: pageSettings.backgroundColor }}
-                      >
-                        {/* Use FlowHeader for consistency with editor and runtime */}
-                        <FlowHeader 
-                          globalHeader={{
-                            showHeader: globalHeader.showHeader,
-                            brandName: '',
-                            logoUrl: globalHeader.logoUrl || '',
-                            backgroundColor: globalHeader.backgroundColor,
-                            logoSize: globalHeader.logoSize || '60'
-                          }}
-                        />
-                        
-                        <div className="flex-1">
-                          {currentPage?.sections.sort((a, b) => a.order - b.order).map((section) => (
-                            <div 
-                              key={section.id}
-                              className={`${section.id === selectedSection?.id ? 'ring-2 ring-primary ring-offset-2' : ''}`}
-                              onClick={() => setSelectedSection(section)}
-                            >
-                              <SectionRenderer
-                                section={section}
-                                isPreview={true}
-                                isRuntimeMode={true}
-                                storeOptions={[]}
-                              />
-                            </div>
-                          ))}
-                          {/* Default footer if none present, matching editor preview */}
-                          {currentPage && currentPage.sections.every(s => s.type !== 'footer') && (
-                            <PanaceaFooter 
-                              backgroundColor={footerConfig.backgroundColor === 'transparent' ? undefined : footerConfig.backgroundColor}
-                              logoSize={footerConfig.logoSize}
+                      {/* Use FlowHeader for consistency with editor and runtime */}
+                      <FlowHeader 
+                        globalHeader={{
+                          showHeader: globalHeader.showHeader,
+                          brandName: '',
+                          logoUrl: globalHeader.logoUrl || '',
+                          backgroundColor: globalHeader.backgroundColor,
+                          logoSize: globalHeader.logoSize || '60'
+                        }}
+                      />
+                      
+                      <div className="flex-1">
+                        {currentPage?.sections.sort((a, b) => a.order - b.order).map((section) => (
+                          <div 
+                            key={section.id}
+                            className={`${section.id === selectedSection?.id ? 'ring-2 ring-primary ring-offset-2' : ''} cursor-pointer hover:ring-1 hover:ring-primary/50 transition-all`}
+                            onClick={() => setSelectedSection(section)}
+                          >
+                            <SectionRenderer
+                              section={section}
+                              isPreview={true}
+                              isRuntimeMode={true}
+                              storeOptions={[]}
                             />
-                          )}
-                        </div>
+                          </div>
+                        ))}
+                        {/* Default footer if none present, matching editor preview */}
+                        {currentPage && currentPage.sections.every(s => s.type !== 'footer') && (
+                          <PanaceaFooter 
+                            backgroundColor={footerConfig.backgroundColor === 'transparent' ? undefined : footerConfig.backgroundColor}
+                            logoSize={footerConfig.logoSize}
+                          />
+                        )}
                       </div>
                     </div>
-                  ) : (
-                    // Editor Preview - shows drag-and-drop interface
-                    <MobilePreview
-                      sections={currentPage?.sections.sort((a, b) => a.order - b.order) || []}
-                      selectedSectionId={selectedSection?.id}
-                      onSelectSection={setSelectedSection}
-                      onAddSection={handleAddSection}
-                      backgroundColor={pageSettings.backgroundColor}
-                      globalHeader={globalHeader}
-                      footerConfig={footerConfig}
-                      deviceSpec={selectedDevice}
-                    />
-                  )}
+                  </div>
                 </div>
               </ScrollArea>
             </TemplateStyleProvider>
