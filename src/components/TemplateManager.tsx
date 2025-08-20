@@ -52,45 +52,42 @@ const TemplateManager: React.FC = () => {
     try {
       setLoading(true);
       
-      // Load system templates from flowTemplates.ts
-      const systemTemps = FLOW_TEMPLATES.map(template => ({
-        id: template.id,
-        name: template.name,
-        description: template.description || 'System template',
-        category: template.category || 'general',
-        pages: template.pages,
-        designConfig: template.designConfig,
-        tags: []
-      }));
-
-      // Load system templates from database (if any)
-      const { data: dbSystemTemplates } = await supabase
-        .from('flows')
+      // Load published system templates from the new templates table
+      const { data: publishedSystemTemplates } = await supabase
+        .from('templates')
         .select('*')
-        .eq('is_system_template', true);
+        .eq('kind', 'system')
+        .eq('status', 'published');
 
-      if (dbSystemTemplates) {
-        const dbSystemTemps = dbSystemTemplates.map(template => {
-          const flowConfig = template.flow_config as any;
-          return {
-            id: template.id,
-            name: template.name,
-            description: template.template_description || 'System template',
-            category: template.template_category || 'database',
-            pages: flowConfig?.pages || [],
-            designConfig: flowConfig?.designConfig || {
-              backgroundStyle: 'solid' as const,
-              colorScheme: 'primary' as const,
-              borderStyle: 'rounded' as const,
-              dividerStyle: 'line' as const,
-              cardStyle: 'elevated' as const,
-              spacing: 'comfortable' as const
-            },
-            tags: template.template_tags || []
-          };
-        });
-        systemTemps.push(...dbSystemTemps);
-      }
+      const systemTemps = (publishedSystemTemplates || []).map(template => {
+        // Parse the content JSON safely
+        let content: any = {};
+        try {
+          content = typeof template.content === 'string' 
+            ? JSON.parse(template.content) 
+            : template.content || {};
+        } catch (error) {
+          console.error('Error parsing template content:', error);
+          content = {};
+        }
+
+        return {
+          id: template.id,
+          name: template.name,
+          description: template.description || 'System template',
+          category: 'certification', // Default category for now
+          pages: content.pages || [],
+          designConfig: content.designConfig || {
+            backgroundStyle: 'solid' as const,
+            colorScheme: 'primary' as const,
+            borderStyle: 'rounded' as const,
+            dividerStyle: 'line' as const,
+            cardStyle: 'elevated' as const,
+            spacing: 'comfortable' as const
+          },
+          tags: []
+        };
+      });
 
       // Load user templates
       const { data: userTemps } = await supabase
