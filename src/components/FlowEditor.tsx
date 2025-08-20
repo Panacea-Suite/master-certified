@@ -21,6 +21,7 @@ import { PageSection } from './flow-editor/PageSection';
 import { FlowHeader } from './flow-editor/FlowHeader';
 import { TemplateStyleProvider } from './TemplateStyleProvider';
 import { SectionRenderer } from '@/components/shared/SectionRenderer';
+import { PanaceaFooter } from '@/components/PanaceaFooter';
 import { Smartphone, Save, ChevronDown, ChevronRight, ArrowLeft, Eye, Code } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -1027,30 +1028,35 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                           <FlowHeader 
                             globalHeader={{
                               showHeader: globalHeader.showHeader,
-                              brandName: globalHeader.brandName || brandData?.name || '',
+                              brandName: '',
                               logoUrl: brandData?.logo_url || '',
                               backgroundColor: globalHeader.backgroundColor,
                               logoSize: globalHeader.logoSize || '60'
                             }}
                           />
                           
-                          <div className="max-w-sm mx-auto px-4 py-6">
-                            <div className="space-y-4">
-                              {currentPage?.sections.sort((a, b) => a.order - b.order).map((section) => (
-                                <div 
-                                  key={section.id}
-                                  className={`${section.id === selectedSection?.id ? 'ring-2 ring-primary ring-offset-2' : ''}`}
-                                  onClick={() => setSelectedSection(section)}
-                                >
-                                  <SectionRenderer
-                                    section={section}
-                                    isPreview={true}
-                                    isRuntimeMode={true}
-                                    storeOptions={[]}
-                                  />
-                                </div>
-                              ))}
-                            </div>
+                          <div>
+                            {currentPage?.sections.sort((a, b) => a.order - b.order).map((section) => (
+                              <div 
+                                key={section.id}
+                                className={`${section.id === selectedSection?.id ? 'ring-2 ring-primary ring-offset-2' : ''}`}
+                                onClick={() => setSelectedSection(section)}
+                              >
+                                <SectionRenderer
+                                  section={section}
+                                  isPreview={true}
+                                  isRuntimeMode={true}
+                                  storeOptions={[]}
+                                />
+                              </div>
+                            ))}
+                            {/* Default footer if none present, matching editor preview */}
+                            {currentPage && currentPage.sections.every(s => s.type !== 'footer') && (
+                              <PanaceaFooter 
+                                backgroundColor={footerConfig.backgroundColor === 'transparent' ? undefined : footerConfig.backgroundColor}
+                                logoSize={footerConfig.logoSize}
+                              />
+                            )}
                           </div>
                         </div>
                       </div>

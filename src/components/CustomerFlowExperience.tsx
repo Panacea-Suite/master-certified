@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { SectionRenderer } from '@/components/shared/SectionRenderer';
 import { TemplateStyleProvider } from '@/components/TemplateStyleProvider';
 import { FlowHeader } from '@/components/flow-editor/FlowHeader';
+import { PanaceaFooter } from '@/components/PanaceaFooter';
 
 
 // Cache-busting utility
@@ -335,21 +336,23 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
           <FlowHeader 
             globalHeader={{
               showHeader: globalHeader.showHeader,
-              brandName: globalHeader.brandName || brandData?.name || campaign?.brands?.name || '',
+              brandName: '',
               logoUrl: brandLogo || '',
               backgroundColor: globalHeader.backgroundColor,
               logoSize: globalHeader.logoSize || '60'
             }}
           />
           
-          <div className="max-w-sm mx-auto px-4 py-6">
-            <div className="space-y-4">
-              {currentPage.sections.map((section: any) => renderTemplateSection(section))}
-            </div>
+          <div className="mx-auto" style={{ maxWidth: 390 }}>
+            {currentPage.sections.map((section: any) => renderTemplateSection(section))}
+            {/* Default footer if no footer section present */}
+            {currentPage.sections.every((s: any) => s.type !== 'footer') && (
+              <PanaceaFooter />
+            )}
             
             {/* Navigation for multi-page templates - only show if not externally controlled */}
             {pages.length > 1 && !hideInternalNavigation && (
-              <div className="flex justify-between items-center mt-8 pt-4 border-t">
+              <div className="flex justify-between items-center mt-8 pt-4 border-t px-4">
                 <Button
                   variant="outline"
                   onClick={() => setCurrentPageIndex(Math.max(0, currentPageIndex - 1))}
