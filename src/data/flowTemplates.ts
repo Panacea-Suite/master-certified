@@ -143,8 +143,8 @@ const CERTIFICATION_FLOW_PAGES: FlowPage[] = [
           storeOptions: 'Best Buy\nAmazon\nTarget\nWalmart\nOther Retailer',
           backgroundColor: '#ffffff',
           textColor: '#000000',
-          borderColor: '#e5e7eb',
-          focusBorderColor: '#3b82f6',
+          borderColor: 'var(--template-primary)',
+          focusBorderColor: 'var(--template-primary)',
           padding: 4
         }
       },
