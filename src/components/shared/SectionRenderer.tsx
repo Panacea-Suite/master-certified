@@ -356,33 +356,47 @@ export const SectionRenderer: React.FC<SectionRendererProps> = ({
             {!currentPurchaseChannel ? (
               // Step 1: Purchase Channel Selection
               <div className="space-y-3">
-                <Button
-                  className="w-full"
+                <button
+                  className="w-full h-10 px-4 py-2 rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 inline-flex items-center justify-center gap-2 whitespace-nowrap"
                   style={{
-                    borderColor: config.borderColor || brandColors?.primary || '#3b82f6',
+                    backgroundColor: config.borderColor || brandColors?.primary || '#3b82f6',
+                    color: 'white',
+                    border: `1px solid ${config.borderColor || brandColors?.primary || '#3b82f6'}`,
                     '--tw-ring-color': config.focusBorderColor || brandColors?.primary || '#3b82f6'
                   } as React.CSSProperties}
                   onClick={(e) => {
+                    console.log('Store selector config:', {
+                      borderColor: config.borderColor,
+                      focusBorderColor: config.focusBorderColor,
+                      brandColors: brandColors
+                    });
                     e.stopPropagation();
                     handlePurchaseChannelChange('in-store');
                   }}
                 >
                   In-store
-                </Button>
-                <Button
-                  variant="outline"
-                  className="w-full focus:ring-2"
+                </button>
+                <button
+                  className="w-full h-10 px-4 py-2 rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 inline-flex items-center justify-center gap-2 whitespace-nowrap"
                   style={{
-                    borderColor: config.borderColor || brandColors?.primary || '#3b82f6',
+                    backgroundColor: 'transparent',
+                    color: config.borderColor || brandColors?.primary || '#3b82f6',
+                    border: `1px solid ${config.borderColor || brandColors?.primary || '#3b82f6'}`,
                     '--tw-ring-color': config.focusBorderColor || brandColors?.primary || '#3b82f6'
                   } as React.CSSProperties}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = `${config.borderColor || brandColors?.primary || '#3b82f6'}20`;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                  }}
                   onClick={(e) => {
                     e.stopPropagation();
                     handlePurchaseChannelChange('online');
                   }}
                 >
                   Online
-                </Button>
+                </button>
               </div>
             ) : (
               // Step 2: Store Selection
