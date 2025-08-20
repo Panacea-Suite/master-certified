@@ -101,11 +101,16 @@ export const PageSection: React.FC<PageSectionProps> = ({
     };
   };
 
-  // Generate filter drop shadow style for images
-  const getImageFilterStyle = () => {
-    return config.dropShadow ? {
-      filter: `drop-shadow(${config.shadowOffsetX || 0}px ${config.shadowOffsetY || 4}px ${config.shadowBlur || 10}px ${config.shadowColor || 'rgba(0,0,0,0.1)'})`
-    } : {};
+  // Generate Tailwind drop shadow class for images
+  const getImageDropShadowClass = () => {
+    if (!config.dropShadow || section.type !== 'image') return '';
+    
+    // Use appropriate Tailwind drop-shadow class based on shadow config
+    const blur = config.shadowBlur || 10;
+    if (blur <= 4) return 'drop-shadow-sm';
+    if (blur <= 8) return 'drop-shadow';
+    if (blur <= 16) return 'drop-shadow-lg';
+    return 'drop-shadow-xl';
   };
 
   const getSectionClassName = () => {
