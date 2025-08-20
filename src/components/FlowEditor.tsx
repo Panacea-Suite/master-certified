@@ -1026,7 +1026,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                   >
                     {/* Runtime preview content using SectionRenderer */}
                     <div 
-                      className="h-full flex flex-col"
+                      className="h-full flex flex-col overflow-y-auto"
                       style={{ backgroundColor: pageSettings.backgroundColor }}
                     >
                       {/* Use FlowHeader for consistency with editor and runtime */}
