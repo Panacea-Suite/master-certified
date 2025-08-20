@@ -178,29 +178,9 @@ export const ImageEditor = ({ file, onSave, onCancel }: ImageEditorProps) => {
   }, [file]); // Removed canvasSize dependency to prevent recreation
 
   const handleImageSizeChange = (newWidth: number, newHeight: number) => {
-    if (!originalImage || !fabricCanvas) return;
-    
-    // Update output size state only
+    // Only update output size state - don't change the canvas preview scale
     setOutputWidth(newWidth);
     setOutputHeight(newHeight);
-    
-    // Calculate scale factor for the image based on desired output size
-    const imageOriginalWidth = originalImage.width || 1;
-    const imageOriginalHeight = originalImage.height || 1;
-    
-    // Scale the image to match the desired output dimensions
-    const scaleX = newWidth / imageOriginalWidth;
-    const scaleY = newHeight / imageOriginalHeight;
-    
-    originalImage.set({
-      scaleX: scaleX,
-      scaleY: scaleY,
-      originX: 'center',
-      originY: 'center',
-    });
-    
-    fabricCanvas.centerObject(originalImage);
-    fabricCanvas.renderAll();
   };
 
   const handleWidthChange = (value: string) => {
