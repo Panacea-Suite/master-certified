@@ -108,11 +108,12 @@ Deno.serve(async (req) => {
     // Parse request body
     console.log('Parsing request body...');
     const body = await req.json();
-    const { template_id, campaign_id, app_origin } = body;
+    const { template_id, app_origin } = body;
+    let cid = body?.campaign_id ?? null;
     
-    console.log('Request payload:', { template_id, campaign_id, app_origin });
+    console.log('Request payload:', { template_id, campaign_id: cid, app_origin });
 
-    if (!template_id && !campaign_id) {
+    if (!template_id && !cid) {
       console.error('Invalid payload: missing both template_id and campaign_id');
       return new Response(
         JSON.stringify({ error: 'Either template_id or campaign_id is required' }),
@@ -124,12 +125,12 @@ Deno.serve(async (req) => {
     }
 
     // Validate the provided IDs exist and are accessible
-    if (campaign_id) {
-      console.log('Validating campaign_id:', campaign_id);
+    if (cid) {
+      console.log('Validating campaign_id:', cid);
       const { data: campaign, error: campaignError } = await supabase
         .from('campaigns')
         .select('id, name, brand_id')
-        .eq('id', campaign_id)
+        .eq('id', cid)
         .single();
 
       console.log('Campaign validation result:', { campaign, campaignError });
@@ -186,7 +187,7 @@ Deno.serve(async (req) => {
       console.log('Template validation passed');
 
       // If only template_id provided (no campaign_id), create ephemeral campaign
-      if (!campaign_id) {
+      if (!cid) {
         console.log('Creating ephemeral campaign for template-only test...');
         
         if (!hasRole) {
@@ -220,8 +221,8 @@ Deno.serve(async (req) => {
         }
 
         // Use the created campaign_id for token generation
-        campaign_id = ephemeralResult.campaign_id;
-        console.log('Created ephemeral campaign:', campaign_id);
+        cid = ephemeralResult.campaign_id;
+        console.log('Created ephemeral campaign:', cid);
       }
     }
 
@@ -231,7 +232,7 @@ Deno.serve(async (req) => {
     const tokenPayload = {
       mode: 'test',
       template_id: template_id || null,
-      campaign_id: campaign_id || null,
+      campaign_id: cid || null,
       created_by: user.id,
       exp: Math.floor(Date.now() / 1000) + (30 * 60), // 30 minutes
     };
