@@ -106,6 +106,17 @@ Deno.serve(async (req) => {
       );
     }
 
+    if (!payload.qr_id) {
+      console.error('Missing qr_id in token');
+      return new Response(
+        JSON.stringify({ error: 'Test token missing qr_id' }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
     // Verify campaign exists
     console.log('Verifying campaign exists:', payload.campaign_id);
     const { data: campaign, error: campaignError } = await supabase
@@ -132,7 +143,7 @@ Deno.serve(async (req) => {
     const { data: session, error: sessionError } = await supabase
       .from('flow_sessions')
       .insert({
-        qr_id: null,
+        qr_id: payload.qr_id,
         campaign_id: payload.campaign_id,
         brand_id: campaign.brand_id,
         status: 'active',

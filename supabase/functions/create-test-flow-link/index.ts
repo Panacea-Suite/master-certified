@@ -110,6 +110,7 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const { template_id, app_origin } = body;
     let cid = body?.campaign_id ?? null;
+    let qrId = null;
     
     console.log('Request payload:', { template_id, campaign_id: cid, app_origin });
 
@@ -220,9 +221,10 @@ Deno.serve(async (req) => {
           );
         }
 
-        // Use the created campaign_id for token generation
+        // Use the created campaign_id and qr_id for token generation
         cid = ephemeralResult.campaign_id;
-        console.log('Created ephemeral campaign:', cid);
+        qrId = ephemeralResult.qr_id;
+        console.log('Created ephemeral campaign:', cid, 'with QR:', qrId);
       }
     }
 
@@ -233,6 +235,7 @@ Deno.serve(async (req) => {
       mode: 'test',
       template_id: template_id || null,
       campaign_id: cid || null,
+      qr_id: qrId,
       created_by: user.id,
       exp: Math.floor(Date.now() / 1000) + (30 * 60), // 30 minutes
     };
