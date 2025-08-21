@@ -13,6 +13,8 @@ const queryClient = new QueryClient();
 // Top-level router that splits customer vs admin routes
 const RootRouter = () => {
   const location = useLocation();
+  
+  // With HashRouter, the pathname includes the hash content
   const isCustomerRoute = location.pathname.startsWith('/flow');
 
   // Customer routes get their own app with no admin chrome

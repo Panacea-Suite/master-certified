@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Redirecting...</title>
+    <script>
+        // Bootstrap redirect for non-hash URLs to hash URLs
+        const path = window.location.pathname;
+        const search = window.location.search;
+        
+        if (path.startsWith('/flow') && !window.location.hash) {
+            // Redirect to hash version
+            const newUrl = window.location.origin + '/#' + path + search;
+            window.location.replace(newUrl);
+        } else {
+            // Redirect to main app
+            window.location.replace('/');
+        }
+    </script>
+</head>
+<body>
+    <div style="text-align: center; margin-top: 100px;">
+        <p>Redirecting...</p>
+    </div>
+</body>
+</html>

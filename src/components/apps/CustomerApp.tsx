@@ -9,8 +9,8 @@ export const CustomerApp: React.FC = () => {
   return (
     <CustomerShell>
       <Routes>
-        <Route path="/test" element={<TestFlowGate />} />
-        <Route path="/run" element={<CustomerFlowRun />} />
+        <Route path="/flow/test" element={<TestFlowGate />} />
+        <Route path="/flow/run" element={<CustomerFlowRun />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </CustomerShell>
