@@ -31,7 +31,11 @@ export default function Auth() {
     
     const { error } = await signIn(signInEmail, signInPassword);
     if (!error) {
-      navigate('/');
+      // Only redirect to admin if not on a customer route
+      const currentPath = window.location.hash.slice(1); // Remove # from hash
+      if (!currentPath.startsWith('/flow')) {
+        navigate('/');
+      }
     }
     setIsLoading(false);
   };

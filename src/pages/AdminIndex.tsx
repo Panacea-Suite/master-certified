@@ -20,7 +20,11 @@ const AdminIndex = () => {
 
   useEffect(() => {
     if (!loading && !user) {
-      navigate('/auth');
+      // Only redirect to auth if not on a customer route
+      const currentPath = window.location.hash.slice(1); // Remove # from hash
+      if (!currentPath.startsWith('/flow')) {
+        navigate('/auth');
+      }
     }
   }, [user, loading, navigate]);
 

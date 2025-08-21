@@ -4,7 +4,7 @@ import { CertificationFlow } from '@/components/certification-flow/Certification
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from 'lucide-react';
 
-export const FlowRun: React.FC = () => {
+export const CustomerFlowRun: React.FC = () => {
   const [searchParams] = useSearchParams();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
