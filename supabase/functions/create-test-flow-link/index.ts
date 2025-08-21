@@ -58,10 +58,10 @@ Deno.serve(async (req) => {
     }
 
     // Verify the user's session
-    const token = authHeader.replace('Bearer ', '');
+    const authToken = authHeader.replace('Bearer ', '');
     console.log('Verifying user token...');
     
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    const { data: { user }, error: authError } = await supabase.auth.getUser(authToken);
 
     if (authError || !user) {
       console.error('Authentication failed:', { authError, hasUser: !!user });
@@ -108,9 +108,9 @@ Deno.serve(async (req) => {
     // Parse request body
     console.log('Parsing request body...');
     const body = await req.json();
-    const { template_id, campaign_id } = body;
+    const { template_id, campaign_id, app_origin } = body;
     
-    console.log('Request payload:', { template_id, campaign_id });
+    console.log('Request payload:', { template_id, campaign_id, app_origin });
 
     if (!template_id && !campaign_id) {
       console.error('Invalid payload: missing both template_id and campaign_id');
@@ -206,13 +206,18 @@ Deno.serve(async (req) => {
     // Generate the test URL
     console.log('Generating test URL...');
     
-    // Use APP_BASE_URL if set, otherwise fallback to derived URL
+    // Use app_origin from request, APP_BASE_URL secret, or fallback to derived URL
     let baseUrl;
-    if (appBaseUrl) {
+    if (app_origin) {
+      baseUrl = app_origin;
+      console.log('Using app_origin from request:', baseUrl);
+    } else if (appBaseUrl) {
       baseUrl = appBaseUrl;
+      console.log('Using APP_BASE_URL secret:', baseUrl);
     } else {
       // Fallback to derived URL (replace 'functions' with 'app' in the origin)
       baseUrl = new URL(req.url).origin.replace('functions', 'app');
+      console.log('Using derived URL fallback:', baseUrl);
     }
     
     const testUrl = `${baseUrl}/test-flow?token=${token}`;

@@ -335,7 +335,10 @@ const TemplateManager: React.FC = () => {
         return;
       }
 
-      const payload = { template_id: template.id };
+      const payload = { 
+        template_id: template.id,
+        app_origin: window.location.origin
+      };
 
       const response = await supabase.functions.invoke('create-test-flow-link', {
         body: payload,
@@ -345,7 +348,13 @@ const TemplateManager: React.FC = () => {
       });
 
       if (response.error) {
-        throw new Error(response.error.message || 'Failed to create test link');
+        console.error('Edge function error:', response.error);
+        throw new Error(`Failed to create test link: ${response.error.message || 'Unknown error'}`);
+      }
+
+      if (!response.data?.success || !response.data?.url) {
+        console.error('Invalid response format:', response.data);
+        throw new Error('Invalid response from test link service');
       }
 
       const { url, expires_in } = response.data;

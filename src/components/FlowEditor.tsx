@@ -806,7 +806,10 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
       console.log('Creating test link with payload:', payload);
 
       const response = await supabase.functions.invoke('create-test-flow-link', {
-        body: payload,
+        body: {
+          ...payload,
+          app_origin: window.location.origin
+        },
         headers: {
           'Authorization': `Bearer ${session.access_token}`,
         },
@@ -826,6 +829,11 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
         }
         
         throw new Error(errorMessage);
+      }
+
+      if (!response.data?.success || !response.data?.url) {
+        console.error('Invalid response format:', response.data);
+        throw new Error('Invalid response from test link service');
       }
 
       // Check if the response data contains an error (from edge function)
