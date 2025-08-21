@@ -60,34 +60,36 @@ export const LoginStep: React.FC<LoginStepProps> = ({
     }
   }, [user, loading, optIn, onAuthSuccess]);
 
+  const continueWithGoogle = async (marketingOptIn: boolean) => {
+    // optional: persist flags/context for after redirect
+    sessionStorage.setItem('marketing_opt_in', marketingOptIn ? '1' : '0');
+    // sessionStorage.setItem('flow_session_id', currentSessionId); // if you have one
+
+    const redirectTo = `${window.location.origin}${import.meta.env.VITE_AUTH_REDIRECT || '/auth/callback'}`;
+
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo,
+        scopes: 'openid email profile',
+        queryParams: { prompt: 'select_account' } // optional
+      }
+    });
+
+    if (error) {
+      // show error to user
+      console.error('Google OAuth start failed', error);
+      setError(error.message || 'Google sign-in failed');
+      onAuthError?.(new Error(error.message));
+    }
+  };
+
   const handleGoogleAuth = async () => {
     setLoading('google');
     setError(undefined);
     
     try {
-      // Store context for OAuth callback
-      sessionStorage.setItem('marketing_opt_in', optIn ? '1' : '0');
-      sessionStorage.setItem('auth_provider', 'google');
-      sessionStorage.setItem('return_to', window.location.href);
-
-      // Calculate redirect URL
-      const redirectTo = `${window.location.origin}${import.meta.env.VITE_AUTH_REDIRECT || '/auth/callback'}`;
-
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo,
-          scopes: 'openid email profile',
-          queryParams: {
-            prompt: 'select_account'
-          }
-        }
-      });
-      
-      if (error) {
-        throw error;
-      }
-      
+      await continueWithGoogle(optIn);
       onTrackEvent?.('auth_success', { provider: 'google', marketingOptIn: optIn });
       // Note: Don't set loading to null on success as user will be redirected
     } catch (err: any) {
@@ -186,19 +188,14 @@ export const LoginStep: React.FC<LoginStepProps> = ({
 
         {/* Social Auth Buttons */}
         <div className="space-y-3">
-          <Button
-            variant="outline"
-            className="w-full justify-center"
-            onClick={handleGoogleAuth}
-            disabled={!!loading}
-          >
+          <button onClick={() => continueWithGoogle(optIn)} className="w-full rounded-lg border px-4 py-2 font-medium flex items-center justify-center gap-2" disabled={!!loading}>
             {loading === 'google' ? (
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
-              <Chrome className="w-4 h-4 mr-2" />
+              <Chrome className="w-4 h-4" />
             )}
-            {loading === 'google' ? 'Signing in...' : 'Continue with Google'}
-          </Button>
+            Continue with Google
+          </button>
 
           {showApple && (
             <Button
