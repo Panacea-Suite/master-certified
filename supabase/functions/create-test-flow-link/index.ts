@@ -263,7 +263,7 @@ Deno.serve(async (req) => {
       console.log('Using derived URL fallback:', baseUrl);
     }
     
-    const testUrl = `${baseUrl}/flow/test?token=${token}`;
+    const testUrl = `${baseUrl}/#/flow/test?token=${token}`;
     console.log('Generated test URL:', testUrl);
 
     console.log('Test link created successfully');
