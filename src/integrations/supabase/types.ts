@@ -50,6 +50,7 @@ export type Database = {
           created_at: string
           generated_at: string | null
           id: string
+          is_test: boolean
           name: string
           qr_code_count: number
           status: string
@@ -60,6 +61,7 @@ export type Database = {
           created_at?: string
           generated_at?: string | null
           id?: string
+          is_test?: boolean
           name: string
           qr_code_count?: number
           status?: string
@@ -70,6 +72,7 @@ export type Database = {
           created_at?: string
           generated_at?: string | null
           id?: string
+          is_test?: boolean
           name?: string
           qr_code_count?: number
           status?: string
@@ -175,6 +178,7 @@ export type Database = {
           final_redirect_url: string | null
           flow_settings: Json | null
           id: string
+          is_test: boolean
           locked_template: Json | null
           name: string
           template_id: string | null
@@ -189,6 +193,7 @@ export type Database = {
           final_redirect_url?: string | null
           flow_settings?: Json | null
           id?: string
+          is_test?: boolean
           locked_template?: Json | null
           name: string
           template_id?: string | null
@@ -203,6 +208,7 @@ export type Database = {
           final_redirect_url?: string | null
           flow_settings?: Json | null
           id?: string
+          is_test?: boolean
           locked_template?: Json | null
           name?: string
           template_id?: string | null
@@ -465,6 +471,7 @@ export type Database = {
           created_at: string
           flow_id: string | null
           id: string
+          is_test: boolean
           qr_url: string
           scans: number
           unique_code: string
@@ -476,6 +483,7 @@ export type Database = {
           created_at?: string
           flow_id?: string | null
           id?: string
+          is_test?: boolean
           qr_url: string
           scans?: number
           unique_code: string
@@ -487,6 +495,7 @@ export type Database = {
           created_at?: string
           flow_id?: string | null
           id?: string
+          is_test?: boolean
           qr_url?: string
           scans?: number
           unique_code?: string
@@ -641,6 +650,10 @@ export type Database = {
         Args: { system_tpl_id: string; target_brand_id: string }
         Returns: Json
       }
+      cleanup_ephemeral_campaigns: {
+        Args: { days_old?: number }
+        Returns: Json
+      }
       create_campaign_from_template: {
         Args: {
           p_brand_id: string
@@ -648,6 +661,10 @@ export type Database = {
           p_template_id: string
           p_template_version?: number
         }
+        Returns: Json
+      }
+      create_ephemeral_campaign_from_template: {
+        Args: { p_created_by: string; p_template_id: string }
         Returns: Json
       }
       create_flow_with_campaign: {

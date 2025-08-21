@@ -1233,6 +1233,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
         onClose={() => setShowTestModal(false)}
         testUrl={testUrl}
         expiresIn={testExpiresIn}
+        isEphemeralCampaign={!!(templateToEdit && (!templateToEdit.campaign_id || templateToEdit.kind === 'system' || templateToEdit.kind === 'brand'))}
       />
     </Dialog>
     </TemplateStyleProvider>;

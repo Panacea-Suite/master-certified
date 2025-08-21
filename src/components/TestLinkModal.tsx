@@ -11,13 +11,15 @@ interface TestLinkModalProps {
   onClose: () => void;
   testUrl: string;
   expiresIn: number; // seconds
+  isEphemeralCampaign?: boolean; // for template-only tests
 }
 
 export const TestLinkModal: React.FC<TestLinkModalProps> = ({
   isOpen,
   onClose,
   testUrl,
-  expiresIn
+  expiresIn,
+  isEphemeralCampaign = false
 }) => {
   const [copied, setCopied] = useState(false);
   const { toast } = useToast();
@@ -66,6 +68,15 @@ export const TestLinkModal: React.FC<TestLinkModalProps> = ({
               Data from this test will be saved as test data and excluded from brand analytics.
             </AlertDescription>
           </Alert>
+
+          {isEphemeralCampaign && (
+            <Alert variant="default" className="bg-blue-50 border-blue-200">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                This creates a temporary test campaign from the template. It will be auto-cleaned after 7 days.
+              </AlertDescription>
+            </Alert>
+          )}
 
           <div className="flex items-center space-x-2">
             <Input

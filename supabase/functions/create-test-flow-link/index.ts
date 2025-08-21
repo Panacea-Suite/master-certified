@@ -184,6 +184,45 @@ Deno.serve(async (req) => {
       }
       
       console.log('Template validation passed');
+
+      // If only template_id provided (no campaign_id), create ephemeral campaign
+      if (!campaign_id) {
+        console.log('Creating ephemeral campaign for template-only test...');
+        
+        if (!hasRole) {
+          console.error('Access denied: only master_admin can create template-only test flows');
+          return new Response(
+            JSON.stringify({ error: 'Access denied: only master_admin can create template-only test flows' }),
+            { 
+              status: 403, 
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+            }
+          );
+        }
+
+        const { data: ephemeralResult, error: ephemeralError } = await supabase
+          .rpc('create_ephemeral_campaign_from_template', {
+            p_template_id: template_id,
+            p_created_by: user.id
+          });
+
+        console.log('Ephemeral campaign creation result:', { ephemeralResult, ephemeralError });
+
+        if (ephemeralError || !ephemeralResult?.success) {
+          console.error('Failed to create ephemeral campaign:', ephemeralError);
+          return new Response(
+            JSON.stringify({ error: 'Failed to create ephemeral test campaign: ' + (ephemeralError?.message || 'Unknown error') }),
+            { 
+              status: 500, 
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+            }
+          );
+        }
+
+        // Use the created campaign_id for token generation
+        campaign_id = ephemeralResult.campaign_id;
+        console.log('Created ephemeral campaign:', campaign_id);
+      }
     }
 
     // Create JWT token

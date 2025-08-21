@@ -85,8 +85,11 @@ export const TestFlow: React.FC = () => {
         sessionStorage.setItem('test_qr_id', response.session_id);
         sessionStorage.setItem('test_mode', 'true');
         
+      } else if (payload.template_id) {
+        // Template-only flows should now have a campaign_id created by the edge function
+        setError('Test link is invalid - no campaign found. Please regenerate the test link.');
       } else {
-        setError('Template-only test flows are not yet supported.');
+        setError('Invalid test link - missing required information.');
       }
     } catch (error) {
       console.error('Error starting test session:', error);
