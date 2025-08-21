@@ -55,6 +55,9 @@ verify_jwt = false
 [functions.flow-handler]
 verify_jwt = false
 
+[functions.create-test-flow-link]
+verify_jwt = false
+
 [edge-runtime]
 enabled = true
 ip_version = "ipv4"

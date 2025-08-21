@@ -50,12 +50,46 @@ export const useCertificationFlow = () => {
   
   const { user } = useAuth();
 
-  // Initialize flow from QR code
-  const startFlow = async (qrId: string) => {
+  // Initialize flow from QR code or test mode
+  const startFlow = async (qrId?: string, testSessionId?: string) => {
     setIsLoading(true);
     setError(null);
     
     try {
+      // If test session ID is provided, fetch the existing session
+      if (testSessionId) {
+        const { data, error } = await supabase.rpc('get_flow_session', {
+          p_session_id: testSessionId
+        });
+
+        if (error) throw error;
+
+        const result = data as any;
+        if (!result?.success) {
+          setCurrentStep('invalid');
+          setError('Test session not found');
+          return;
+        }
+
+        const sessionData = result.data;
+        setSessionId(testSessionId);
+        setSession({
+          id: testSessionId,
+          status: sessionData.status || 'active',
+          store_meta: sessionData.store_meta || {},
+          campaign: sessionData.campaign,
+          brand: sessionData.brand
+        });
+        
+        setCurrentStep('welcome');
+        return;
+      }
+
+      // Original QR-based flow
+      if (!qrId) {
+        throw new Error('Either QR ID or test session ID is required');
+      }
+
       const { data, error } = await supabase.rpc('start_flow_session', {
         p_qr_id: qrId
       });

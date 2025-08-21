@@ -10,6 +10,8 @@ import { useToast } from "@/hooks/use-toast";
 import { FlowEditor } from './FlowEditor';
 import { FLOW_TEMPLATES } from '@/data/flowTemplates';
 import { useFlowManager } from '@/hooks/useFlowManager';
+import { useAuth } from '@/hooks/useAuth';
+import { TestLinkModal } from './TestLinkModal';
 
 interface SystemTemplate {
   id: string;
@@ -40,8 +42,13 @@ const TemplateManager: React.FC = () => {
   const [editTemplate, setEditTemplate] = useState<any>(null);
   const [brandData, setBrandData] = useState<any>(null);
   const [showEditor, setShowEditor] = useState(false);
+  const [showTestModal, setShowTestModal] = useState(false);
+  const [testUrl, setTestUrl] = useState('');
+  const [testExpiresIn, setTestExpiresIn] = useState(0);
+  const [creatingTestLink, setCreatingTestLink] = useState(false);
 
   const { toast } = useToast();
+  const { profile } = useAuth();
   const { createFlowAtomic, deleteFlow, fetchFlows } = useFlowManager();
 
   useEffect(() => {
@@ -303,7 +310,67 @@ const TemplateManager: React.FC = () => {
     }
   };
 
-  const filteredSystemTemplates = systemTemplates.filter(template => 
+  const handleTestAsUser = async (template: SystemTemplate | UserTemplate) => {
+    try {
+      setCreatingTestLink(true);
+
+      // Get the user's session token
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({
+          title: "Authentication Error",
+          description: "You must be logged in to create test links",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Determine if this is a template or if we need to find/create a campaign
+      let payload: { template_id?: string; campaign_id?: string } = {};
+      
+      if ('pages' in template) {
+        // System template - use template_id
+        payload.template_id = template.id;
+      } else {
+        // User template - we need to find or create a campaign
+        // For now, we'll use template_id as well since user templates are stored in flows table
+        payload.template_id = template.id;
+      }
+
+      const response = await supabase.functions.invoke('create-test-flow-link', {
+        body: payload,
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+      });
+
+      if (response.error) {
+        throw new Error(response.error.message || 'Failed to create test link');
+      }
+
+      const { url, expires_in } = response.data;
+      setTestUrl(url);
+      setTestExpiresIn(expires_in);
+      setShowTestModal(true);
+
+      toast({
+        title: "Test Link Created",
+        description: "Test link generated successfully",
+      });
+
+    } catch (error) {
+      console.error('Error creating test link:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to create test link",
+        variant: "destructive",
+      });
+    } finally {
+      setCreatingTestLink(false);
+    }
+  };
+
+  const filteredSystemTemplates = systemTemplates.filter(template =>
     template.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
     (selectedCategory === 'all' || template.category === selectedCategory)
   );
@@ -374,6 +441,26 @@ const TemplateManager: React.FC = () => {
             <Edit3 className="h-4 w-4 mr-2" />
             Edit Template
           </Button>
+
+          {/* Test as user button - only for master_admin */}
+          {profile?.role === 'master_admin' && (
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => handleTestAsUser(template)}
+              disabled={creatingTestLink}
+              className="flex-1 min-w-[120px] px-3 py-2"
+            >
+              {creatingTestLink ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
+                  Creating...
+                </>
+              ) : (
+                'Test as User'
+              )}
+            </Button>
+          )}
         </div>
       </CardContent>
     </Card>
@@ -479,6 +566,13 @@ const TemplateManager: React.FC = () => {
         />
       )}
 
+      {/* Test Link Modal */}
+      <TestLinkModal
+        isOpen={showTestModal}
+        onClose={() => setShowTestModal(false)}
+        testUrl={testUrl}
+        expiresIn={testExpiresIn}
+      />
     </div>
   );
 };
