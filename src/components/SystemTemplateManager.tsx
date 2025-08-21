@@ -78,6 +78,7 @@ export const SystemTemplateManager: React.FC = () => {
     if (!selectedTemplate) return;
 
     const result = await updateSystemTemplate(selectedTemplate.id, {
+      name: templateData.name, // Update the template name
       content: templateData
     });
 
