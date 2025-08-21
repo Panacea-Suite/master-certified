@@ -111,12 +111,12 @@ Deno.serve(async (req) => {
         );
       }
 
-      // For system templates, ensure they're published
-      if (template.kind === 'system' && template.status !== 'published') {
+      // For system templates, allow draft templates only for master_admin
+      if (template.kind === 'system' && template.status !== 'published' && !hasRole) {
         return new Response(
-          JSON.stringify({ error: 'System template must be published to test' }),
+          JSON.stringify({ error: 'System template must be published to test, or you must be a master admin' }),
           { 
-            status: 400, 
+            status: 403, 
             headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
           }
         );
