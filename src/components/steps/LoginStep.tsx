@@ -152,6 +152,8 @@ export const LoginStep: React.FC<LoginStepProps> = ({
     }
   };
 
+  console.log('LoginStep rendering with props:', { title, subtitle, showEmail, showApple, brandName });
+  
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardContent className="p-6 space-y-6">

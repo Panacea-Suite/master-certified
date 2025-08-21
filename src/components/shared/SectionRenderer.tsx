@@ -462,6 +462,7 @@ export const SectionRenderer: React.FC<SectionRendererProps> = ({
       );
         
     case 'login_step':
+      console.log('SectionRenderer rendering login_step with config:', config);
       return (
         <FullBleedWrapper>
           <div className={`login-step-section ${getSectionClassName()}`}>
