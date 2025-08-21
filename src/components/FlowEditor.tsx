@@ -775,7 +775,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
 
   const handleTestAsUser = async () => {
     if (!templateToEdit) {
-      toast.error('Please save the template first');
+      toast.error('No template to test');
       return;
     }
 
@@ -792,13 +792,18 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
       // Determine payload based on what we're editing
       const payload: { template_id?: string; campaign_id?: string } = {};
       
-      // If this is a system template (from templates table), use template_id
-      if (templateToEdit.is_system_template || !templateToEdit.campaign_id) {
+      // For system templates or templates from the templates table, use template_id
+      if (templateToEdit.is_system_template || templateToEdit.kind === 'system' || templateToEdit.kind === 'brand' || !templateToEdit.campaign_id) {
         payload.template_id = templateToEdit.id;
-      } else {
+      } else if (templateToEdit.campaign_id) {
         // This is a flow with a campaign, use campaign_id
         payload.campaign_id = templateToEdit.campaign_id;
+      } else {
+        toast.error('Unable to determine test configuration for this template');
+        return;
       }
+
+      console.log('Creating test link with payload:', payload);
 
       const response = await supabase.functions.invoke('create-test-flow-link', {
         body: payload,
@@ -807,8 +812,31 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
         },
       });
 
+      console.log('Test link response:', response);
+
       if (response.error) {
-        throw new Error(response.error.message || 'Failed to create test link');
+        console.error('Edge function error:', response.error);
+        
+        // Try to extract more meaningful error message
+        let errorMessage = 'Failed to create test link';
+        if (typeof response.error === 'object' && response.error.message) {
+          errorMessage += `: ${response.error.message}`;
+        } else if (typeof response.error === 'string') {
+          errorMessage += `: ${response.error}`;
+        }
+        
+        throw new Error(errorMessage);
+      }
+
+      // Check if the response data contains an error (from edge function)
+      if (response.data?.error) {
+        console.error('Server error:', response.data);
+        throw new Error(`Server error: ${response.data.error}`);
+      }
+
+      if (!response.data?.success || !response.data?.url) {
+        console.error('Invalid response format:', response.data);
+        throw new Error('Invalid response from server - no test URL returned');
       }
 
       const { url, expires_in } = response.data;

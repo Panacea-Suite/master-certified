@@ -135,7 +135,13 @@ export const SystemTemplateManager: React.FC = () => {
           setSelectedTemplate(null);
         }}
         onSave={handleSaveTemplate}
-        templateToEdit={selectedTemplate.content}
+        templateToEdit={{
+          ...selectedTemplate,
+          ...selectedTemplate.content,
+          id: selectedTemplate.id,
+          kind: selectedTemplate.kind,
+          status: selectedTemplate.status
+        }}
       />
     );
   }
