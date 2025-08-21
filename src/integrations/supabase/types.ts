@@ -681,6 +681,14 @@ export type Database = {
           flow_name: string
         }[]
       }
+      gen_compact_uuid: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      gen_hex_token: {
+        Args: { p_bytes?: number }
+        Returns: string
+      }
       get_flow_session: {
         Args: { p_session_id: string }
         Returns: Json
