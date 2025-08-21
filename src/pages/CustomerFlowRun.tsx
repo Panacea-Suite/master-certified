@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useParams } from 'react-router-dom';
 import { CertificationFlow } from '@/components/certification-flow/CertificationFlow';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from 'lucide-react';
 
 export const CustomerFlowRun: React.FC = () => {
   const [searchParams] = useSearchParams();
+  const { qrId } = useParams<{ qrId: string }>();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
   const [isTestMode, setIsTestMode] = useState(false);
@@ -20,13 +21,19 @@ export const CustomerFlowRun: React.FC = () => {
       return;
     }
 
+    if (!qrId) {
+      setError('Missing QR ID in URL');
+      setLoading(false);
+      return;
+    }
+
     // Store session info for CertificationFlow
-    sessionStorage.setItem('test_qr_id', sessionId);
+    sessionStorage.setItem('test_qr_id', qrId);
     sessionStorage.setItem('test_mode', testMode ? 'true' : 'false');
     
     setIsTestMode(testMode);
     setLoading(false);
-  }, [searchParams]);
+  }, [searchParams, qrId]);
 
   if (loading) {
     return (

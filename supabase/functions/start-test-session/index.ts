@@ -175,6 +175,7 @@ Deno.serve(async (req) => {
       session_id: session.id,
       campaign_id: payload.campaign_id,
       brand_id: campaign.brand_id,
+      qr_id: payload.qr_id,
       is_test: true
     };
 

@@ -41,15 +41,13 @@ const App = () => (
               {/* Customer flow routes - no admin chrome */}
               <Route path="/flow/test" element={
                 <>
-                  {console.log('Rendering TestFlowGate route')}
                   <CustomerShell>
                     <TestFlowGate />
                   </CustomerShell>
                 </>
               } />
-              <Route path="/flow/run" element={
+              <Route path="/flow/run/:qrId" element={
                 <>
-                  {console.log('Rendering CustomerFlowRun route')}
                   <CustomerShell>
                     <CustomerFlowRun />
                   </CustomerShell>
