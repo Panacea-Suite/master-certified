@@ -789,15 +789,15 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
         return;
       }
 
-      // For flows, use campaign_id if available
+      // Determine payload based on what we're editing
       const payload: { template_id?: string; campaign_id?: string } = {};
       
-      if (templateToEdit.campaign_id) {
-        payload.campaign_id = templateToEdit.campaign_id;
+      // If this is a system template (from templates table), use template_id
+      if (templateToEdit.is_system_template || !templateToEdit.campaign_id) {
+        payload.template_id = templateToEdit.id;
       } else {
-        // This is a user template - not supported for testing
-        toast.error('Testing is only available for system templates or flows with campaigns');
-        return;
+        // This is a flow with a campaign, use campaign_id
+        payload.campaign_id = templateToEdit.campaign_id;
       }
 
       const response = await supabase.functions.invoke('create-test-flow-link', {
