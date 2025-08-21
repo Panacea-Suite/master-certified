@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useCertificationFlow } from '@/hooks/useCertificationFlow';
 import { WelcomeStep } from './WelcomeStep';
 import { StoreSelectorStep } from './StoreSelectorStep';
@@ -12,6 +12,7 @@ import { Loader2 } from 'lucide-react';
 export const CertificationFlow: React.FC = () => {
   const { qrId } = useParams<{ qrId: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   
   const {
     currentStep,
@@ -35,19 +36,25 @@ export const CertificationFlow: React.FC = () => {
     setError
   } = useCertificationFlow();
 
-  // Initialize flow on component mount
+  // Initialize flow on component mount (session-first logic)
   useEffect(() => {
-    if (qrId && currentStep === 'scan') {
-      startFlow(qrId);
+    const sessionParam = searchParams.get('session');
+    if (currentStep === 'scan') {
+      if (sessionParam) {
+        startFlow(undefined, sessionParam);
+      } else if (qrId) {
+        startFlow(qrId);
+      }
     }
-  }, [qrId]);
+  }, [qrId, searchParams, currentStep]);
 
-  // Redirect to home if no QR ID provided
+  // Redirect to home if neither session nor QR ID is provided
   useEffect(() => {
-    if (!qrId) {
+    const sessionParam = searchParams.get('session');
+    if (!qrId && !sessionParam) {
       navigate('/');
     }
-  }, [qrId, navigate]);
+  }, [qrId, searchParams, navigate]);
 
   if (isLoading && currentStep === 'scan') {
     return (
