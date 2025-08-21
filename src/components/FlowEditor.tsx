@@ -22,10 +22,11 @@ import { FlowHeader } from './flow-editor/FlowHeader';
 import { TemplateStyleProvider } from './TemplateStyleProvider';
 import { SectionRenderer } from '@/components/shared/SectionRenderer';
 import { PanaceaFooter } from '@/components/PanaceaFooter';
-import { Smartphone, Save, ChevronDown, ChevronRight, ArrowLeft } from 'lucide-react';
+import { Smartphone, Save, ChevronDown, ChevronRight, ArrowLeft, TestTube2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { TestLinkModal } from './TestLinkModal';
 import { DesignTemplateSelector } from './DesignTemplateSelector';
 import { ScrollArea } from '@/components/ui/scroll-area';
 interface FlowTemplate {
@@ -74,7 +75,8 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
   brandData
 }) => {
   const {
-    user
+    user,
+    profile
   } = useAuth();
 
   // Ensure new logo images show up immediately by cache-busting the URL
@@ -453,6 +455,10 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
   const [isSaving, setIsSaving] = useState(false);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(templateToEdit?.flow_config?.design_template_id || null);
   const [showTemplateSelector, setShowTemplateSelector] = useState(false);
+  const [showTestModal, setShowTestModal] = useState(false);
+  const [testUrl, setTestUrl] = useState('');
+  const [testExpiresIn, setTestExpiresIn] = useState(0);
+  const [creatingTestLink, setCreatingTestLink] = useState(false);
 
   // Collapsible sections state
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({
@@ -766,6 +772,53 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
     setShowTemplateSelector(false);
     toast.success('Design template applied successfully');
   };
+
+  const handleTestAsUser = async () => {
+    if (!templateToEdit) {
+      toast.error('Please save the template first');
+      return;
+    }
+
+    try {
+      setCreatingTestLink(true);
+
+      // Get the user's session token
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error('You must be logged in to create test links');
+        return;
+      }
+
+      // Use template ID for testing
+      const payload: { template_id?: string; campaign_id?: string } = {
+        template_id: templateToEdit.id
+      };
+
+      const response = await supabase.functions.invoke('create-test-flow-link', {
+        body: payload,
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+      });
+
+      if (response.error) {
+        throw new Error(response.error.message || 'Failed to create test link');
+      }
+
+      const { url, expires_in } = response.data;
+      setTestUrl(url);
+      setTestExpiresIn(expires_in);
+      setShowTestModal(true);
+
+      toast.success('Test link created successfully');
+
+    } catch (error) {
+      console.error('Error creating test link:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to create test link');
+    } finally {
+      setCreatingTestLink(false);
+    }
+  };
   return <TemplateStyleProvider templateId={selectedTemplateId} brandColors={brandData?.brand_colors}>
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="max-w-7xl max-h-[95vh] overflow-hidden p-0">
@@ -1030,6 +1083,19 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                     <Save className="h-4 w-4 mr-2" />
                     {isSaving ? 'Saving...' : templateToEdit ? 'Save my template' : 'Save Flow'}
                   </Button>
+
+                  {/* Test as User button - only for master_admin */}
+                  {profile?.role === 'master_admin' && templateToEdit && (
+                    <Button
+                      onClick={handleTestAsUser}
+                      disabled={creatingTestLink}
+                      variant="secondary"
+                      size="sm"
+                    >
+                      <TestTube2 className="h-4 w-4 mr-2" />
+                      {creatingTestLink ? 'Creating...' : 'Test as User'}
+                    </Button>
+                  )}
                 </div>
               </div>
             
@@ -1119,6 +1185,13 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
         </div>
       </DialogContent>
       
+      {/* Test Link Modal */}
+      <TestLinkModal
+        isOpen={showTestModal}
+        onClose={() => setShowTestModal(false)}
+        testUrl={testUrl}
+        expiresIn={testExpiresIn}
+      />
     </Dialog>
     </TemplateStyleProvider>;
 };
