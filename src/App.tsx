@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { HashRouter, Routes, Route } from "react-router-dom";
+import { HashRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ViewModeProvider } from "@/hooks/useViewMode";
 import { AdminShell } from "@/components/shells/AdminShell";
@@ -16,6 +16,18 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+// Debug component to log location changes
+const LocationLogger = () => {
+  const location = useLocation();
+  console.log('Current location:', { 
+    pathname: location.pathname, 
+    search: location.search, 
+    hash: location.hash,
+    state: location.state
+  });
+  return null;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
@@ -24,33 +36,46 @@ const App = () => (
           <Toaster />
           <Sonner />
           <HashRouter>
+            <LocationLogger />
             <Routes>
               {/* Customer flow routes - no admin chrome */}
               <Route path="/flow/test" element={
-                <CustomerShell>
-                  <TestFlowGate />
-                </CustomerShell>
+                <>
+                  {console.log('Rendering TestFlowGate route')}
+                  <CustomerShell>
+                    <TestFlowGate />
+                  </CustomerShell>
+                </>
               } />
               <Route path="/flow/run" element={
-                <CustomerShell>
-                  <CustomerFlowRun />
-                </CustomerShell>
+                <>
+                  {console.log('Rendering CustomerFlowRun route')}
+                  <CustomerShell>
+                    <CustomerFlowRun />
+                  </CustomerShell>
+                </>
               } />
               
               {/* Admin routes - with admin chrome */}
               <Route path="/" element={
-                <AdminShell>
-                  <AdminIndex />
-                </AdminShell>
+                <>
+                  {console.log('Rendering AdminIndex route')}
+                  <AdminShell>
+                    <AdminIndex />
+                  </AdminShell>
+                </>
               } />
               <Route path="/auth" element={<Auth />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
               
               {/* Catch-all route */}
               <Route path="*" element={
-                <AdminShell>
-                  <NotFound />
-                </AdminShell>
+                <>
+                  {console.log('Rendering catch-all route for:', window.location.hash)}
+                  <AdminShell>
+                    <NotFound />
+                  </AdminShell>
+                </>
               } />
             </Routes>
           </HashRouter>
