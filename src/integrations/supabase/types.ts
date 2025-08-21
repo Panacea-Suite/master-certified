@@ -85,6 +85,51 @@ export type Database = {
           },
         ]
       }
+      brand_users: {
+        Row: {
+          brand_id: string
+          created_at: string
+          created_via: Database["public"]["Enums"]["auth_provider"]
+          first_seen_at: string
+          id: string
+          last_seen_at: string
+          marketing_opt_in: boolean
+          source_campaign_id: string | null
+          updated_at: string
+          user_email: string | null
+          user_id: string
+          user_name: string | null
+        }
+        Insert: {
+          brand_id: string
+          created_at?: string
+          created_via?: Database["public"]["Enums"]["auth_provider"]
+          first_seen_at?: string
+          id?: string
+          last_seen_at?: string
+          marketing_opt_in?: boolean
+          source_campaign_id?: string | null
+          updated_at?: string
+          user_email?: string | null
+          user_id: string
+          user_name?: string | null
+        }
+        Update: {
+          brand_id?: string
+          created_at?: string
+          created_via?: Database["public"]["Enums"]["auth_provider"]
+          first_seen_at?: string
+          id?: string
+          last_seen_at?: string
+          marketing_opt_in?: boolean
+          source_campaign_id?: string | null
+          updated_at?: string
+          user_email?: string | null
+          user_id?: string
+          user_name?: string | null
+        }
+        Relationships: []
+      }
       brands: {
         Row: {
           approved_stores: string[] | null
@@ -254,6 +299,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      flow_sessions: {
+        Row: {
+          brand_id: string
+          campaign_id: string
+          id: string
+          qr_id: string
+          started_at: string
+          status: Database["public"]["Enums"]["flow_session_status"]
+          store_meta: Json | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          brand_id: string
+          campaign_id: string
+          id?: string
+          qr_id: string
+          started_at?: string
+          status?: Database["public"]["Enums"]["flow_session_status"]
+          store_meta?: Json | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          brand_id?: string
+          campaign_id?: string
+          id?: string
+          qr_id?: string
+          started_at?: string
+          status?: Database["public"]["Enums"]["flow_session_status"]
+          store_meta?: Json | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
       }
       flows: {
         Row: {
@@ -476,6 +557,53 @@ export type Database = {
           },
         ]
       }
+      verifications: {
+        Row: {
+          batch_id: string | null
+          batch_info: Json | null
+          created_at: string
+          expiry_ok: boolean | null
+          flow_session_id: string
+          id: string
+          qr_id: string
+          reasons: string[] | null
+          result: Database["public"]["Enums"]["verification_result"]
+          store_ok: boolean | null
+        }
+        Insert: {
+          batch_id?: string | null
+          batch_info?: Json | null
+          created_at?: string
+          expiry_ok?: boolean | null
+          flow_session_id: string
+          id?: string
+          qr_id: string
+          reasons?: string[] | null
+          result: Database["public"]["Enums"]["verification_result"]
+          store_ok?: boolean | null
+        }
+        Update: {
+          batch_id?: string | null
+          batch_info?: Json | null
+          created_at?: string
+          expiry_ok?: boolean | null
+          flow_session_id?: string
+          id?: string
+          qr_id?: string
+          reasons?: string[] | null
+          result?: Database["public"]["Enums"]["verification_result"]
+          store_ok?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "verifications_flow_session_id_fkey"
+            columns: ["flow_session_id"]
+            isOneToOne: false
+            referencedRelation: "flow_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -551,6 +679,8 @@ export type Database = {
       }
     }
     Enums: {
+      auth_provider: "google" | "apple" | "email"
+      flow_session_status: "active" | "completed" | "failed"
       page_type:
         | "landing"
         | "store_selection"
@@ -561,6 +691,7 @@ export type Database = {
       template_kind: "system" | "brand"
       template_status: "draft" | "published" | "deprecated"
       user_role: "master_admin" | "brand_admin" | "customer"
+      verification_result: "pass" | "warn" | "fail"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -688,6 +819,8 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      auth_provider: ["google", "apple", "email"],
+      flow_session_status: ["active", "completed", "failed"],
       page_type: [
         "landing",
         "store_selection",
@@ -699,6 +832,7 @@ export const Constants = {
       template_kind: ["system", "brand"],
       template_status: ["draft", "published", "deprecated"],
       user_role: ["master_admin", "brand_admin", "customer"],
+      verification_result: ["pass", "warn", "fail"],
     },
   },
 } as const
