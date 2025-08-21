@@ -469,8 +469,8 @@ export const SectionRenderer: React.FC<SectionRendererProps> = ({
             <LoginStep
               title={config.title}
               subtitle={config.subtitle}
-              showEmail={config.showEmail}
-              showApple={config.showApple}
+              showEmail={isPreview ? true : config.showEmail !== false}
+              showApple={isPreview ? true : config.showApple !== false}
               brandName={config.brandName || 'this brand'}
               onAuthSuccess={onAuthSuccess}
               onAuthError={onAuthError}
