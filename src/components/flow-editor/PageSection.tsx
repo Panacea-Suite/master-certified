@@ -19,7 +19,8 @@ import {
   CheckCircle,
   MousePointer,
   Package,
-  Edit2
+  Edit2,
+  User
 } from 'lucide-react';
 
 interface SectionData {
@@ -43,6 +44,7 @@ const sectionIcons = {
   text: Type,
   image: ImageIcon,
   store_selector: ChevronDown,
+  login_step: User,
   divider: Minus,
   column: Columns2,
   header: Layout,
@@ -201,6 +203,17 @@ export const PageSection: React.FC<PageSectionProps> = ({
           onSelect={onSelect}
           brandColors={null}
           storeOptions={config.storeOptions ? config.storeOptions.split('\n').filter((option: string) => option.trim()) : []}
+          // Add auth callbacks for login_step
+          onAuthSuccess={(params) => {
+            console.log('Auth success in PageSection:', params);
+            // In editor mode, just log the event - real implementation happens in runtime
+          }}
+          onAuthError={(error) => {
+            console.error('Auth error in PageSection:', error);
+          }}
+          onTrackEvent={(eventName, metadata) => {
+            console.log('Track event in PageSection:', eventName, metadata);
+          }}
         />
     );
   };
@@ -304,6 +317,7 @@ export const PageSection: React.FC<PageSectionProps> = ({
             {section.type === 'text' && (config.content ? `"${config.content.substring(0, 30)}..."` : 'No content')}
             {section.type === 'image' && (config.imageUrl ? 'Image set' : 'No image')}
             {section.type === 'store_selector' && (config.label || 'Store selector')}
+            {section.type === 'login_step' && `${config.title || 'Login Step'}`}
             {section.type === 'divider' && `${config.width || 100}% width`}
             {section.type === 'column' && `${config.layout || '2-col-50-50'} layout`}
             {section.type === 'footer' && `Logo size: ${config.logoSize || 120}px`}

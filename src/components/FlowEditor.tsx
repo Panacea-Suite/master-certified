@@ -175,25 +175,15 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
       type: 'account_creation',
       name: 'Login/Signup',
       sections: [{
-        id: 'auth-title',
-        type: 'text',
+        id: 'login-step',
+        type: 'login_step',
         order: 0,
         config: {
-          content: 'Welcome Back!',
-          fontSize: 24,
-          textColor: '#000000',
-          backgroundColor: 'transparent',
-          padding: 4
-        }
-      }, {
-        id: 'auth-description',
-        type: 'text',
-        order: 1,
-        config: {
-          content: 'Sign in to your account or create a new one to continue.',
-          fontSize: 16,
-          textColor: '#666666',
-          backgroundColor: 'transparent',
+          title: 'Create Account or Sign In',
+          subtitle: 'Register your product and access warranty services',
+          brandName: brandData?.name || 'this brand',
+          showEmail: true,
+          showApple: true,
           padding: 4
         }
       }],
@@ -730,10 +720,14 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
         padding: 4,
         backgroundColor: 'transparent'
       },
-      footer: {
-        backgroundColor: brandData?.brand_colors?.secondary || 'hsl(var(--secondary))',
-        logoSize: 60
-      }
+      login_step: {
+        title: 'Create Account or Sign In',
+        subtitle: 'Access full testing results and member-only offers.',
+        brandName: brandData?.name || 'this brand',
+        showEmail: true,
+        showApple: true,
+        padding: 4
+      },
     };
     return configs[sectionType as keyof typeof configs] || {
       padding: 4
