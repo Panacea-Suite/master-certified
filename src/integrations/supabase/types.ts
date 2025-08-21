@@ -179,6 +179,7 @@ export type Database = {
           flow_settings: Json | null
           id: string
           is_test: boolean
+          locked_design_tokens: Json | null
           locked_template: Json | null
           name: string
           template_id: string | null
@@ -194,6 +195,7 @@ export type Database = {
           flow_settings?: Json | null
           id?: string
           is_test?: boolean
+          locked_design_tokens?: Json | null
           locked_template?: Json | null
           name: string
           template_id?: string | null
@@ -209,6 +211,7 @@ export type Database = {
           flow_settings?: Json | null
           id?: string
           is_test?: boolean
+          locked_design_tokens?: Json | null
           locked_template?: Json | null
           name?: string
           template_id?: string | null
@@ -309,6 +312,45 @@ export type Database = {
           },
         ]
       }
+      flow_content_versions: {
+        Row: {
+          content: Json
+          content_type: string
+          created_at: string
+          file_url: string | null
+          flow_id: string
+          id: string
+          order_index: number
+          title: string
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          content?: Json
+          content_type: string
+          created_at?: string
+          file_url?: string | null
+          flow_id: string
+          id?: string
+          order_index?: number
+          title: string
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          content?: Json
+          content_type?: string
+          created_at?: string
+          file_url?: string | null
+          flow_id?: string
+          id?: string
+          order_index?: number
+          title?: string
+          updated_at?: string
+          version?: number
+        }
+        Relationships: []
+      }
       flow_sessions: {
         Row: {
           brand_id: string
@@ -362,7 +404,9 @@ export type Database = {
           id: string
           is_system_template: boolean | null
           is_template: boolean | null
+          latest_published_version: number | null
           name: string
+          published_snapshot: Json | null
           template_category: string | null
           template_description: string | null
           template_preview_image: string | null
@@ -379,7 +423,9 @@ export type Database = {
           id?: string
           is_system_template?: boolean | null
           is_template?: boolean | null
+          latest_published_version?: number | null
           name: string
+          published_snapshot?: Json | null
           template_category?: string | null
           template_description?: string | null
           template_preview_image?: string | null
@@ -396,7 +442,9 @@ export type Database = {
           id?: string
           is_system_template?: boolean | null
           is_template?: boolean | null
+          latest_published_version?: number | null
           name?: string
+          published_snapshot?: Json | null
           template_category?: string | null
           template_description?: string | null
           template_preview_image?: string | null
@@ -733,6 +781,14 @@ export type Database = {
               p_session_id: string
               p_user_id: string
             }
+        Returns: Json
+      }
+      publish_flow_version: {
+        Args: {
+          p_design_tokens?: Json
+          p_flow_id: string
+          p_flow_snapshot: Json
+        }
         Returns: Json
       }
       run_verification: {

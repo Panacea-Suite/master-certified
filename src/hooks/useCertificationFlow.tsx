@@ -28,6 +28,16 @@ export interface FlowSession {
     batch_info: any;
     created_at: string;
   };
+  flow?: {
+    id: string;
+    name?: string;
+    flow_config?: any;
+  };
+  debug?: {
+    used_locked_template?: boolean;
+    template_version?: number;
+    locked_design_tokens?: boolean;
+  };
 }
 
 export interface StoreMetadata {
@@ -56,10 +66,10 @@ export const useCertificationFlow = () => {
     setError(null);
     
     try {
-      // If test session ID is provided, fetch the existing session
+      // If test session ID is provided, use flow-handler session branch
       if (testSessionId) {
-        const { data, error } = await supabase.rpc('get_flow_session', {
-          p_session_id: testSessionId
+        const { data, error } = await supabase.functions.invoke('flow-handler', {
+          body: { session_id: testSessionId }
         });
 
         if (error) throw error;
@@ -71,14 +81,15 @@ export const useCertificationFlow = () => {
           return;
         }
 
-        const sessionData = result.data;
         setSessionId(testSessionId);
         setSession({
           id: testSessionId,
-          status: sessionData.status || 'active',
-          store_meta: sessionData.store_meta || {},
-          campaign: sessionData.campaign,
-          brand: sessionData.brand
+          status: result.session?.status || 'active',
+          store_meta: result.session?.store_meta || {},
+          campaign: result.campaign || { id: '', name: '' },
+          brand: result.brand || { id: '', name: '' },
+          flow: result.flow,
+          debug: result.debug
         });
         
         setCurrentStep('welcome');

@@ -459,6 +459,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
   const [testUrl, setTestUrl] = useState('');
   const [testExpiresIn, setTestExpiresIn] = useState(0);
   const [creatingTestLink, setCreatingTestLink] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
 
   // Collapsible sections state
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({
@@ -704,6 +705,74 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
       toast.error('Failed to save flow');
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handlePublish = async () => {
+    if (!templateToEdit?.id) {
+      toast.error('No flow to publish');
+      return;
+    }
+
+    if (!flowName.trim()) {
+      toast.error('Please enter a flow name before publishing');
+      return;
+    }
+
+    if (pages.length === 0) {
+      toast.error('Please add at least one page before publishing');
+      return;
+    }
+
+    setIsPublishing(true);
+    
+    try {
+      const flowSnapshot = {
+        pages: pages.map(page => ({
+          ...page,
+          sections: page.sections.sort((a, b) => a.order - b.order)
+        })),
+        globalHeader,
+        footerConfig,
+        design_template_id: selectedTemplateId,
+        theme: {
+          primaryColor: '#3b82f6',
+          backgroundColor: pageSettings.backgroundColor,
+          fontFamily: 'Inter'
+        },
+        settings: templateToEdit?.flow_config?.settings || {
+          showProgress: true,
+          allowBack: true,
+          autoSave: true
+        },
+        name: flowName,
+        publishedAt: new Date().toISOString()
+      };
+
+      const designTokens = {
+        ...brandData?.brand_colors,
+        globalHeader: globalHeader,
+        footerConfig: footerConfig
+      };
+
+      const { data, error } = await supabase.rpc('publish_flow_version', {
+        p_flow_id: templateToEdit.id,
+        p_flow_snapshot: flowSnapshot as any,
+        p_design_tokens: designTokens as any
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      const result = data as any;
+      toast.success(`Flow published as version ${result.new_version}!`);
+      
+    } catch (error) {
+      console.error('Error publishing flow:', error);
+      toast.error('Failed to publish flow. Please try again.');
+    } finally {
+      setIsPublishing(false);
     }
   };
   const getDefaultConfig = (sectionType: string) => {
@@ -1124,6 +1193,15 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                   <Button onClick={handleSave} disabled={isSaving} size="sm">
                     <Save className="h-4 w-4 mr-2" />
                     {isSaving ? 'Saving...' : templateToEdit ? 'Save my template' : 'Save Flow'}
+                  </Button>
+
+                  <Button 
+                    onClick={handlePublish}
+                    disabled={isPublishing || isSaving}
+                    className="bg-purple-500 hover:bg-purple-600 text-white disabled:opacity-50"
+                    size="sm"
+                  >
+                    {isPublishing ? 'Publishing...' : 'Publish Version'}
                   </Button>
 
                   {/* Test as User button - only for master_admin */}

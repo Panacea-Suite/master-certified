@@ -8,6 +8,7 @@ import { AuthenticationStep } from './AuthenticationStep';
 import { FinalPageStep } from './FinalPageStep';
 import { InvalidFlowStep } from './InvalidFlowStep';
 import { Loader2 } from 'lucide-react';
+import { DebugInfo } from '@/components/DebugInfo';
 
 export const CertificationFlow: React.FC = () => {
   const { qrId } = useParams<{ qrId: string }>();
@@ -74,55 +75,95 @@ export const CertificationFlow: React.FC = () => {
   switch (currentStep) {
     case 'welcome':
       return (
-        <WelcomeStep
-          session={session}
-          onNext={goToNextStep}
-          onTrackEvent={trackEvent}
-        />
+        <div>
+          <DebugInfo 
+            debug={session?.debug}
+            campaign={session?.campaign}
+            flow={session?.flow}
+            className="fixed top-4 right-4 w-64 z-50"
+          />
+          <WelcomeStep
+            session={session}
+            onNext={goToNextStep}
+            onTrackEvent={trackEvent}
+          />
+        </div>
       );
 
     case 'store_selector':
       return (
-        <StoreSelectorStep
-          onNext={goToNextStep}
-          onPrev={goToPrevStep}
-          onUpdateStore={updateStore}
-          onTrackEvent={trackEvent}
-          isLoading={isLoading}
-        />
+        <div>
+          <DebugInfo 
+            debug={session?.debug}
+            campaign={session?.campaign}
+            flow={session?.flow}
+            className="fixed top-4 right-4 w-64 z-50"
+          />
+          <StoreSelectorStep
+            onNext={goToNextStep}
+            onPrev={goToPrevStep}
+            onUpdateStore={updateStore}
+            onTrackEvent={trackEvent}
+            isLoading={isLoading}
+          />
+        </div>
       );
 
     case 'user_login':
       return (
-        <UserLoginStep
-          session={session}
-          marketingOptIn={marketingOptIn}
-          onNext={goToNextStep}
-          onPrev={goToPrevStep}
-          onLinkUser={linkUser}
-          onTrackEvent={trackEvent}
-          onSetMarketingOptIn={setMarketingOptIn}
-          isLoading={isLoading}
-        />
+        <div>
+          <DebugInfo 
+            debug={session?.debug}
+            campaign={session?.campaign}
+            flow={session?.flow}
+            className="fixed top-4 right-4 w-64 z-50"
+          />
+          <UserLoginStep
+            session={session}
+            marketingOptIn={marketingOptIn}
+            onNext={goToNextStep}
+            onPrev={goToPrevStep}
+            onLinkUser={linkUser}
+            onTrackEvent={trackEvent}
+            onSetMarketingOptIn={setMarketingOptIn}
+            isLoading={isLoading}
+          />
+        </div>
       );
 
     case 'authentication':
       return (
-        <AuthenticationStep
-          onNext={goToNextStep}
-          onPrev={goToPrevStep}
-          onRunVerification={runVerification}
-          onTrackEvent={trackEvent}
-          isLoading={isLoading}
-        />
+        <div>
+          <DebugInfo 
+            debug={session?.debug}
+            campaign={session?.campaign}
+            flow={session?.flow}
+            className="fixed top-4 right-4 w-64 z-50"
+          />
+          <AuthenticationStep
+            onNext={goToNextStep}
+            onPrev={goToPrevStep}
+            onRunVerification={runVerification}
+            onTrackEvent={trackEvent}
+            isLoading={isLoading}
+          />
+        </div>
       );
 
     case 'final_page':
       return (
-        <FinalPageStep
-          session={session}
-          onTrackEvent={trackEvent}
-        />
+        <div>
+          <DebugInfo 
+            debug={session?.debug}
+            campaign={session?.campaign}
+            flow={session?.flow}
+            className="fixed top-4 right-4 w-64 z-50"
+          />
+          <FinalPageStep
+            session={session}
+            onTrackEvent={trackEvent}
+          />
+        </div>
       );
 
     default:
