@@ -92,6 +92,7 @@ export type Database = {
           created_via: Database["public"]["Enums"]["auth_provider"]
           first_seen_at: string
           id: string
+          is_test: boolean
           last_seen_at: string
           marketing_opt_in: boolean
           source_campaign_id: string | null
@@ -106,6 +107,7 @@ export type Database = {
           created_via?: Database["public"]["Enums"]["auth_provider"]
           first_seen_at?: string
           id?: string
+          is_test?: boolean
           last_seen_at?: string
           marketing_opt_in?: boolean
           source_campaign_id?: string | null
@@ -120,6 +122,7 @@ export type Database = {
           created_via?: Database["public"]["Enums"]["auth_provider"]
           first_seen_at?: string
           id?: string
+          is_test?: boolean
           last_seen_at?: string
           marketing_opt_in?: boolean
           source_campaign_id?: string | null
@@ -304,7 +307,9 @@ export type Database = {
         Row: {
           brand_id: string
           campaign_id: string
+          created_by_admin: string | null
           id: string
+          is_test: boolean
           qr_id: string
           started_at: string
           status: Database["public"]["Enums"]["flow_session_status"]
@@ -315,7 +320,9 @@ export type Database = {
         Insert: {
           brand_id: string
           campaign_id: string
+          created_by_admin?: string | null
           id?: string
+          is_test?: boolean
           qr_id: string
           started_at?: string
           status?: Database["public"]["Enums"]["flow_session_status"]
@@ -326,7 +333,9 @@ export type Database = {
         Update: {
           brand_id?: string
           campaign_id?: string
+          created_by_admin?: string | null
           id?: string
+          is_test?: boolean
           qr_id?: string
           started_at?: string
           status?: Database["public"]["Enums"]["flow_session_status"]
@@ -565,6 +574,7 @@ export type Database = {
           expiry_ok: boolean | null
           flow_session_id: string
           id: string
+          is_test: boolean
           qr_id: string
           reasons: string[] | null
           result: Database["public"]["Enums"]["verification_result"]
@@ -577,6 +587,7 @@ export type Database = {
           expiry_ok?: boolean | null
           flow_session_id: string
           id?: string
+          is_test?: boolean
           qr_id: string
           reasons?: string[] | null
           result: Database["public"]["Enums"]["verification_result"]
@@ -589,6 +600,7 @@ export type Database = {
           expiry_ok?: boolean | null
           flow_session_id?: string
           id?: string
+          is_test?: boolean
           qr_id?: string
           reasons?: string[] | null
           result?: Database["public"]["Enums"]["verification_result"]
@@ -682,12 +694,20 @@ export type Database = {
         Returns: boolean
       }
       link_user_to_flow: {
-        Args: {
-          p_created_via?: Database["public"]["Enums"]["auth_provider"]
-          p_marketing_opt_in?: boolean
-          p_session_id: string
-          p_user_id: string
-        }
+        Args:
+          | {
+              p_created_via?: Database["public"]["Enums"]["auth_provider"]
+              p_is_test?: boolean
+              p_marketing_opt_in?: boolean
+              p_session_id: string
+              p_user_id: string
+            }
+          | {
+              p_created_via?: Database["public"]["Enums"]["auth_provider"]
+              p_marketing_opt_in?: boolean
+              p_session_id: string
+              p_user_id: string
+            }
         Returns: Json
       }
       run_verification: {
@@ -695,7 +715,9 @@ export type Database = {
         Returns: Json
       }
       start_flow_session: {
-        Args: { p_qr_id: string }
+        Args:
+          | { p_campaign_id?: string; p_is_test?: boolean; p_qr_id?: string }
+          | { p_qr_id: string }
         Returns: Json
       }
       update_flow_store: {
