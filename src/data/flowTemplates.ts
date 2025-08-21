@@ -26,7 +26,7 @@ export interface FlowPage {
 
 export interface FlowSection {
   id: string;
-  type: 'header' | 'hero' | 'text' | 'image' | 'form' | 'card' | 'button' | 'features' | 'divider' | 'cta' | 'product_showcase' | 'store_selector' | 'footer';
+  type: 'header' | 'hero' | 'text' | 'image' | 'form' | 'card' | 'button' | 'features' | 'divider' | 'cta' | 'product_showcase' | 'store_selector' | 'login_step' | 'footer';
   config: any;
 }
 
@@ -189,6 +189,18 @@ const CERTIFICATION_FLOW_PAGES: FlowPage[] = [
           backgroundColor: 'transparent',
           padding: 4,
           align: 'center'
+        }
+      },
+      {
+        id: 'login-step',
+        type: 'login_step',
+        config: {
+          title: 'Create your Certified account',
+          subtitle: 'Access full testing results and member-only offers.',
+          brandName: 'this brand',
+          showEmail: true,
+          showApple: true,
+          padding: 4
         }
       }
     ]

@@ -11,7 +11,8 @@ import {
   Columns3,
   ChevronDown,
   ChevronRight,
-  Layout
+  Layout,
+  User
 } from 'lucide-react';
 
 interface ComponentPaletteProps {
@@ -46,6 +47,12 @@ const sectionCategories = [
         icon: ChevronDown,
         title: 'Store Selector',
         description: 'Dropdown for store selection'
+      },
+      {
+        type: 'login_step',
+        icon: User,
+        title: 'Login Step',
+        description: 'User authentication with Google/Apple/Email'
       }
     ]
   },

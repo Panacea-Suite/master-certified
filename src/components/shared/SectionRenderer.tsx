@@ -13,6 +13,7 @@ import {
   Minus,
   Type
 } from 'lucide-react';
+import { LoginStep } from '@/components/steps/LoginStep';
 
 interface SectionData {
   id: string;
@@ -38,6 +39,10 @@ interface SectionRendererProps {
   selectedStore?: string;
   onPurchaseChannelChange?: (channel: 'in-store' | 'online' | '') => void;
   onSelectedStoreChange?: (store: string) => void;
+  // Login step props
+  onAuthSuccess?: (params: { user: any; provider: string; marketingOptIn: boolean }) => void;
+  onAuthError?: (error: Error) => void;
+  onTrackEvent?: (eventName: string, metadata?: any) => void;
 }
 
 // Cache bust utility
@@ -58,7 +63,10 @@ export const SectionRenderer: React.FC<SectionRendererProps> = ({
   purchaseChannel,
   selectedStore,
   onPurchaseChannelChange,
-  onSelectedStoreChange
+  onSelectedStoreChange,
+  onAuthSuccess,
+  onAuthError,
+  onTrackEvent
 }) => {
   const { getTemplateClasses, getBorderRadius } = useTemplateStyle();
   const { config } = section;
@@ -448,6 +456,24 @@ export const SectionRenderer: React.FC<SectionRendererProps> = ({
                 width: `${config.width || 100}%`,
                 margin: config.fullWidth ? '0' : '0 auto'
               }}
+            />
+          </div>
+        </FullBleedWrapper>
+      );
+        
+    case 'login_step':
+      return (
+        <FullBleedWrapper>
+          <div className={`login-step-section ${getSectionClassName()}`}>
+            <LoginStep
+              title={config.title}
+              subtitle={config.subtitle}
+              showEmail={config.showEmail}
+              showApple={config.showApple}
+              brandName={config.brandName || 'this brand'}
+              onAuthSuccess={onAuthSuccess}
+              onAuthError={onAuthError}
+              onTrackEvent={onTrackEvent}
             />
           </div>
         </FullBleedWrapper>

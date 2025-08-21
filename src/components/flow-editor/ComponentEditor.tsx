@@ -603,6 +603,8 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
         return renderImageEditor();
       case 'store_selector':
         return renderStoreSelector();
+      case 'login_step':
+        return renderLoginStepEditor();
       case 'divider':
         return renderDividerEditor();
       case 'column':
@@ -756,6 +758,58 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
     </div>
   );
 
+  const renderLoginStepEditor = () => (
+    <div className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="title">Title</Label>
+        <Input
+          id="title"
+          value={config.title || ''}
+          onChange={(e) => updateConfig('title', e.target.value)}
+          placeholder="Create your Certified account"
+        />
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="subtitle">Subtitle</Label>
+        <Input
+          id="subtitle"
+          value={config.subtitle || ''}
+          onChange={(e) => updateConfig('subtitle', e.target.value)}
+          placeholder="Access full testing results and member-only offers."
+        />
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="brandName">Brand Name</Label>
+        <Input
+          id="brandName"
+          value={config.brandName || ''}
+          onChange={(e) => updateConfig('brandName', e.target.value)}
+          placeholder="this brand"
+        />
+      </div>
+      
+      <div className="flex items-center justify-between">
+        <Label htmlFor="showEmail">Show Email Sign-in</Label>
+        <Switch
+          id="showEmail"
+          checked={config.showEmail !== false}
+          onCheckedChange={(checked) => updateConfig('showEmail', checked)}
+        />
+      </div>
+      
+      <div className="flex items-center justify-between">
+        <Label htmlFor="showApple">Show Apple Sign-in</Label>
+        <Switch
+          id="showApple"
+          checked={config.showApple !== false}
+          onCheckedChange={(checked) => updateConfig('showApple', checked)}
+        />
+      </div>
+    </div>
+  );
+
   const renderFooterEditor = () => (
     <div className="space-y-4">
       <BrandColorPicker
@@ -810,6 +864,7 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
             {section.type === 'cta' && renderCTAEditor()}
             {section.type === 'product_showcase' && renderProductShowcaseEditor()}
             {section.type === 'store_selector' && renderStoreSelector()}
+            {section.type === 'login_step' && renderLoginStepEditor()}
             {section.type === 'divider' && renderDividerEditor()}
             {section.type === 'column' && renderColumnEditor()}
             {section.type === 'footer' && renderFooterEditor()}
