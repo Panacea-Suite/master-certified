@@ -65,35 +65,46 @@ export const TestFlow: React.FC = () => {
 
   const startTestSession = async (payload: TestTokenPayload) => {
     try {
-      if (payload.campaign_id) {
-        const { data, error } = await supabase.rpc('start_flow_session', {
-          p_qr_id: null,
-          p_campaign_id: payload.campaign_id,
-          p_is_test: true
-        });
-
-        if (error) throw error;
-
-        const response = data as any;
-        if (!response.success) {
-          throw new Error(response.message || 'Failed to start test session');
-        }
-
-        setTestSessionId(response.session_id);
-        
-        // Store for CertificationFlow component
-        sessionStorage.setItem('test_qr_id', response.session_id);
-        sessionStorage.setItem('test_mode', 'true');
-        
-      } else if (payload.template_id) {
-        // Template-only flows should now have a campaign_id created by the edge function
-        setError('Test link is invalid - no campaign found. Please regenerate the test link.');
-      } else {
-        setError('Invalid test link - missing required information.');
+      const token = searchParams.get('token');
+      if (!token) {
+        setError('Missing test token');
+        return;
       }
+
+      console.log('Starting test session with token payload:', payload);
+
+      // Call the start-test-session edge function
+      const { data, error } = await supabase.functions.invoke('start-test-session', {
+        body: { token }
+      });
+
+      console.log('start-test-session response:', { data, error });
+
+      if (error) {
+        console.error('Edge function error:', error);
+        setError(`Failed to start test session: ${error.message || 'Unknown error'}`);
+        return;
+      }
+
+      if (!data || !data.success) {
+        const errorMsg = data?.error || 'Failed to start test session';
+        const errorDetails = data?.details ? ` (${data.details})` : '';
+        const errorCode = data?.code ? ` [${data.code}]` : '';
+        console.error('Test session creation failed:', data);
+        setError(`${errorMsg}${errorDetails}${errorCode}`);
+        return;
+      }
+
+      const sessionId = data.session_id;
+      console.log('Test session created successfully:', sessionId);
+
+      // Navigate to the certification flow with the session ID  
+      navigate(`/flow/run?session=${sessionId}&test=true`);
+      
     } catch (error) {
       console.error('Error starting test session:', error);
-      setError(error instanceof Error ? error.message : 'Failed to start test session');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to start test session';
+      setError(`Unexpected error: ${errorMessage}`);
     }
   };
 
@@ -129,14 +140,6 @@ export const TestFlow: React.FC = () => {
     );
   }
 
-  if (!testSessionId) return null;
-
-  return (
-    <div className="min-h-screen bg-background">
-      <div className="bg-yellow-500 text-yellow-900 px-4 py-2 text-center text-sm font-medium">
-        🧪 Test Mode - Data will be saved as test data and excluded from analytics
-      </div>
-      <CertificationFlow />
-    </div>
-  );
+  // Loading state while processing - don't show anything since we navigate away
+  return null;
 };
