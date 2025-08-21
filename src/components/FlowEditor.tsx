@@ -374,6 +374,32 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                     })
                   };
                 }
+                // Fix login_step sections for Classic Certification
+                if (page.type === 'authentication' || page.name === 'User Login') {
+                  console.log('Processing authentication page sections:', page.sections);
+                  return {
+                    ...page,
+                    sections: page.sections.map((section: any) => {
+                      if (section.type === 'login_step') {
+                        console.log('Found login_step section, current config:', section.config);
+                        const updatedSection = {
+                          ...section,
+                          config: {
+                            ...section.config,
+                            showEmail: true,
+                            showApple: true,
+                            title: section.config.title || 'Create Account or Sign In',
+                            subtitle: section.config.subtitle || 'Register your product and access warranty services',
+                            brandName: section.config.brandName || activeBrandData?.name || 'this brand'
+                          }
+                        };
+                        console.log('Updated login_step section config:', updatedSection.config);
+                        return updatedSection;
+                      }
+                      return section;
+                    })
+                  };
+                }
                 return page;
               });
             }
