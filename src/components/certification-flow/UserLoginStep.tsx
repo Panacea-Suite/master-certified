@@ -96,40 +96,75 @@ export const UserLoginStep: React.FC<UserLoginStepProps> = ({
 
   const handleGoogleAuth = async () => {
     setIsAuthenticating(true);
+    
     try {
+      // Store context for OAuth callback
+      sessionStorage.setItem('marketing_opt_in', marketingOptIn ? '1' : '0');
+      sessionStorage.setItem('auth_provider', 'google');
+      sessionStorage.setItem('return_to', window.location.href);
+      
+      if (session?.id) {
+        sessionStorage.setItem('flow_session_id', session.id);
+      }
+
+      // Calculate redirect URL
+      const redirectTo = `${window.location.origin}${import.meta.env.VITE_AUTH_REDIRECT || '/auth/callback'}`;
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin
+          redirectTo,
+          scopes: 'openid email profile',
+          queryParams: {
+            prompt: 'select_account'
+          }
         }
       });
       
       if (error) {
-        toast.error('Google sign-in failed');
+        toast.error('Google sign-in failed: ' + error.message);
+        setIsAuthenticating(false);
       }
-    } catch (error) {
+      // Note: Don't set setIsAuthenticating(false) on success as user will be redirected
+    } catch (error: any) {
+      console.error('Google auth error:', error);
       toast.error('Google sign-in failed');
-    } finally {
       setIsAuthenticating(false);
     }
   };
 
   const handleAppleAuth = async () => {
     setIsAuthenticating(true);
+    
     try {
+      // Store context for OAuth callback
+      sessionStorage.setItem('marketing_opt_in', marketingOptIn ? '1' : '0');
+      sessionStorage.setItem('auth_provider', 'apple');
+      sessionStorage.setItem('return_to', window.location.href);
+      
+      if (session?.id) {
+        sessionStorage.setItem('flow_session_id', session.id);
+      }
+
+      // Calculate redirect URL
+      const redirectTo = `${window.location.origin}${import.meta.env.VITE_AUTH_REDIRECT || '/auth/callback'}`;
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'apple',
         options: {
-          redirectTo: window.location.origin
+          redirectTo,
+          scopes: 'openid email profile'
         }
       });
       
       if (error) {
-        toast.error('Apple sign-in failed');
+        toast.error('Apple sign-in failed: ' + error.message);
+        setIsAuthenticating(false);
       }
-    } catch (error) {
+      // Note: Don't set setIsAuthenticating(false) on success as user will be redirected
+    } catch (error: any) {
+      console.error('Apple auth error:', error);
       toast.error('Apple sign-in failed');
-    } finally {
       setIsAuthenticating(false);
     }
   };

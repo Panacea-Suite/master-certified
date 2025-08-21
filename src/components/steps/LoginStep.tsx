@@ -65,10 +65,22 @@ export const LoginStep: React.FC<LoginStepProps> = ({
     setError(undefined);
     
     try {
+      // Store context for OAuth callback
+      sessionStorage.setItem('marketing_opt_in', optIn ? '1' : '0');
+      sessionStorage.setItem('auth_provider', 'google');
+      sessionStorage.setItem('return_to', window.location.href);
+
+      // Calculate redirect URL
+      const redirectTo = `${window.location.origin}${import.meta.env.VITE_AUTH_REDIRECT || '/auth/callback'}`;
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin
+          redirectTo,
+          scopes: 'openid email profile',
+          queryParams: {
+            prompt: 'select_account'
+          }
         }
       });
       
@@ -77,12 +89,12 @@ export const LoginStep: React.FC<LoginStepProps> = ({
       }
       
       onTrackEvent?.('auth_success', { provider: 'google', marketingOptIn: optIn });
+      // Note: Don't set loading to null on success as user will be redirected
     } catch (err: any) {
       const errorMsg = err.message || 'Google sign-in failed';
       setError(errorMsg);
       onAuthError?.(new Error(errorMsg));
       onTrackEvent?.('auth_error', { provider: 'google', error: errorMsg });
-    } finally {
       setLoading(null);
     }
   };
@@ -92,10 +104,19 @@ export const LoginStep: React.FC<LoginStepProps> = ({
     setError(undefined);
     
     try {
+      // Store context for OAuth callback
+      sessionStorage.setItem('marketing_opt_in', optIn ? '1' : '0');
+      sessionStorage.setItem('auth_provider', 'apple');
+      sessionStorage.setItem('return_to', window.location.href);
+
+      // Calculate redirect URL
+      const redirectTo = `${window.location.origin}${import.meta.env.VITE_AUTH_REDIRECT || '/auth/callback'}`;
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'apple',
         options: {
-          redirectTo: window.location.origin
+          redirectTo,
+          scopes: 'openid email profile'
         }
       });
       
@@ -104,12 +125,12 @@ export const LoginStep: React.FC<LoginStepProps> = ({
       }
       
       onTrackEvent?.('auth_success', { provider: 'apple', marketingOptIn: optIn });
+      // Note: Don't set loading to null on success as user will be redirected
     } catch (err: any) {
       const errorMsg = err.message || 'Apple sign-in failed';
       setError(errorMsg);
       onAuthError?.(new Error(errorMsg));
       onTrackEvent?.('auth_error', { provider: 'apple', error: errorMsg });
-    } finally {
       setLoading(null);
     }
   };
