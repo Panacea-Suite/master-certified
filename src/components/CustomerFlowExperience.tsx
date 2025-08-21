@@ -11,7 +11,7 @@ import { SectionRenderer } from '@/components/shared/SectionRenderer';
 import { TemplateStyleProvider } from '@/components/TemplateStyleProvider';
 import { FlowHeader } from '@/components/flow-editor/FlowHeader';
 import { PanaceaFooter } from '@/components/PanaceaFooter';
-
+import { useSearchParams } from 'react-router-dom';
 
 // Cache-busting utility
 const withCacheBust = (url: string, seed?: string | number): string => {
@@ -66,6 +66,7 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
   const [isLoading, setIsLoading] = useState(true);
   const [authenticating, setAuthenticating] = useState(false);
   const { toast } = useToast();
+  const [searchParams] = useSearchParams();
 
   const stages = [
     { type: 'landing', title: 'Welcome to Certified', icon: Shield },
@@ -77,9 +78,54 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
 
   useEffect(() => {
     fetchFlowData();
-  }, [flowId, templateData, brandData, externalPageIndex]);
+  }, [flowId, templateData, brandData, externalPageIndex, searchParams]);
 
   const fetchFlowData = async () => {
+    // Session-based test flow
+    const sessionId = searchParams.get('session');
+    if (sessionId) {
+      try {
+        setIsLoading(true);
+        console.log('CustomerFlowExperience: Loading via session_id:', sessionId);
+        const { data, error } = await supabase.functions.invoke('flow-handler', {
+          body: { session_id: sessionId }
+        });
+        if (error) {
+          console.error('Edge function error:', error);
+          throw error;
+        }
+        const d: any = data;
+        if (!d?.flow || !d?.campaign) {
+          throw new Error('Invalid session response');
+        }
+        const flowConfig = d.flow.config as any;
+        setFlow({ id: d.flow.id, name: d.flow.name, flow_config: flowConfig });
+        setCampaign(d.campaign);
+        if (flowConfig?.pages) {
+          setPages(flowConfig.pages);
+          setCurrentPageIndex(0);
+        } else if (flowConfig?.sections) {
+          const singlePage = {
+            id: 'main-page',
+            name: 'Main Content',
+            type: 'content_display',
+            sections: flowConfig.sections,
+            settings: {}
+          };
+          setPages([singlePage]);
+          setCurrentPageIndex(0);
+        } else {
+          setContent(d.content || []);
+        }
+      } catch (e) {
+        console.error('Failed to load session flow:', e);
+        setError('Failed to load test session');
+      } finally {
+        setIsLoading(false);
+      }
+      return;
+    }
+
     // If templateData is provided directly, use it instead of fetching
     if (templateData) {
       try {

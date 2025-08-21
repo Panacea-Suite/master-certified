@@ -17,6 +17,106 @@ Deno.serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!
     const supabase = createClient(supabaseUrl, supabaseKey)
 
+    // Support session-based requests via POST body
+    const method = req.method
+    
+    if (method === 'POST') {
+      try {
+        const body = await req.json()
+        const sessionId = body?.session_id
+        if (sessionId) {
+          console.log(`Flow handler session request for session: ${sessionId}`)
+
+          // Fetch session
+          const { data: session, error: sessionError } = await supabase
+            .from('flow_sessions')
+            .select('id, qr_id, campaign_id')
+            .eq('id', sessionId)
+            .maybeSingle()
+
+          if (sessionError || !session) {
+            console.error('Session not found:', sessionError)
+            return new Response('Invalid session', { status: 400, headers: corsHeaders })
+          }
+
+          // Fetch campaign
+          const { data: campaign, error: campaignError } = await supabase
+            .from('campaigns')
+            .select('id, name, final_redirect_url, approved_stores')
+            .eq('id', session.campaign_id)
+            .single()
+
+          if (campaignError || !campaign) {
+            console.error('Campaign fetch error:', campaignError)
+            return new Response('Campaign not found', { status: 404, headers: corsHeaders })
+          }
+
+          // Fetch flow for campaign (most recent)
+          const { data: flow, error: flowError } = await supabase
+            .from('flows')
+            .select('id, name, flow_config')
+            .eq('campaign_id', campaign.id)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle()
+
+          if (flowError || !flow) {
+            console.error('Flow fetch error:', flowError)
+            return new Response('Flow not found for campaign', { status: 404, headers: corsHeaders })
+          }
+
+          // Fetch content (legacy)
+          const { data: flowContent, error: contentError } = await supabase
+            .from('flow_content')
+            .select('*')
+            .eq('flow_id', flow.id)
+            .order('order_index')
+
+          if (contentError) {
+            console.error('Error fetching flow content:', contentError)
+          }
+
+          // Fetch QR code details if present
+          let qrPayload: any = null
+          if (session.qr_id) {
+            const { data: qr, error: qrErr } = await supabase
+              .from('qr_codes')
+              .select('id, unique_code, scans')
+              .eq('id', session.qr_id)
+              .maybeSingle()
+            if (qrErr) {
+              console.warn('QR fetch warning:', qrErr)
+            }
+            if (qr) {
+              qrPayload = { id: qr.id, unique_code: qr.unique_code, scans: qr.scans }
+            }
+          }
+
+          const responseData = {
+            flow: {
+              id: flow.id,
+              name: flow.name,
+              config: flow.flow_config
+            },
+            campaign: {
+              id: campaign.id,
+              name: campaign.name,
+              final_redirect_url: campaign.final_redirect_url,
+              approved_stores: campaign.approved_stores
+            },
+            qr_code: qrPayload,
+            content: flowContent || []
+          }
+
+          return new Response(JSON.stringify(responseData), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          })
+        }
+      } catch (e) {
+        console.warn('No JSON body or failed parsing for POST request:', e)
+      }
+    }
+
     // Extract flow ID and unique code from URL path
     const url = new URL(req.url)
     const pathParts = url.pathname.split('/')
