@@ -652,6 +652,10 @@ export type Database = {
           flow_name: string
         }[]
       }
+      get_flow_session: {
+        Args: { p_session_id: string }
+        Returns: Json
+      }
       get_user_flows: {
         Args: { p_user_id?: string }
         Returns: {
@@ -676,6 +680,27 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      link_user_to_flow: {
+        Args: {
+          p_created_via?: Database["public"]["Enums"]["auth_provider"]
+          p_marketing_opt_in?: boolean
+          p_session_id: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
+      run_verification: {
+        Args: { p_session_id: string }
+        Returns: Json
+      }
+      start_flow_session: {
+        Args: { p_qr_id: string }
+        Returns: Json
+      }
+      update_flow_store: {
+        Args: { p_session_id: string; p_store_meta: Json }
+        Returns: Json
       }
     }
     Enums: {
