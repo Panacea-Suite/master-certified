@@ -37,9 +37,23 @@ const CampaignManager = () => {
     fetchCampaigns();
   }, []);
 
+  useEffect(() => {
+    // Re-query campaigns when current brand changes
+    if (currentBrand) {
+      fetchCampaigns();
+    } else {
+      setCampaigns([]);
+    }
+  }, [currentBrand]);
+
   const fetchCampaigns = async () => {
+    if (!currentBrand) {
+      setCampaigns([]);
+      return;
+    }
+
     try {
-      // Fetch campaigns (RLS ensures only user's brands are returned)
+      // Fetch campaigns for the current brand only
       const { data: campaignsData, error: campaignsError } = await supabase
         .from('campaigns')
         .select(`
@@ -49,6 +63,7 @@ const CampaignManager = () => {
             name
           )
         `)
+        .eq('brand_id', currentBrand.id)
         .order('created_at', { ascending: false });
 
       if (campaignsError) throw campaignsError;
