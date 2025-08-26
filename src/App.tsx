@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { HashRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ViewModeProvider } from "@/hooks/useViewMode";
+import { BrandProvider } from "@/contexts/BrandContext";
 import { AdminShell } from "@/components/shells/AdminShell";
 import { CustomerShell } from "@/components/shells/CustomerShell";
 import { TestFlowGate } from "@/pages/TestFlowGate";
@@ -31,54 +32,56 @@ const LocationLogger = () => {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
-      <ViewModeProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <HashRouter>
-            <LocationLogger />
-            <Routes>
-              {/* Customer flow routes - no admin chrome */}
-              <Route path="/flow/test" element={
-                <>
-                  <CustomerShell>
-                    <TestFlowGate />
-                  </CustomerShell>
-                </>
-              } />
-              <Route path="/flow/run/:qrId" element={
-                <>
-                  <CustomerShell>
-                    <CustomerFlowRun />
-                  </CustomerShell>
-                </>
-              } />
-              
-              {/* Admin routes - with admin chrome */}
-              <Route path="/" element={
-                <>
-                  {console.log('Rendering AdminIndex route')}
-                  <AdminShell>
-                    <AdminIndex />
-                  </AdminShell>
-                </>
-              } />
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/auth/callback" element={<AuthCallback />} />
-              
-              {/* Catch-all route */}
-              <Route path="*" element={
-                <>
-                  {console.log('Rendering catch-all route for:', window.location.hash)}
-                  <AdminShell>
-                    <NotFound />
-                  </AdminShell>
-                </>
-              } />
-            </Routes>
-          </HashRouter>
-        </TooltipProvider>
-      </ViewModeProvider>
+      <BrandProvider>
+        <ViewModeProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <HashRouter>
+              <LocationLogger />
+              <Routes>
+                {/* Customer flow routes - no admin chrome */}
+                <Route path="/flow/test" element={
+                  <>
+                    <CustomerShell>
+                      <TestFlowGate />
+                    </CustomerShell>
+                  </>
+                } />
+                <Route path="/flow/run/:qrId" element={
+                  <>
+                    <CustomerShell>
+                      <CustomerFlowRun />
+                    </CustomerShell>
+                  </>
+                } />
+                
+                {/* Admin routes - with admin chrome */}
+                <Route path="/" element={
+                  <>
+                    {console.log('Rendering AdminIndex route')}
+                    <AdminShell>
+                      <AdminIndex />
+                    </AdminShell>
+                  </>
+                } />
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/auth/callback" element={<AuthCallback />} />
+                
+                {/* Catch-all route */}
+                <Route path="*" element={
+                  <>
+                    {console.log('Rendering catch-all route for:', window.location.hash)}
+                    <AdminShell>
+                      <NotFound />
+                    </AdminShell>
+                  </>
+                } />
+              </Routes>
+            </HashRouter>
+          </TooltipProvider>
+        </ViewModeProvider>
+      </BrandProvider>
     </AuthProvider>
   </QueryClientProvider>
 );

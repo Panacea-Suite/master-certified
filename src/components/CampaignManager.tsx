@@ -9,13 +9,8 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Plus, Edit, Trash2, Eye, Store } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { useBrandContext } from '@/contexts/BrandContext';
 import CampaignWizard from './CampaignWizard';
-
-interface Brand {
-  id: string;
-  name: string;
-  approved_stores?: string[];
-}
 
 interface Campaign {
   id: string;
@@ -25,42 +20,25 @@ interface Campaign {
   approved_stores?: string[];
   flow_settings?: any;
   created_at: string;
-  brands?: Brand;
+  brands?: {
+    id: string;
+    name: string;
+  };
 }
 
 const CampaignManager = () => {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-  const [currentBrand, setCurrentBrand] = useState<Brand | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const [showWizard, setShowWizard] = useState(false);
+  const { currentBrand, isLoading: brandLoading, refreshBrands } = useBrandContext();
+  const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
-    fetchData();
+    fetchCampaigns();
   }, []);
 
-  const fetchData = async () => {
+  const fetchCampaigns = async () => {
     try {
-      // Resolve current brand from the signed-in user's brands
-      const { data: { user } } = await supabase.auth.getUser();
-
-      let current: Brand | null = null;
-      if (user) {
-        const { data: brandsData, error: brandsError } = await supabase
-          .from('brands')
-          .select('id, name, approved_stores, updated_at')
-          .eq('user_id', user.id)
-          .order('updated_at', { ascending: false });
-
-        if (brandsError) throw brandsError;
-
-        const saved = localStorage.getItem('selectedBrandId');
-        const chosen = (brandsData || []).find((b: any) => b.id === saved) ?? (brandsData?.[0] ?? null);
-        current = chosen as Brand | null;
-      }
-
-      setCurrentBrand(current);
-
       // Fetch campaigns (RLS ensures only user's brands are returned)
       const { data: campaignsData, error: campaignsError } = await supabase
         .from('campaigns')
@@ -76,10 +54,10 @@ const CampaignManager = () => {
       if (campaignsError) throw campaignsError;
       setCampaigns(campaignsData || []);
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error('Error fetching campaigns:', error);
       toast({
         title: "Error",
-        description: "Failed to fetch data",
+        description: "Failed to fetch campaigns",
         variant: "destructive",
       });
     } finally {
@@ -123,7 +101,7 @@ const CampaignManager = () => {
         currentBrand={currentBrand}
         onComplete={() => {
           setShowWizard(false);
-          fetchData();
+          fetchCampaigns();
         }}
         onCancel={() => setShowWizard(false)}
       />
