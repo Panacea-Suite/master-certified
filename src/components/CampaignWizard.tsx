@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,6 +26,7 @@ interface WizardData {
     name: string;
     description: string;
     approved_stores: string;
+    brand_id?: string;
   };
   batch: {
     name: string;
@@ -43,7 +44,8 @@ const CampaignWizard = ({ currentBrand, onComplete, onCancel }: CampaignWizardPr
     campaign: {
       name: '',
       description: '',
-      approved_stores: currentBrand?.approved_stores?.join(', ') || ''
+      approved_stores: currentBrand?.approved_stores?.join(', ') || '',
+      brand_id: currentBrand?.id
     },
     batch: {
       name: '',
@@ -56,6 +58,19 @@ const CampaignWizard = ({ currentBrand, onComplete, onCancel }: CampaignWizardPr
   });
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
+
+  // Update wizard data when currentBrand becomes available
+  useEffect(() => {
+    if (!currentBrand) return;
+    setWizardData(d => ({
+      ...d,
+      campaign: { 
+        ...d.campaign, 
+        brand_id: currentBrand.id, 
+        approved_stores: currentBrand.approved_stores?.join(', ') || '' 
+      }
+    }));
+  }, [currentBrand]);
 
   const steps = [
     { number: 1, title: 'Campaign Details', description: 'Set up your campaign basics' },
@@ -334,6 +349,14 @@ const CampaignWizard = ({ currentBrand, onComplete, onCancel }: CampaignWizardPr
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            {!currentBrand && (
+              <div className="p-3 border border-destructive bg-destructive/10 rounded-lg">
+                <p className="text-sm text-destructive font-medium">
+                  ⚠️ Brand information is still loading. Please wait a moment before proceeding.
+                </p>
+              </div>
+            )}
+            
             <div>
               <Label htmlFor="flowName">Flow Name *</Label>
               <Input
@@ -344,6 +367,7 @@ const CampaignWizard = ({ currentBrand, onComplete, onCancel }: CampaignWizardPr
                   flow: { ...wizardData.flow, name: e.target.value }
                 })}
                 placeholder={`${wizardData.campaign.name} - Flow`}
+                disabled={!currentBrand}
               />
             </div>
             
@@ -465,7 +489,7 @@ const CampaignWizard = ({ currentBrand, onComplete, onCancel }: CampaignWizardPr
           ) : (
             <Button
               onClick={createCampaignFlow}
-              disabled={!validateStep(currentStep) || isProcessing}
+              disabled={!validateStep(currentStep) || isProcessing || !currentBrand}
             >
               <Rocket className="w-4 h-4 mr-2" />
               {isProcessing ? 'Creating...' : 'Complete Setup'}
