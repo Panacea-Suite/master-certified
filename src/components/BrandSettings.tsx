@@ -40,6 +40,7 @@ const BrandSettings = () => {
       const { data, error } = await supabase
         .from('brands')
         .select('*')
+        .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
         .maybeSingle();
 
       if (error) throw error;
