@@ -62,6 +62,7 @@ const CampaignWizard = ({ currentBrand, onComplete, onCancel }: CampaignWizardPr
   // Update wizard data when currentBrand becomes available
   useEffect(() => {
     if (!currentBrand) return;
+    console.log('🔍 CampaignWizard: currentBrand resolved, updating wizard data:', currentBrand.id);
     setWizardData(d => ({
       ...d,
       campaign: { 
@@ -109,6 +110,7 @@ const CampaignWizard = ({ currentBrand, onComplete, onCancel }: CampaignWizardPr
 
   const createCampaignFlow = async () => {
     if (!currentBrand) {
+      console.log('🔍 CampaignWizard: No currentBrand at submit time');
       toast({
         title: "Error",
         description: "No brand selected",
@@ -117,6 +119,7 @@ const CampaignWizard = ({ currentBrand, onComplete, onCancel }: CampaignWizardPr
       return;
     }
 
+    console.log('🔍 CampaignWizard: Creating campaign for brand:', currentBrand.id);
     setIsProcessing(true);
     try {
       // Step 1: Create Campaign

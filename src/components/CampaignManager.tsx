@@ -33,6 +33,14 @@ const CampaignManager = () => {
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
+  // Debug logging
+  console.log('🔍 CampaignManager Debug:', {
+    currentBrandId: currentBrand?.id,
+    selectedBrandIdFromStorage: localStorage.getItem('selectedBrandId'),
+    availableBrandsCount: availableBrands.length,
+    campaignsCount: campaigns.length
+  });
+
   useEffect(() => {
     fetchCampaigns();
   }, []);
@@ -49,10 +57,12 @@ const CampaignManager = () => {
   const fetchCampaigns = async () => {
     if (!currentBrand) {
       setCampaigns([]);
+      console.log('🔍 No currentBrand, clearing campaigns');
       return;
     }
 
     try {
+      console.log('🔍 Fetching campaigns for brand:', currentBrand.id);
       // Fetch campaigns for the current brand only
       const { data: campaignsData, error: campaignsError } = await supabase
         .from('campaigns')
@@ -67,6 +77,7 @@ const CampaignManager = () => {
         .order('created_at', { ascending: false });
 
       if (campaignsError) throw campaignsError;
+      console.log('🔍 Campaigns fetched:', campaignsData?.length || 0, 'campaigns for brand', currentBrand.id);
       setCampaigns(campaignsData || []);
     } catch (error) {
       console.error('Error fetching campaigns:', error);
@@ -125,6 +136,17 @@ const CampaignManager = () => {
 
   return (
     <div className="space-y-6">
+      {/* Debug Banner */}
+      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm">
+        <div className="font-medium text-yellow-800 mb-1">🔍 Debug Info (temp):</div>
+        <div className="text-yellow-700 space-y-1">
+          <div>Current Brand: {currentBrand?.id || 'None'} ({currentBrand?.name || 'No name'})</div>
+          <div>Storage Brand ID: {localStorage.getItem('selectedBrandId') || 'None'}</div>
+          <div>Available Brands: {availableBrands.length}</div>
+          <div>Campaigns Shown: {campaigns.length}</div>
+        </div>
+      </div>
+
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Campaign Management</h1>
         <Button 
