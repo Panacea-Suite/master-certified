@@ -29,7 +29,7 @@ interface Campaign {
 const CampaignManager = () => {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [showWizard, setShowWizard] = useState(false);
-  const { currentBrand, isLoading: brandLoading, refreshBrands } = useBrandContext();
+  const { currentBrand, availableBrands, isLoading: brandLoading, refreshBrands } = useBrandContext();
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
@@ -140,14 +140,31 @@ const CampaignManager = () => {
 
       {/* Campaigns List */}
       <div className="grid gap-4">
-        {campaigns.length === 0 ? (
+        {availableBrands.length === 0 ? (
+          <Card>
+            <CardContent className="text-center py-12">
+              <div className="flex flex-col items-center space-y-4">
+                <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center">
+                  <Store className="w-8 h-8 text-muted-foreground" />
+                </div>
+                <div className="space-y-2">
+                  <h3 className="text-lg font-semibold">No brands yet</h3>
+                  <p className="text-muted-foreground max-w-md">
+                    Create your first brand to start a campaign. You'll need to set up your brand details, logo, and approved stores.
+                  </p>
+                </div>
+                <Button onClick={() => window.location.hash = '#brand-settings'}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create Your First Brand
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ) : campaigns.length === 0 ? (
           <Card>
             <CardContent className="text-center py-8">
               <p className="text-muted-foreground">
-                {!currentBrand 
-                  ? "Set up your brand first before creating campaigns."
-                  : "No campaigns created yet. Create your first campaign to get started."
-                }
+                No campaigns created yet. Create your first campaign to get started.
               </p>
             </CardContent>
           </Card>
