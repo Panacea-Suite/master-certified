@@ -346,35 +346,98 @@ const CampaignWizard = ({ currentBrand, onComplete, onCancel }: CampaignWizardPr
                 placeholder={`${wizardData.campaign.name} - Flow`}
               />
             </div>
-            <div className="p-4 bg-muted rounded-lg">
-              <h4 className="font-medium mb-2">Flow Stages Preview</h4>
-              <div className="space-y-2 text-sm">
-                <div className="flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">1</span>
-                  <span>Welcome - Customer scans QR code</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">2</span>
-                  <span>Registration - Customer enters details</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">3</span>
-                  <span>Verification - Email/SMS verification</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">4</span>
-                  <span>Information - Product information display</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">5</span>
-                  <span>Content - Testing docs & logistics</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">6</span>
-                  <span>Completion - Thank you message and flow completion</span>
-                </div>
+            
+            <div>
+              <Label>Flow Setup Options *</Label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                <Card 
+                  className={`cursor-pointer transition-colors ${
+                    wizardData.flow.selectedTemplate === 'new' ? 'ring-2 ring-primary' : 'hover:bg-muted/50'
+                  }`}
+                  onClick={() => setWizardData({
+                    ...wizardData,
+                    flow: { ...wizardData.flow, selectedTemplate: 'new' }
+                  })}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-3 h-3 rounded-full border-2 border-primary flex-shrink-0">
+                        {wizardData.flow.selectedTemplate === 'new' && (
+                          <div className="w-full h-full rounded-full bg-primary"></div>
+                        )}
+                      </div>
+                      <div>
+                        <h4 className="font-medium">Create New Flow</h4>
+                        <p className="text-sm text-muted-foreground">Start with a blank flow and build from scratch</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                <Card 
+                  className={`cursor-pointer transition-colors ${
+                    wizardData.flow.selectedTemplate === 'template' ? 'ring-2 ring-primary' : 'hover:bg-muted/50'
+                  }`}
+                  onClick={() => setWizardData({
+                    ...wizardData,
+                    flow: { ...wizardData.flow, selectedTemplate: 'template' }
+                  })}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-3 h-3 rounded-full border-2 border-primary flex-shrink-0">
+                        {wizardData.flow.selectedTemplate === 'template' && (
+                          <div className="w-full h-full rounded-full bg-primary"></div>
+                        )}
+                      </div>
+                      <div>
+                        <h4 className="font-medium">Use Template</h4>
+                        <p className="text-sm text-muted-foreground">Choose from pre-built flow templates</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
             </div>
+
+            {wizardData.flow.selectedTemplate && (
+              <div className="p-4 bg-muted rounded-lg">
+                <h4 className="font-medium mb-2">
+                  {wizardData.flow.selectedTemplate === 'new' ? 'New Flow Preview' : 'Template Flow Preview'}
+                </h4>
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-center gap-2">
+                    <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">1</span>
+                    <span>Welcome - Customer scans QR code</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">2</span>
+                    <span>Store Location - Where did you purchase this?</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">3</span>
+                    <span>Account Creation - Optional account setup</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">4</span>
+                    <span>Authentication - Product verification</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">5</span>
+                    <span>Content - Product information & docs</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">6</span>
+                    <span>Completion - Thank you & redirect</span>
+                  </div>
+                </div>
+                {wizardData.flow.selectedTemplate === 'template' && (
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Template selection will be available after campaign creation in the Flow Builder.
+                  </p>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
