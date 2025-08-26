@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Upload, Palette, Save, Image, Store, Plus, X, Edit, Trash2 } from 'lucide-react';
@@ -17,7 +18,9 @@ interface Brand {
 }
 
 const BrandSettings = () => {
-  const [brand, setBrand] = useState<Brand | null>(null);
+  const [brands, setBrands] = useState<Brand[]>([]);
+  const [selectedBrandId, setSelectedBrandId] = useState<string | null>(null);
+  const [selectedBrand, setSelectedBrand] = useState<Brand | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -37,25 +40,38 @@ const BrandSettings = () => {
 
   const fetchBrandData = async () => {
     try {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) throw new Error('User not authenticated');
+
       const { data, error } = await supabase
         .from('brands')
         .select('*')
-        .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
-        .maybeSingle();
+        .eq('user_id', userData.user.id)
+        .order('updated_at', { ascending: false });
 
       if (error) throw error;
       
-      if (data) {
-        setBrand(data);
+      if (data && data.length > 0) {
+        setBrands(data);
+        
+        // Try to restore selected brand from localStorage
+        const savedBrandId = localStorage.getItem('selectedBrandId');
+        const targetBrand = savedBrandId && data.find(b => b.id === savedBrandId) 
+          ? data.find(b => b.id === savedBrandId)! 
+          : data[0]; // Default to first brand
+          
+        setSelectedBrandId(targetBrand.id);
+        setSelectedBrand(targetBrand);
+        
         // Load existing colors if available
-        if (data.brand_colors && typeof data.brand_colors === 'object') {
-          const colors = data.brand_colors as { primary?: string; secondary?: string; accent?: string };
+        if (targetBrand.brand_colors && typeof targetBrand.brand_colors === 'object') {
+          const colors = targetBrand.brand_colors as { primary?: string; secondary?: string; accent?: string };
           setPrimaryColor(colors.primary || '#3B82F6');
           setSecondaryColor(colors.secondary || '#6B7280');
           setAccentColor(colors.accent || '#10B981');
         }
         // Load existing approved stores if available
-        setApprovedStores(data.approved_stores || []);
+        setApprovedStores(targetBrand.approved_stores || []);
       }
     } catch (error) {
       console.error('Error fetching brand:', error);
@@ -67,6 +83,29 @@ const BrandSettings = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleBrandChange = (brandId: string) => {
+    const brand = brands.find(b => b.id === brandId);
+    if (!brand) return;
+    
+    setSelectedBrandId(brandId);
+    setSelectedBrand(brand);
+    localStorage.setItem('selectedBrandId', brandId);
+    
+    // Update colors and stores for selected brand
+    if (brand.brand_colors && typeof brand.brand_colors === 'object') {
+      const colors = brand.brand_colors as { primary?: string; secondary?: string; accent?: string };
+      setPrimaryColor(colors.primary || '#3B82F6');
+      setSecondaryColor(colors.secondary || '#6B7280');
+      setAccentColor(colors.accent || '#10B981');
+    } else {
+      // Reset to defaults
+      setPrimaryColor('#3B82F6');
+      setSecondaryColor('#6B7280');
+      setAccentColor('#10B981');
+    }
+    setApprovedStores(brand.approved_stores || []);
   };
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -106,7 +145,7 @@ const BrandSettings = () => {
   };
 
   const handleImageSave = async (editedFile: File) => {
-    if (!brand) {
+    if (!selectedBrand) {
       console.error('No brand found when trying to save image');
       toast({
         title: "Error",
@@ -120,7 +159,7 @@ const BrandSettings = () => {
     setShowImageEditor(false);
     
     try {
-      console.log('Starting image upload for brand:', brand.id);
+      console.log('Starting image upload for brand:', selectedBrand.id);
       console.log('File details:', {
         name: editedFile.name,
         size: editedFile.size,
@@ -129,7 +168,7 @@ const BrandSettings = () => {
 
       // Upload to storage
       const fileExt = editedFile.name.split('.').pop() || 'png';
-      const fileName = `${brand.id}/logo.${fileExt}`;
+      const fileName = `${selectedBrand.id}/logo.${fileExt}`;
       
       console.log('Uploading to path:', fileName);
 
@@ -155,7 +194,7 @@ const BrandSettings = () => {
       const { error: updateError } = await supabase
         .from('brands')
         .update({ logo_url: publicUrl })
-        .eq('id', brand.id);
+        .eq('id', selectedBrand.id);
 
       if (updateError) {
         console.error('Database update error:', updateError);
@@ -165,7 +204,9 @@ const BrandSettings = () => {
       console.log('Brand updated successfully');
 
       // Update state with clean URL, we'll apply cache-busting when displaying
-      setBrand({ ...brand, logo_url: publicUrl });
+      const updatedBrand = { ...selectedBrand, logo_url: publicUrl };
+      setSelectedBrand(updatedBrand);
+      setBrands(brands.map(b => b.id === selectedBrand.id ? updatedBrand : b));
       setSelectedFile(null);
       // Reset file input by changing key
       setFileInputKey(Date.now());
@@ -201,12 +242,12 @@ const BrandSettings = () => {
   };
 
   const handleDeleteLogo = async () => {
-    if (!brand || !brand.logo_url) return;
+    if (!selectedBrand || !selectedBrand.logo_url) return;
 
     setIsUploading(true);
     try {
       // Extract file path from logo URL
-      const url = new URL(brand.logo_url);
+      const url = new URL(selectedBrand.logo_url);
       const pathSegments = url.pathname.split('/');
       const fileName = pathSegments[pathSegments.length - 1];
       const brandFolder = pathSegments[pathSegments.length - 2];
@@ -228,7 +269,7 @@ const BrandSettings = () => {
       const { error: updateError } = await supabase
         .from('brands')
         .update({ logo_url: null })
-        .eq('id', brand.id);
+        .eq('id', selectedBrand.id);
 
       if (updateError) {
         console.error('Database update error:', updateError);
@@ -238,7 +279,9 @@ const BrandSettings = () => {
       console.log('Logo deleted successfully');
 
       // Update state
-      setBrand({ ...brand, logo_url: null });
+      const updatedBrand = { ...selectedBrand, logo_url: null };
+      setSelectedBrand(updatedBrand);
+      setBrands(brands.map(b => b.id === selectedBrand.id ? updatedBrand : b));
       // Reset file input by changing key
       setFileInputKey(Date.now());
       toast({
@@ -267,7 +310,7 @@ const BrandSettings = () => {
 
 
   const saveColors = async () => {
-    if (!brand) return;
+    if (!selectedBrand) return;
 
     setIsSaving(true);
     try {
@@ -280,11 +323,13 @@ const BrandSettings = () => {
       const { error } = await supabase
         .from('brands')
         .update({ brand_colors: colors })
-        .eq('id', brand.id);
+        .eq('id', selectedBrand.id);
 
       if (error) throw error;
 
-      setBrand({ ...brand, brand_colors: colors });
+      const updatedBrand = { ...selectedBrand, brand_colors: colors };
+      setSelectedBrand(updatedBrand);
+      setBrands(brands.map(b => b.id === selectedBrand.id ? updatedBrand : b));
       toast({
         title: "Success",
         description: "Brand colors saved successfully",
@@ -313,18 +358,20 @@ const BrandSettings = () => {
   };
 
   const saveApprovedStores = async () => {
-    if (!brand) return;
+    if (!selectedBrand) return;
 
     setIsSaving(true);
     try {
       const { error } = await supabase
         .from('brands')
         .update({ approved_stores: approvedStores })
-        .eq('id', brand.id);
+        .eq('id', selectedBrand.id);
 
       if (error) throw error;
 
-      setBrand({ ...brand, approved_stores: approvedStores });
+      const updatedBrand = { ...selectedBrand, approved_stores: approvedStores };
+      setSelectedBrand(updatedBrand);
+      setBrands(brands.map(b => b.id === selectedBrand.id ? updatedBrand : b));
       toast({
         title: "Success",
         description: "Approved stores saved successfully",
@@ -345,7 +392,7 @@ const BrandSettings = () => {
     return <div className="text-center py-8">Loading brand settings...</div>;
   }
 
-  if (!brand) {
+  if (!selectedBrand) {
     return (
       <div className="text-center py-8">
         <p className="text-muted-foreground">No brand found. Please create a brand first.</p>
@@ -357,6 +404,23 @@ const BrandSettings = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Brand Settings</h1>
+        {brands.length > 1 && (
+          <div className="flex items-center gap-2">
+            <Label htmlFor="brand-select" className="text-sm">Brand:</Label>
+            <Select value={selectedBrandId || ''} onValueChange={handleBrandChange}>
+              <SelectTrigger className="w-48" id="brand-select">
+                <SelectValue placeholder="Select a brand" />
+              </SelectTrigger>
+              <SelectContent>
+                {brands.map((brand) => (
+                  <SelectItem key={brand.id} value={brand.id}>
+                    {brand.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
@@ -372,13 +436,13 @@ const BrandSettings = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {brand.logo_url && (
+            {selectedBrand.logo_url && (
               <div className="flex justify-center relative">
                 <img
-                  src={`${brand.logo_url}?t=${Date.now()}`}
+                  src={`${selectedBrand.logo_url}?t=${Date.now()}`}
                   alt="Brand Logo"
                   className="w-32 h-32 object-contain border rounded-lg"
-                  key={brand.logo_url} // Force re-render when URL changes
+                  key={selectedBrand.logo_url} // Force re-render when URL changes
                 />
                 <Button
                   variant="destructive"
