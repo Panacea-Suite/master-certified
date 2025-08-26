@@ -41,19 +41,27 @@ const CampaignManager = () => {
 
   const fetchData = async () => {
     try {
-      // Fetch current user's brand
-      const { data: brandData, error: brandError } = await supabase
-        .from('brands')
-        .select('id, name, approved_stores')
-        .maybeSingle();
+      // Resolve current brand from the signed-in user's brands
+      const { data: { user } } = await supabase.auth.getUser();
 
-      if (brandError) throw brandError;
-      
-      if (brandData) {
-        setCurrentBrand(brandData);
+      let current: Brand | null = null;
+      if (user) {
+        const { data: brandsData, error: brandsError } = await supabase
+          .from('brands')
+          .select('id, name, approved_stores, updated_at')
+          .eq('user_id', user.id)
+          .order('updated_at', { ascending: false });
+
+        if (brandsError) throw brandsError;
+
+        const saved = localStorage.getItem('selectedBrandId');
+        const chosen = (brandsData || []).find((b: any) => b.id === saved) ?? (brandsData?.[0] ?? null);
+        current = chosen as Brand | null;
       }
 
-      // Fetch campaigns for current brand
+      setCurrentBrand(current);
+
+      // Fetch campaigns (RLS ensures only user's brands are returned)
       const { data: campaignsData, error: campaignsError } = await supabase
         .from('campaigns')
         .select(`
@@ -128,6 +136,8 @@ const CampaignManager = () => {
         <h1 className="text-3xl font-bold">Campaign Management</h1>
         <Button 
           onClick={() => setShowWizard(true)}
+          disabled={!currentBrand}
+          title={!currentBrand ? 'Create a brand first' : undefined}
         >
           <Plus className="w-4 h-4 mr-2" />
           Create Campaign
