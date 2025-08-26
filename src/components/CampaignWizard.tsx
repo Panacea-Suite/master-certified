@@ -25,7 +25,7 @@ interface WizardData {
   campaign: {
     name: string;
     description: string;
-    approved_stores: string;
+    approved_stores: string[];
     brand_id?: string;
   };
   batch: {
@@ -44,7 +44,7 @@ const CampaignWizard = ({ currentBrand, onComplete, onCancel }: CampaignWizardPr
     campaign: {
       name: '',
       description: '',
-      approved_stores: currentBrand?.approved_stores?.join(', ') || '',
+      approved_stores: currentBrand?.approved_stores || [],
       brand_id: currentBrand?.id
     },
     batch: {
@@ -67,7 +67,7 @@ const CampaignWizard = ({ currentBrand, onComplete, onCancel }: CampaignWizardPr
       campaign: { 
         ...d.campaign, 
         brand_id: currentBrand.id, 
-        approved_stores: currentBrand.approved_stores?.join(', ') || '' 
+        approved_stores: currentBrand.approved_stores || [] 
       }
     }));
   }, [currentBrand]);
@@ -126,9 +126,7 @@ const CampaignWizard = ({ currentBrand, onComplete, onCancel }: CampaignWizardPr
           name: wizardData.campaign.name,
           description: wizardData.campaign.description || null,
           brand_id: currentBrand.id,
-          approved_stores: wizardData.campaign.approved_stores 
-            ? wizardData.campaign.approved_stores.split(',').map(s => s.trim()).filter(s => s)
-            : []
+           approved_stores: wizardData.campaign.approved_stores
         }])
         .select()
         .single();
@@ -274,10 +272,13 @@ const CampaignWizard = ({ currentBrand, onComplete, onCancel }: CampaignWizardPr
               <Label htmlFor="approvedStores">Approved Stores</Label>
               <Textarea
                 id="approvedStores"
-                value={wizardData.campaign.approved_stores}
+                value={wizardData.campaign.approved_stores.join(', ')}
                 onChange={(e) => setWizardData({
                   ...wizardData,
-                  campaign: { ...wizardData.campaign, approved_stores: e.target.value }
+                  campaign: { 
+                    ...wizardData.campaign, 
+                    approved_stores: e.target.value.split(',').map(s => s.trim()).filter(s => s) 
+                  }
                 })}
                 placeholder="Enter approved stores (comma-separated)"
               />
