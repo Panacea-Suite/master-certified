@@ -126,6 +126,13 @@ Deno.serve(async (req) => {
         flowUrl.searchParams.set('ct', campaign.customer_access_token)
       }
       
+      console.log(JSON.stringify({
+        resolved_code: code,
+        campaign_id: campaign.id,
+        qr_id: qrData.id,
+        redirect_to: flowUrl.toString(),
+      }, null, 2));
+      
       console.log(`Redirecting to customer flow: ${flowUrl.toString()}`)
       return new Response(null, {
         status: 302,
