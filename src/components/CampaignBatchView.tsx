@@ -112,9 +112,12 @@ const CampaignBatchView: React.FC<CampaignBatchViewProps> = ({ campaign, onBack 
       setQrCodeCount(100);
       setShowCreateForm(false);
       
+      // Immediately generate QR codes for the new batch
+      await generateQRCodes(data.id);
+      
       toast({
         title: "Success",
-        description: "Batch created successfully",
+        description: "Batch created and QR codes generated successfully",
       });
     } catch (error) {
       console.error('Error creating batch:', error);
@@ -142,28 +145,18 @@ const CampaignBatchView: React.FC<CampaignBatchViewProps> = ({ campaign, onBack 
       // Generate QR codes
       const batch = batches.find(b => b.id === batchId);
       if (batch) {
-        // Get the flow associated with this batch's campaign
-        const { data: flowData } = await supabase
-          .from('flows')
-          .select('id')
-          .eq('campaign_id', campaign.id)
-          .limit(1)
-          .single();
-
-        const flowId = flowData?.id;
-
-        const qrCodes = [];
+        // Generate QR codes without requiring a flow (redirect uses unique_code)
+        const qrCodes = [] as any[];
         for (let i = 0; i < batch.qr_code_count; i++) {
           const uniqueCode = `${batchId.substring(0, 8)}-${Date.now()}-${String(i).padStart(3, '0')}`;
           const managedUrl = `${window.location.origin}/qr/${uniqueCode}`;
-          const uniqueFlowUrl = flowId ? `${window.location.origin}/flow/${flowId}/${uniqueCode}` : null;
           
           qrCodes.push({
             batch_id: batchId,
-            flow_id: flowId,
+            flow_id: null,
             qr_url: `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(managedUrl)}`,
             unique_code: uniqueCode,
-            unique_flow_url: uniqueFlowUrl
+            unique_flow_url: null
           });
         }
 
