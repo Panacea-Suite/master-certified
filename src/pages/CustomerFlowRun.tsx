@@ -1,39 +1,80 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams, useParams } from 'react-router-dom';
-import { CertificationFlow } from '@/components/certification-flow/CertificationFlow';
+import CustomerFlowExperience from '@/components/CustomerFlowExperience';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 export const CustomerFlowRun: React.FC = () => {
   const [searchParams] = useSearchParams();
-  const { qrId } = useParams<{ qrId: string }>();
+  const { campaignId } = useParams<{ campaignId: string }>();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
-  const [isTestMode, setIsTestMode] = useState(false);
+  const [flowData, setFlowData] = useState<any>(null);
+  const [campaignData, setCampaignData] = useState<any>(null);
 
   useEffect(() => {
-    const sessionId = searchParams.get('session');
-    const testMode = searchParams.get('test') === 'true';
-    
-    if (!sessionId) {
-      setError('Missing session ID in URL');
-      setLoading(false);
-      return;
-    }
+    const loadFlowData = async () => {
+      try {
+        const token = searchParams.get('token');
+        const qrCode = searchParams.get('qr');
+        
+        if (!campaignId) {
+          throw new Error('Missing campaign ID in URL');
+        }
 
-    if (!qrId) {
-      setError('Missing QR ID in URL');
-      setLoading(false);
-      return;
-    }
+        // Validate the customer access token if provided
+        if (token) {
+          const { data: isValid } = await supabase
+            .rpc('validate_campaign_token', {
+              p_campaign_id: campaignId,
+              p_token: token
+            });
 
-    // Store session info for CertificationFlow
-    sessionStorage.setItem('test_qr_id', qrId);
-    sessionStorage.setItem('test_mode', testMode ? 'true' : 'false');
-    
-    setIsTestMode(testMode);
-    setLoading(false);
-  }, [searchParams, qrId]);
+          if (!isValid) {
+            throw new Error('Invalid access token');
+          }
+        }
+
+        // Fetch campaign and flow data
+        const { data: campaign, error: campaignError } = await supabase
+          .from('campaigns')
+          .select(`
+            *,
+            brands (*),
+            flows (*)
+          `)
+          .eq('id', campaignId)
+          .single();
+
+        if (campaignError) {
+          throw new Error('Campaign not found');
+        }
+
+        setCampaignData(campaign);
+        
+        // Use the first flow from the campaign
+        const flow = campaign.flows?.[0];
+        if (flow) {
+          setFlowData({
+            ...flow,
+            campaign,
+            qrCode
+          });
+        } else {
+          throw new Error('No flow found for this campaign');
+        }
+
+        setLoading(false);
+      } catch (err) {
+        console.error('Error loading flow:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load flow');
+        setLoading(false);
+      }
+    };
+
+    loadFlowData();
+  }, [campaignId, searchParams]);
 
   if (loading) {
     return (
@@ -61,14 +102,29 @@ export const CustomerFlowRun: React.FC = () => {
     );
   }
 
+  if (!flowData) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="max-w-md w-full">
+          <Alert>
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              <p>No flow data available</p>
+            </AlertDescription>
+          </Alert>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
-      {isTestMode && (
-        <div className="bg-yellow-500 text-yellow-900 px-4 py-2 text-center text-sm font-medium">
-          🧪 Test Mode - Data will be saved as test data and excluded from analytics
-        </div>
-      )}
-      <CertificationFlow />
+      <CustomerFlowExperience 
+        templateData={flowData.flow_config}
+        brandData={campaignData?.brands}
+        flowId={flowData.id}
+        qrCode={flowData.qrCode}
+      />
     </div>
   );
 };

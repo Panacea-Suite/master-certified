@@ -22,7 +22,11 @@ const AdminIndex = () => {
     if (!loading && !user) {
       // Only redirect to auth if not on a customer route
       const currentPath = window.location.hash.slice(1); // Remove # from hash
-      if (!currentPath.startsWith('/flow')) {
+      const isCustomerRoute = currentPath.startsWith('/flow') || 
+                              currentPath.startsWith('/qr/') ||
+                              currentPath === '/not-found';
+      
+      if (!isCustomerRoute) {
         navigate('/auth');
       }
     }
@@ -58,6 +62,17 @@ const AdminIndex = () => {
   }
 
   if (!user) {
+    // Check if this is a customer route that shouldn't require auth
+    const currentPath = window.location.hash.slice(1);
+    const isCustomerRoute = currentPath.startsWith('/flow') || 
+                            currentPath.startsWith('/qr/') ||
+                            currentPath === '/not-found';
+    
+    if (isCustomerRoute) {
+      // For customer routes, show a minimal layout or redirect appropriately
+      return null; // Let the customer routes handle themselves
+    }
+    
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted/50 p-4">
         <div className="text-center space-y-4">

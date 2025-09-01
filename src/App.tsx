@@ -10,6 +10,7 @@ import { AdminShell } from "@/components/shells/AdminShell";
 import { CustomerShell } from "@/components/shells/CustomerShell";
 import { TestFlowGate } from "@/pages/TestFlowGate";
 import { CustomerFlowRun } from "@/pages/CustomerFlowRun";
+import { QrRedirect } from "@/pages/QrRedirect";
 import AdminIndex from "./pages/AdminIndex";
 import Auth from "./pages/Auth";
 import AuthCallback from "./pages/AuthCallback";
@@ -40,6 +41,9 @@ const App = () => (
             <HashRouter>
               <LocationLogger />
               <Routes>
+                {/* Public QR redirect route - no shell needed */}
+                <Route path="/qr/:uniqueCode" element={<QrRedirect />} />
+                
                 {/* Customer flow routes - no admin chrome */}
                 <Route path="/flow/test" element={
                   <>
@@ -48,10 +52,17 @@ const App = () => (
                     </CustomerShell>
                   </>
                 } />
-                <Route path="/flow/run/:qrId" element={
+                <Route path="/flow/run/:campaignId" element={
                   <>
                     <CustomerShell>
                       <CustomerFlowRun />
+                    </CustomerShell>
+                  </>
+                } />
+                <Route path="/not-found" element={
+                  <>
+                    <CustomerShell>
+                      <NotFound />
                     </CustomerShell>
                   </>
                 } />

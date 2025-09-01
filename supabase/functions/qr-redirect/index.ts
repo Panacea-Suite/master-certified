@@ -36,6 +36,8 @@ Deno.serve(async (req) => {
         *,
         batches (
           campaigns (
+            id,
+            name,
             final_redirect_url,
             customer_access_token,
             flows (
@@ -50,12 +52,12 @@ Deno.serve(async (req) => {
 
     if (qrError || !qrData) {
       console.error('QR code not found:', qrError)
-      // Redirect to a default landing page
+      // Redirect to the app with an error message
       return new Response(null, {
         status: 302,
         headers: {
           ...corsHeaders,
-          'Location': 'https://your-fallback-domain.com/not-found'
+          'Location': `${new URL(req.url).origin}/#/not-found?error=qr-not-found`
         }
       })
     }
@@ -70,18 +72,22 @@ Deno.serve(async (req) => {
       console.error('Failed to update scan count:', updateError)
     }
 
-    // Check if we have a flow to redirect to
-    const flow = qrData.batches?.campaigns?.flows?.[0]
+    // Get campaign and flow data
     const campaign = qrData.batches?.campaigns
+    const flow = campaign?.flows?.[0]
     
-    if (flow && qrData.unique_flow_url) {
-      // Append customer access token to the flow URL
-      const flowUrl = new URL(qrData.unique_flow_url)
-      if (campaign?.customer_access_token) {
+    if (campaign) {
+      // Create customer flow URL with the campaign ID and access token
+      const baseUrl = new URL(req.url).origin
+      const flowUrl = new URL(`${baseUrl}/#/flow/run/${campaign.id}`)
+      
+      // Add the customer access token and unique code for tracking
+      if (campaign.customer_access_token) {
         flowUrl.searchParams.set('token', campaign.customer_access_token)
       }
+      flowUrl.searchParams.set('qr', uniqueCode)
       
-      console.log(`Redirecting to flow: ${flowUrl.toString()}`)
+      console.log(`Redirecting to customer flow: ${flowUrl.toString()}`)
       return new Response(null, {
         status: 302,
         headers: {
@@ -91,8 +97,8 @@ Deno.serve(async (req) => {
       })
     }
 
-    // Fallback to final redirect URL if no flow
-    const finalRedirectUrl = qrData.batches?.campaigns?.final_redirect_url
+    // Fallback to final redirect URL if configured
+    const finalRedirectUrl = campaign?.final_redirect_url
     if (finalRedirectUrl) {
       console.log(`Redirecting to final URL: ${finalRedirectUrl}`)
       return new Response(null, {
@@ -104,13 +110,13 @@ Deno.serve(async (req) => {
       })
     }
 
-    // Ultimate fallback
-    console.log('No redirect URL found, using fallback')
+    // Ultimate fallback - redirect to app home
+    console.log('No redirect URL found, using app home')
     return new Response(null, {
       status: 302,
       headers: {
         ...corsHeaders,
-        'Location': 'https://your-fallback-domain.com/default'
+        'Location': `${new URL(req.url).origin}/#/`
       }
     })
 
