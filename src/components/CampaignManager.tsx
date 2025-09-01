@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { useBrandContext } from '@/contexts/BrandContext';
 import CampaignWizard from './CampaignWizard';
 import { CampaignTokenManager } from './CampaignTokenManager';
+import CampaignBatchView from './CampaignBatchView';
 
 interface Campaign {
   id: string;
@@ -33,6 +34,7 @@ const CampaignManager = () => {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [showWizard, setShowWizard] = useState(false);
   const [showTokenManager, setShowTokenManager] = useState(false);
+  const [selectedCampaignForBatches, setSelectedCampaignForBatches] = useState<Campaign | null>(null);
   const { currentBrand, availableBrands, isLoading: brandLoading, refreshBrands } = useBrandContext();
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
@@ -170,6 +172,15 @@ const CampaignManager = () => {
     );
   }
 
+  if (selectedCampaignForBatches) {
+    return (
+      <CampaignBatchView
+        campaign={selectedCampaignForBatches}
+        onBack={() => setSelectedCampaignForBatches(null)}
+      />
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Debug Banner */}
@@ -283,7 +294,10 @@ const CampaignManager = () => {
               </CardHeader>
               <CardContent>
                 <div className="flex gap-2">
-                  <Button variant="default">
+                  <Button 
+                    variant="default"
+                    onClick={() => setSelectedCampaignForBatches(campaign)}
+                  >
                     View Batches
                   </Button>
                   <Button variant="outline">
