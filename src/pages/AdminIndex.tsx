@@ -19,16 +19,18 @@ const AdminIndex = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
 
   useEffect(() => {
+    // Early return for customer routes - never redirect to auth
+    const currentPath = window.location.hash.slice(1);
+    const isCustomerRoute = currentPath.startsWith('/flow') || 
+                            currentPath.startsWith('/qr') ||
+                            currentPath === '/not-found';
+    
+    if (isCustomerRoute) {
+      return; // Never redirect customer routes to auth
+    }
+    
     if (!loading && !user) {
-      // Only redirect to auth if not on a customer route
-      const currentPath = window.location.hash.slice(1); // Remove # from hash
-      const isCustomerRoute = currentPath.startsWith('/flow') || 
-                              currentPath.startsWith('/qr/') ||
-                              currentPath === '/not-found';
-      
-      if (!isCustomerRoute) {
-        navigate('/auth');
-      }
+      navigate('/auth');
     }
   }, [user, loading, navigate]);
 
@@ -62,15 +64,15 @@ const AdminIndex = () => {
   }
 
   if (!user) {
-    // Check if this is a customer route that shouldn't require auth
+    // Customer routes should never reach this point due to routing changes
+    // but keeping as safety net
     const currentPath = window.location.hash.slice(1);
     const isCustomerRoute = currentPath.startsWith('/flow') || 
-                            currentPath.startsWith('/qr/') ||
+                            currentPath.startsWith('/qr') ||
                             currentPath === '/not-found';
     
     if (isCustomerRoute) {
-      // For customer routes, show a minimal layout or redirect appropriately
-      return null; // Let the customer routes handle themselves
+      return null; // Let customer routes handle themselves
     }
     
     return (

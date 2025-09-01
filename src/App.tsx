@@ -30,71 +30,57 @@ const LocationLogger = () => {
   return null;
 };
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <BrandProvider>
-        <ViewModeProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <HashRouter>
-              <LocationLogger />
-              <Routes>
-                {/* Public QR redirect route - no shell needed */}
-                <Route path="/qr/:uniqueCode" element={<QrRedirect />} />
-                
-                {/* Customer flow routes - no admin chrome */}
-                <Route path="/flow/test" element={
-                  <>
-                    <CustomerShell>
-                      <TestFlowGate />
-                    </CustomerShell>
-                  </>
-                } />
-                <Route path="/flow/run" element={
-                  <>
-                    <CustomerShell>
-                      <CustomerFlowRun />
-                    </CustomerShell>
-                  </>
-                } />
-                <Route path="/not-found" element={
-                  <>
-                    <CustomerShell>
-                      <NotFound />
-                    </CustomerShell>
-                  </>
-                } />
-                
-                {/* Admin routes - with admin chrome */}
-                <Route path="/" element={
-                  <>
-                    {console.log('Rendering AdminIndex route')}
-                    <AdminShell>
-                      <AdminIndex />
-                    </AdminShell>
-                  </>
-                } />
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/auth/callback" element={<AuthCallback />} />
-                
-                {/* Catch-all route */}
-                <Route path="*" element={
-                  <>
-                    {console.log('Rendering catch-all route for:', window.location.hash)}
-                    <AdminShell>
-                      <NotFound />
-                    </AdminShell>
-                  </>
-                } />
-              </Routes>
-            </HashRouter>
-          </TooltipProvider>
-        </ViewModeProvider>
-      </BrandProvider>
-    </AuthProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  const isCustomerRoute = () => {
+    const hash = window.location.hash;
+    const pathname = window.location.pathname;
+    
+    return pathname.startsWith('/flow') || 
+           hash.startsWith('#/flow') || 
+           hash.startsWith('#/qr') ||
+           hash === '#/not-found';
+  };
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <BrandProvider>
+          <ViewModeProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              <HashRouter>
+                <LocationLogger />
+                <Routes>
+                  {/* Customer-only routes - no auth required, no admin shell */}
+                  <Route path="/qr/:uniqueCode" element={<QrRedirect />} />
+                  <Route path="/flow/test" element={<CustomerShell><TestFlowGate /></CustomerShell>} />
+                  <Route path="/flow/run" element={<CustomerShell><CustomerFlowRun /></CustomerShell>} />
+                  <Route path="/not-found" element={<CustomerShell><NotFound /></CustomerShell>} />
+                  
+                  {/* Admin routes - require auth, use admin shell */}
+                  <Route path="/" element={<AdminShell><AdminIndex /></AdminShell>} />
+                  <Route path="/auth" element={<Auth />} />
+                  <Route path="/auth/callback" element={<AuthCallback />} />
+                  
+                  {/* Catch-all route - check if customer or admin */}
+                  <Route path="*" element={
+                    <>
+                      {isCustomerRoute() ? (
+                        <CustomerShell><NotFound /></CustomerShell>
+                      ) : (
+                        <AdminShell><NotFound /></AdminShell>
+                      )}
+                    </>
+                  } />
+                </Routes>
+              </HashRouter>
+            </TooltipProvider>
+          </ViewModeProvider>
+        </BrandProvider>
+      </AuthProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;
