@@ -17,10 +17,10 @@ Deno.serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!
     const supabase = createClient(supabaseUrl, supabaseKey)
 
-    // Extract unique code from URL path
+    // Extract unique code from URL path or query parameter
     const url = new URL(req.url)
-    const pathParts = url.pathname.split('/')
-    const uniqueCode = pathParts[pathParts.length - 1]
+    const parts = url.pathname.split("/").filter(Boolean)
+    const uniqueCode = url.searchParams.get("code") ?? (parts.at(-2)?.includes("qr-redirect") ? parts.at(-1) : null)
 
     if (!uniqueCode) {
       console.error('No unique code provided')
