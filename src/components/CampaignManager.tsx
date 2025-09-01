@@ -11,6 +11,7 @@ import { Plus, Edit, Trash2, Eye, Store } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useBrandContext } from '@/contexts/BrandContext';
 import CampaignWizard from './CampaignWizard';
+import { CampaignTokenManager } from './CampaignTokenManager';
 
 interface Campaign {
   id: string;
@@ -19,6 +20,8 @@ interface Campaign {
   brand_id: string;
   approved_stores?: string[];
   flow_settings?: any;
+  customer_access_token: string;
+  final_redirect_url?: string;
   created_at: string;
   brands?: {
     id: string;
@@ -29,6 +32,7 @@ interface Campaign {
 const CampaignManager = () => {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [showWizard, setShowWizard] = useState(false);
+  const [showTokenManager, setShowTokenManager] = useState(false);
   const { currentBrand, availableBrands, isLoading: brandLoading, refreshBrands } = useBrandContext();
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
@@ -117,6 +121,16 @@ const CampaignManager = () => {
     }
   };
 
+  const handleTokenUpdate = (campaignId: string, newToken: string) => {
+    setCampaigns(prev => 
+      prev.map(campaign => 
+        campaign.id === campaignId 
+          ? { ...campaign, customer_access_token: newToken }
+          : campaign
+      )
+    );
+  };
+
   if (isLoading) {
     return <div className="text-center py-8">Loading campaigns...</div>;
   }
@@ -131,6 +145,28 @@ const CampaignManager = () => {
         }}
         onCancel={() => setShowWizard(false)}
       />
+    );
+  }
+
+  if (showTokenManager) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">Customer Access Tokens</h1>
+            <p className="text-muted-foreground mt-2">
+              Manage security tokens for customer flow access
+            </p>
+          </div>
+          <Button variant="outline" onClick={() => setShowTokenManager(false)}>
+            Back to Campaigns
+          </Button>
+        </div>
+        <CampaignTokenManager 
+          campaigns={campaigns}
+          onTokenUpdate={handleTokenUpdate}
+        />
+      </div>
     );
   }
 
@@ -149,14 +185,24 @@ const CampaignManager = () => {
 
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Campaign Management</h1>
-        <Button 
-          onClick={() => setShowWizard(true)}
-          disabled={!currentBrand}
-          title={!currentBrand ? 'Create a brand first' : undefined}
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Create Campaign
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline"
+            onClick={() => setShowTokenManager(true)}
+            disabled={!currentBrand || campaigns.length === 0}
+            title={!currentBrand ? 'Create a brand first' : campaigns.length === 0 ? 'No campaigns to manage' : undefined}
+          >
+            Manage Access Tokens
+          </Button>
+          <Button 
+            onClick={() => setShowWizard(true)}
+            disabled={!currentBrand}
+            title={!currentBrand ? 'Create a brand first' : undefined}
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Create Campaign
+          </Button>
+        </div>
       </div>
 
 

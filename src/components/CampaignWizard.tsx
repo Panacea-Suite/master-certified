@@ -122,14 +122,15 @@ const CampaignWizard = ({ currentBrand, onComplete, onCancel }: CampaignWizardPr
     console.log('🔍 CampaignWizard: Creating campaign for brand:', currentBrand.id);
     setIsProcessing(true);
     try {
-      // Step 1: Create Campaign
+      // Step 1: Create Campaign with generated access token
       const { data: campaignData, error: campaignError } = await supabase
         .from('campaigns')
         .insert([{
           name: wizardData.campaign.name,
           description: wizardData.campaign.description || null,
           brand_id: currentBrand.id,
-           approved_stores: wizardData.campaign.approved_stores
+          approved_stores: wizardData.campaign.approved_stores,
+          customer_access_token: crypto.randomUUID().replace(/-/g, '').substring(0, 32)
         }])
         .select()
         .single();

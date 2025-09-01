@@ -184,11 +184,51 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
     try {
       setIsLoading(true);
       console.log('Fetching flow data for ID:', flowId);
+      
+      // Get customer access token from URL params
+      const accessToken = new URLSearchParams(window.location.search).get('token');
 
-      // Fetch flow data
+      // Fetch flow data via edge function to handle token validation
+      if (qrCode) {
+        console.log('Fetching via QR code and flow ID through edge function');
+        const flowUrl = `https://jgoejcgdmayjjjldpnur.supabase.co/functions/v1/flow-handler/${flowId}/${qrCode}`;
+        const headers: any = {};
+        if (accessToken) {
+          headers['x-customer-token'] = accessToken;
+        }
+        
+        const response = await fetch(flowUrl, { headers });
+        if (!response.ok) {
+          throw new Error(`Failed to fetch flow: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('Flow data from edge function:', data);
+        setFlow(data.flow);
+        setCampaign(data.campaign);
+        setContent(data.content || []);
+        
+        // Handle different flow configurations
+        const flowConfig = data.flow?.config;
+        if (flowConfig?.pages) {
+          setPages(flowConfig.pages);
+          setCurrentPageIndex(0);
+        } else if (flowConfig?.sections) {
+          const singlePage = {
+            id: 'main-page',
+            name: 'Main Page',
+            sections: flowConfig.sections
+          };
+          setPages([singlePage]);
+          setCurrentPageIndex(0);
+        }
+        return;
+      }
+
+      // Fallback: Direct database query for authenticated users only
       const { data: flowData, error: flowError } = await supabase
         .from('flows')
-        .select('*, campaigns(*), brands(*)')
+        .select('*')
         .eq('id', flowId)
         .single();
 
@@ -202,9 +242,12 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
         return;
       }
 
-      console.log('Flow data:', flowData);
+      console.log('Flow data (direct DB):', flowData);
       setFlow(flowData);
-      setCampaign(flowData.campaigns);
+      
+      // For direct DB access, we can't get campaign data due to RLS
+      // This path should only be used for authenticated admin users
+      console.warn('Using direct DB access - campaign data may not be available');
 
       // Handle different flow configurations
       const flowConfig = flowData.flow_config as any;

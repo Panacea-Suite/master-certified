@@ -37,6 +37,7 @@ Deno.serve(async (req) => {
         batches (
           campaigns (
             final_redirect_url,
+            customer_access_token,
             flows (
               id,
               base_url
@@ -71,13 +72,21 @@ Deno.serve(async (req) => {
 
     // Check if we have a flow to redirect to
     const flow = qrData.batches?.campaigns?.flows?.[0]
+    const campaign = qrData.batches?.campaigns
+    
     if (flow && qrData.unique_flow_url) {
-      console.log(`Redirecting to flow: ${qrData.unique_flow_url}`)
+      // Append customer access token to the flow URL
+      const flowUrl = new URL(qrData.unique_flow_url)
+      if (campaign?.customer_access_token) {
+        flowUrl.searchParams.set('token', campaign.customer_access_token)
+      }
+      
+      console.log(`Redirecting to flow: ${flowUrl.toString()}`)
       return new Response(null, {
         status: 302,
         headers: {
           ...corsHeaders,
-          'Location': qrData.unique_flow_url
+          'Location': flowUrl.toString()
         }
       })
     }

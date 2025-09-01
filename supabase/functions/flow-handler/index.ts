@@ -39,10 +39,10 @@ Deno.serve(async (req) => {
             return new Response('Invalid session', { status: 400, headers: corsHeaders })
           }
 
-          // Fetch campaign
+          // Fetch campaign with access token for validation
           const { data: campaign, error: campaignError } = await supabase
             .from('campaigns')
-            .select('id, name, final_redirect_url, approved_stores')
+            .select('id, name, final_redirect_url, approved_stores, customer_access_token')
             .eq('id', session.campaign_id)
             .single()
 
@@ -122,6 +122,9 @@ Deno.serve(async (req) => {
     const pathParts = url.pathname.split('/')
     const flowId = pathParts[pathParts.length - 2]
     const uniqueCode = pathParts[pathParts.length - 1]
+    
+    // Get customer access token from headers or query params
+    const accessToken = req.headers.get('x-customer-token') || url.searchParams.get('token')
 
     if (!flowId || !uniqueCode) {
       console.error('Missing flow ID or unique code')
@@ -141,6 +144,7 @@ Deno.serve(async (req) => {
             name,
             final_redirect_url,
             approved_stores,
+            customer_access_token,
             flows!inner (
               id,
               name,
@@ -171,6 +175,12 @@ Deno.serve(async (req) => {
 
     const flow = qrData.batches?.campaigns?.flows?.[0]
     const campaign = qrData.batches?.campaigns
+
+    // Validate customer access token for unauthenticated requests
+    if (accessToken && campaign?.customer_access_token !== accessToken) {
+      console.error('Invalid customer access token')
+      return new Response('Unauthorized access', { status: 401, headers: corsHeaders })
+    }
 
     // Return flow data for the frontend to render
     const responseData = {

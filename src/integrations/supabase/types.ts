@@ -174,6 +174,7 @@ export type Database = {
           approved_stores: string[] | null
           brand_id: string
           created_at: string
+          customer_access_token: string
           description: string | null
           final_redirect_url: string | null
           flow_settings: Json | null
@@ -190,6 +191,7 @@ export type Database = {
           approved_stores?: string[] | null
           brand_id: string
           created_at?: string
+          customer_access_token: string
           description?: string | null
           final_redirect_url?: string | null
           flow_settings?: Json | null
@@ -206,6 +208,7 @@ export type Database = {
           approved_stores?: string[] | null
           brand_id?: string
           created_at?: string
+          customer_access_token?: string
           description?: string | null
           final_redirect_url?: string | null
           flow_settings?: Json | null
@@ -804,6 +807,10 @@ export type Database = {
       update_flow_store: {
         Args: { p_session_id: string; p_store_meta: Json }
         Returns: Json
+      }
+      validate_campaign_token: {
+        Args: { p_campaign_id: string; p_token: string }
+        Returns: boolean
       }
     }
     Enums: {
