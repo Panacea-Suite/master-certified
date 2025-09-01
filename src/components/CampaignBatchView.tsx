@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { ArrowLeft, Download, FileDown, Trash2, QrCode, Eye } from 'lucide-react';
+import { ArrowLeft, Download, FileDown, Trash2, QrCode, Eye, Plus } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 interface Campaign {
@@ -41,6 +43,9 @@ const CampaignBatchView: React.FC<CampaignBatchViewProps> = ({ campaign, onBack 
   const [qrCodes, setQrCodes] = useState<QRCode[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingQR, setIsLoadingQR] = useState(false);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [newBatchName, setNewBatchName] = useState('');
+  const [qrCodeCount, setQrCodeCount] = useState(100);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -66,6 +71,58 @@ const CampaignBatchView: React.FC<CampaignBatchViewProps> = ({ campaign, onBack 
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const createBatch = async () => {
+    if (!newBatchName.trim()) {
+      toast({
+        title: "Error",
+        description: "Batch name is required",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (qrCodeCount < 1 || qrCodeCount > 10000) {
+      toast({
+        title: "Error",
+        description: "QR code count must be between 1 and 10,000",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('batches')
+        .insert([{
+          name: newBatchName,
+          campaign_id: campaign.id,
+          qr_code_count: qrCodeCount,
+          status: 'pending'
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setBatches([data, ...batches]);
+      setNewBatchName('');
+      setQrCodeCount(100);
+      setShowCreateForm(false);
+      
+      toast({
+        title: "Success",
+        description: "Batch created successfully",
+      });
+    } catch (error) {
+      console.error('Error creating batch:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create batch",
+        variant: "destructive",
+      });
     }
   };
 
@@ -234,7 +291,57 @@ const CampaignBatchView: React.FC<CampaignBatchViewProps> = ({ campaign, onBack 
             </p>
           </div>
         </div>
+        <Button onClick={() => setShowCreateForm(!showCreateForm)}>
+          <Plus className="w-4 h-4 mr-2" />
+          Create Batch
+        </Button>
       </div>
+
+      {/* Create Batch Form */}
+      {showCreateForm && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Create New Batch</CardTitle>
+            <CardDescription>
+              Generate a new batch of QR codes for this campaign
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="batchName">Batch Name</Label>
+                <Input
+                  id="batchName"
+                  value={newBatchName}
+                  onChange={(e) => setNewBatchName(e.target.value)}
+                  placeholder="Enter batch name"
+                />
+              </div>
+              <div>
+                <Label htmlFor="qrCount">QR Code Count</Label>
+                <Input
+                  id="qrCount"
+                  type="number"
+                  min="1"
+                  max="10000"
+                  value={qrCodeCount}
+                  onChange={(e) => setQrCodeCount(parseInt(e.target.value) || 0)}
+                  placeholder="Number of QR codes"
+                />
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Button onClick={createBatch}>
+                <Plus className="w-4 h-4 mr-2" />
+                Create Batch
+              </Button>
+              <Button variant="outline" onClick={() => setShowCreateForm(false)}>
+                Cancel
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid gap-4">
         {batches.length === 0 ? (
