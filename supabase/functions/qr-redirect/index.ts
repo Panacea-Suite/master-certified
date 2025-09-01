@@ -5,10 +5,55 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+function extractCode(url: URL): string | null {
+  // 1) Query string
+  const q = url.searchParams.get("code");
+  if (q && q.trim()) return decodeURIComponent(q.trim());
+
+  // 2) Path segment after 'qr-redirect'
+  // Works for both:
+  //   /functions/v1/qr-redirect/<code>
+  //   /qr-redirect/<code>
+  const parts = url.pathname.split("/").filter(Boolean);
+  const i = parts.lastIndexOf("qr-redirect");
+  if (i >= 0 && parts[i + 1]) return decodeURIComponent(parts[i + 1]);
+
+  return null;
+}
+
+function json(b: unknown, s = 200) {
+  return new Response(JSON.stringify(b), {
+    status: s,
+    headers: { "content-type": "application/json" },
+  });
+}
+
 Deno.serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
+  }
+
+  const url = new URL(req.url);
+
+  // Health check for easy debugging
+  if (url.searchParams.get("health") === "1") {
+    return new Response("ok", { status: 200 });
+  }
+
+  const code = extractCode(url);
+  if (!code) {
+    return json(
+      {
+        error: "requested path is invalid",
+        debug: {
+          pathname: url.pathname,
+          search: url.search,
+          parts: url.pathname.split("/").filter(Boolean),
+        },
+      },
+      400
+    );
   }
 
   try {
@@ -17,17 +62,7 @@ Deno.serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!
     const supabase = createClient(supabaseUrl, supabaseKey)
 
-    // Extract unique code from URL path or query parameter
-    const url = new URL(req.url)
-    const parts = url.pathname.split("/").filter(Boolean)
-    const uniqueCode = url.searchParams.get("code") ?? (parts.at(-2)?.includes("qr-redirect") ? parts.at(-1) : null)
-
-    if (!uniqueCode) {
-      console.error('No unique code provided')
-      return new Response('Invalid QR code', { status: 400, headers: corsHeaders })
-    }
-
-    console.log(`QR redirect request for code: ${uniqueCode}`)
+    console.log(`QR redirect request for code: ${code}`)
 
     // Look up the QR code in the database, joining to batch → campaign
     const { data: qrData, error: qrError } = await supabase
@@ -47,7 +82,7 @@ Deno.serve(async (req) => {
           )
         )
       `)
-      .eq('unique_code', uniqueCode)
+      .eq('unique_code', code)
       .maybeSingle()
 
     if (qrError || !qrData) {
