@@ -149,7 +149,8 @@ const CampaignBatchView: React.FC<CampaignBatchViewProps> = ({ campaign, onBack 
         const qrCodes = [] as any[];
         for (let i = 0; i < batch.qr_code_count; i++) {
           const uniqueCode = `${batchId.substring(0, 8)}-${Date.now()}-${String(i).padStart(3, '0')}`;
-          const managedUrl = `https://jgoejcgdmayjjjldpnur.supabase.co/functions/v1/qr-redirect/${uniqueCode}`;
+          const base = "https://jgoejcgdmayjjjldpnur.supabase.co/functions/v1";
+          const managedUrl = `${base}/qr-redirect/${encodeURIComponent(uniqueCode)}`;
           
           qrCodes.push({
             batch_id: batchId,
