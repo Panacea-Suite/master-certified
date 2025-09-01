@@ -62,16 +62,16 @@ Deno.serve(async (req) => {
     console.log(`QR redirect request for code: ${code}`)
 
     // Look up the QR code in the database, joining to batch → campaign
-    const { data: qrData, error: qrError } = await supabase
-      .from('qr_codes')
+    const { data: qr, error } = await supabase
+      .from("qr_codes")
       .select(`
-        id,
-        unique_code,
-        scans,
-        batches!inner (
-          id,
+        id, 
+        unique_code, 
+        batch_id, 
+        scans, 
+        batches!inner(
           campaign_id,
-          campaigns!inner (
+          campaigns!inner(
             id,
             name,
             final_redirect_url,
@@ -79,27 +79,23 @@ Deno.serve(async (req) => {
           )
         )
       `)
-      .eq('unique_code', code)
-      .maybeSingle()
-
-    if (qrError || !qrData) {
-      console.error('QR code not found:', qrError)
-      // Redirect to the app with an error message
-      return new Response(null, {
-        status: 302,
-        headers: {
-          ...corsHeaders,
-          'Location': `${new URL(req.url).origin}/#/not-found?error=qr-not-found`
-        }
-      })
+      .eq("unique_code", code)
+      .single();
+      
+    if (error || !qr) {
+      console.error(`QR not found by unique_code`, { code, error });
+      return new Response(JSON.stringify({ error: "qr_not_found", code }), { 
+        status: 404,
+        headers: { "content-type": "application/json" }
+      });
     }
 
     // Best-effort increment scan count
     try {
       const { error: updateError } = await supabase
         .from('qr_codes')
-        .update({ scans: qrData.scans + 1 })
-        .eq('id', qrData.id)
+        .update({ scans: qr.scans + 1 })
+        .eq('id', qr.id)
 
       if (updateError) {
         console.error('Failed to update scan count (non-blocking):', updateError)
@@ -109,7 +105,7 @@ Deno.serve(async (req) => {
     }
 
     // Get campaign data from the joined result
-    const campaign = qrData.batches?.campaigns
+    const campaign = qr.batches?.campaigns
     
     if (campaign) {
       // Create customer flow URL: https://<app-origin>/#/flow/run?cid=<campaign_id>&qr=<qr_id>&ct=<customer_access_token>
@@ -118,7 +114,7 @@ Deno.serve(async (req) => {
       
       // Add required parameters
       flowUrl.searchParams.set('cid', campaign.id)
-      flowUrl.searchParams.set('qr', qrData.id)
+      flowUrl.searchParams.set('qr', qr.id)
       if (campaign.customer_access_token) {
         flowUrl.searchParams.set('ct', campaign.customer_access_token)
       }
@@ -126,7 +122,7 @@ Deno.serve(async (req) => {
       console.log(JSON.stringify({
         resolved_code: code,
         campaign_id: campaign.id,
-        qr_id: qrData.id,
+        qr_id: qr.id,
         redirect_to: flowUrl.toString(),
       }, null, 2));
       
