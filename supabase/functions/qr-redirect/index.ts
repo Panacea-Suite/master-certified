@@ -6,17 +6,13 @@ const corsHeaders = {
 }
 
 function extractCode(url: URL): string | null {
-  // 1) Query string
+  // Prefer query ?code=...
   const q = url.searchParams.get("code");
   if (q && q.trim()) return decodeURIComponent(q.trim());
 
-  // 2) Path segment after 'qr-redirect'
-  // Works for both:
-  //   /functions/v1/qr-redirect/<code>
-  //   /qr-redirect/<code>
-  const parts = url.pathname.split("/").filter(Boolean);
-  const i = parts.lastIndexOf("qr-redirect");
-  if (i >= 0 && parts[i + 1]) return decodeURIComponent(parts[i + 1]);
+  // Robust path match: works for /functions/v1/qr-redirect/<code> and /qr-redirect/<code>
+  const m = url.pathname.match(/\/qr-redirect\/([^/?#]+)/);
+  if (m?.[1]) return decodeURIComponent(m[1]);
 
   return null;
 }
@@ -36,25 +32,26 @@ Deno.serve(async (req) => {
 
   const url = new URL(req.url);
 
-  // Health check for easy debugging
-  if (url.searchParams.get("health") === "1") {
-    return new Response("ok", { status: 200 });
-  }
+  if (url.searchParams.get("health") === "1") return new Response("ok");
 
   const code = extractCode(url);
+
   if (!code) {
-    return json(
-      {
-        error: "requested path is invalid",
-        debug: {
-          pathname: url.pathname,
-          search: url.search,
-          parts: url.pathname.split("/").filter(Boolean),
-        },
-      },
-      400
-    );
+    const debug = {
+      req_url: req.url,
+      pathname: url.pathname,
+      search: url.search,
+      path_parts: url.pathname.split("/").filter(Boolean),
+      note: "No code parsed from path or query",
+    };
+    console.error("QR code not found (no code)", debug);
+    return new Response(JSON.stringify({ error: "missing_code", debug }), {
+      status: 400,
+      headers: { "content-type": "application/json" },
+    });
   }
+
+  console.log("Extracted QR code:", code);
 
   try {
     // Initialize Supabase client
