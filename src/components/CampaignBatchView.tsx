@@ -126,6 +126,85 @@ const CampaignBatchView: React.FC<CampaignBatchViewProps> = ({ campaign, onBack 
     }
   };
 
+  const generateQRCodes = async (batchId: string) => {
+    try {
+      // Update batch status to generating
+      const { error: updateError } = await supabase
+        .from('batches')
+        .update({ 
+          status: 'generating',
+          generated_at: new Date().toISOString()
+        })
+        .eq('id', batchId);
+
+      if (updateError) throw updateError;
+
+      // Generate QR codes
+      const batch = batches.find(b => b.id === batchId);
+      if (batch) {
+        // Get the flow associated with this batch's campaign
+        const { data: flowData } = await supabase
+          .from('flows')
+          .select('id')
+          .eq('campaign_id', campaign.id)
+          .limit(1)
+          .single();
+
+        const flowId = flowData?.id;
+
+        const qrCodes = [];
+        for (let i = 0; i < batch.qr_code_count; i++) {
+          const uniqueCode = `${batchId.substring(0, 8)}-${Date.now()}-${String(i).padStart(3, '0')}`;
+          const managedUrl = `${window.location.origin}/qr/${uniqueCode}`;
+          const uniqueFlowUrl = flowId ? `${window.location.origin}/flow/${flowId}/${uniqueCode}` : null;
+          
+          qrCodes.push({
+            batch_id: batchId,
+            flow_id: flowId,
+            qr_url: `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(managedUrl)}`,
+            unique_code: uniqueCode,
+            unique_flow_url: uniqueFlowUrl
+          });
+        }
+
+        const { error: insertError } = await supabase
+          .from('qr_codes')
+          .insert(qrCodes);
+
+        if (insertError) throw insertError;
+
+        // Update batch status to completed
+        const { error: completeError } = await supabase
+          .from('batches')
+          .update({ status: 'completed' })
+          .eq('id', batchId);
+
+        if (completeError) throw completeError;
+
+        // Refresh data
+        fetchBatches();
+        
+        toast({
+          title: "Success",
+          description: "QR codes generated successfully",
+        });
+      }
+    } catch (error) {
+      console.error('Error generating QR codes:', error);
+      toast({
+        title: "Error",
+        description: "Failed to generate QR codes",
+        variant: "destructive",
+      });
+      
+      // Reset batch status on error
+      await supabase
+        .from('batches')
+        .update({ status: 'pending' })
+        .eq('id', batchId);
+    }
+  };
+
   const fetchQRCodes = async (batchId: string) => {
     setIsLoadingQR(true);
     try {
@@ -392,6 +471,17 @@ const CampaignBatchView: React.FC<CampaignBatchViewProps> = ({ campaign, onBack 
               </CardHeader>
               <CardContent>
                 <div className="flex gap-2 flex-wrap">
+                  {batch.status === 'pending' && (
+                    <Button 
+                      variant="default"
+                      onClick={() => generateQRCodes(batch.id)}
+                    >
+                      Generate QR Codes
+                    </Button>
+                  )}
+                  {batch.status === 'generating' && (
+                    <Badge variant="secondary">Generating...</Badge>
+                  )}
                   {batch.status === 'completed' && (
                     <>
                       <Button 
@@ -416,12 +506,6 @@ const CampaignBatchView: React.FC<CampaignBatchViewProps> = ({ campaign, onBack 
                         Export ZIP
                       </Button>
                     </>
-                  )}
-                  {batch.status === 'pending' && (
-                    <Badge variant="outline">Pending generation</Badge>
-                  )}
-                  {batch.status === 'generating' && (
-                    <Badge variant="secondary">Generating...</Badge>
                   )}
                 </div>
               </CardContent>
