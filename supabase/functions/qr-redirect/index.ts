@@ -1,48 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-  const url = new URL(req.url);
-
-  // --- TEMP DEBUG: returns env + QR lookup result without redirect ---
-  if (url.searchParams.get("debug") === "1") {
-    const SUPA_URL =
-      Deno.env.get("EDGE_SUPABASE_URL") ?? Deno.env.get("SUPABASE_URL");
-    const SUPA_ANON =
-      Deno.env.get("EDGE_SUPABASE_ANON_KEY") ?? Deno.env.get("SUPABASE_ANON_KEY");
-    const APP_ORIGIN =
-      Deno.env.get("EDGE_APP_ORIGIN") ?? Deno.env.get("APP_PUBLIC_ORIGIN");
-
-    const code =
-      url.searchParams.get("code") ??
-      url.pathname.split("/").filter(Boolean).pop() ??
-      "";
-
-    const db = createClient(SUPA_URL ?? "", SUPA_ANON ?? "");
-    const { data, error } = SUPA_URL && SUPA_ANON && code
-      ? await db.from("qr_codes")
-          .select("id,unique_code,batch_id")
-          .eq("unique_code", code)
-          .maybeSingle()
-      : { data: null, error: "missing env or code" };
-
-    return new Response(
-      JSON.stringify(
-        {
-          fingerprint: {
-            url_ok: !!SUPA_URL,
-            anon_prefix: SUPA_ANON ? SUPA_ANON.slice(0, 12) : null,
-            app_origin: APP_ORIGIN ?? null,
-            code_received: code || null,
-          },
-          lookup: { data, error },
-        },
-        null,
-        2
-      ),
-      { status: 200, headers: { "content-type": "application/json" } }
-    );
-  }
-  // --- END TEMP DEBUG ---
-
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -75,6 +32,52 @@ Deno.serve(async (req) => {
 
   const url = new URL(req.url);
 
+  // --- TEMP DEBUG: returns env + QR lookup result without redirect ---
+  if (url.searchParams.get("debug") === "1") {
+    const SUPA_URL =
+      Deno.env.get("EDGE_SUPABASE_URL") ?? Deno.env.get("SUPABASE_URL");
+    const SUPA_ANON =
+      Deno.env.get("EDGE_SUPABASE_ANON_KEY") ?? Deno.env.get("SUPABASE_ANON_KEY");
+    const APP_ORIGIN =
+      Deno.env.get("EDGE_APP_ORIGIN") ?? Deno.env.get("APP_PUBLIC_ORIGIN");
+    const DB_BRANCH = Deno.env.get("EDGE_DB_BRANCH");
+
+    const code =
+      url.searchParams.get("code") ??
+      url.pathname.split("/").filter(Boolean).pop() ??
+      "";
+
+    const db = createClient(SUPA_URL ?? "", SUPA_ANON ?? "", {
+      global: {
+        headers: DB_BRANCH ? { "x-supabase-branch": DB_BRANCH } : {},
+      },
+    });
+    const { data, error } = SUPA_URL && SUPA_ANON && code
+      ? await db.from("qr_codes")
+          .select("id,unique_code,batch_id")
+          .eq("unique_code", code)
+          .maybeSingle()
+      : { data: null, error: "missing env or code" };
+
+    return new Response(
+      JSON.stringify(
+        {
+          fingerprint: {
+            url_ok: !!SUPA_URL,
+            anon_prefix: SUPA_ANON ? SUPA_ANON.slice(0, 12) : null,
+            app_origin: APP_ORIGIN ?? null,
+            code_received: code || null,
+          },
+          lookup: { data, error },
+        },
+        null,
+        2
+      ),
+      { status: 200, headers: { "content-type": "application/json" } }
+    );
+  }
+  // --- END TEMP DEBUG ---
+
   if (url.searchParams.get("health") === "1") return new Response("ok");
 
   const code = extractCode(url);
@@ -100,7 +103,12 @@ Deno.serve(async (req) => {
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get('EDGE_SUPABASE_URL')!
     const supabaseKey = Deno.env.get('EDGE_SUPABASE_ANON_KEY')!
-    const supabase = createClient(supabaseUrl, supabaseKey)
+    const dbBranch = Deno.env.get('EDGE_DB_BRANCH')
+    const supabase = createClient(supabaseUrl, supabaseKey, {
+      global: {
+        headers: dbBranch ? { "x-supabase-branch": dbBranch } : {},
+      },
+    })
 
     console.log(`QR redirect request for code: ${code}`)
 
