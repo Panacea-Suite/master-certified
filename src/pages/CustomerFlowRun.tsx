@@ -7,7 +7,9 @@ import { supabase } from '@/integrations/supabase/client';
 
 export const CustomerFlowRun: React.FC = () => {
   const [searchParams] = useSearchParams();
-  const { campaignId } = useParams<{ campaignId: string }>();
+  const campaignId = searchParams.get('cid'); // Get campaign ID from query params
+  const qrId = searchParams.get('qr'); // Get QR ID from query params  
+  const token = searchParams.get('ct'); // Get customer access token from query params
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
   const [flowData, setFlowData] = useState<any>(null);
@@ -16,11 +18,8 @@ export const CustomerFlowRun: React.FC = () => {
   useEffect(() => {
     const loadFlowData = async () => {
       try {
-        const token = searchParams.get('token');
-        const qrCode = searchParams.get('qr');
-        
         if (!campaignId) {
-          throw new Error('Missing campaign ID in URL');
+          throw new Error('Missing campaign ID (cid) in URL parameters');
         }
 
         // Validate the customer access token if provided
@@ -59,7 +58,7 @@ export const CustomerFlowRun: React.FC = () => {
           setFlowData({
             ...flow,
             campaign,
-            qrCode
+            qrId
           });
         } else {
           throw new Error('No flow found for this campaign');
@@ -74,7 +73,7 @@ export const CustomerFlowRun: React.FC = () => {
     };
 
     loadFlowData();
-  }, [campaignId, searchParams]);
+  }, [campaignId, qrId, token]); // Update dependencies
 
   if (loading) {
     return (
@@ -123,7 +122,7 @@ export const CustomerFlowRun: React.FC = () => {
         templateData={flowData.flow_config}
         brandData={campaignData?.brands}
         flowId={flowData.id}
-        qrCode={flowData.qrCode}
+        qrCode={flowData.qrId}
       />
     </div>
   );

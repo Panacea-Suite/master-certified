@@ -52,7 +52,7 @@ const App = () => (
                     </CustomerShell>
                   </>
                 } />
-                <Route path="/flow/run/:campaignId" element={
+                <Route path="/flow/run" element={
                   <>
                     <CustomerShell>
                       <CustomerFlowRun />

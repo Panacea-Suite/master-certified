@@ -29,26 +29,26 @@ Deno.serve(async (req) => {
 
     console.log(`QR redirect request for code: ${uniqueCode}`)
 
-    // Look up the QR code in the database
+    // Look up the QR code in the database, joining to batch → campaign
     const { data: qrData, error: qrError } = await supabase
       .from('qr_codes')
       .select(`
-        *,
-        batches (
-          campaigns (
+        id,
+        unique_code,
+        scans,
+        batches!inner (
+          id,
+          campaign_id,
+          campaigns!inner (
             id,
             name,
             final_redirect_url,
-            customer_access_token,
-            flows (
-              id,
-              base_url
-            )
+            customer_access_token
           )
         )
       `)
       .eq('unique_code', uniqueCode)
-      .single()
+      .maybeSingle()
 
     if (qrError || !qrData) {
       console.error('QR code not found:', qrError)
@@ -62,30 +62,34 @@ Deno.serve(async (req) => {
       })
     }
 
-    // Increment scan count
-    const { error: updateError } = await supabase
-      .from('qr_codes')
-      .update({ scans: qrData.scans + 1 })
-      .eq('id', qrData.id)
+    // Best-effort increment scan count
+    try {
+      const { error: updateError } = await supabase
+        .from('qr_codes')
+        .update({ scans: qrData.scans + 1 })
+        .eq('id', qrData.id)
 
-    if (updateError) {
-      console.error('Failed to update scan count:', updateError)
+      if (updateError) {
+        console.error('Failed to update scan count (non-blocking):', updateError)
+      }
+    } catch (scanError) {
+      console.error('Scan count update failed (non-blocking):', scanError)
     }
 
-    // Get campaign and flow data
+    // Get campaign data from the joined result
     const campaign = qrData.batches?.campaigns
-    const flow = campaign?.flows?.[0]
     
     if (campaign) {
-      // Create customer flow URL with the campaign ID and access token
-      const baseUrl = new URL(req.url).origin
-      const flowUrl = new URL(`${baseUrl}/#/flow/run/${campaign.id}`)
+      // Create customer flow URL: https://<app-origin>/#/flow/run?cid=<campaign_id>&qr=<qr_id>&ct=<customer_access_token>
+      const appOrigin = 'https://certified-flow-core.lovable.app' // Use your actual app origin
+      const flowUrl = new URL(`${appOrigin}/#/flow/run`)
       
-      // Add the customer access token and unique code for tracking
+      // Add required parameters
+      flowUrl.searchParams.set('cid', campaign.id)
+      flowUrl.searchParams.set('qr', qrData.id)
       if (campaign.customer_access_token) {
-        flowUrl.searchParams.set('token', campaign.customer_access_token)
+        flowUrl.searchParams.set('ct', campaign.customer_access_token)
       }
-      flowUrl.searchParams.set('qr', uniqueCode)
       
       console.log(`Redirecting to customer flow: ${flowUrl.toString()}`)
       return new Response(null, {
