@@ -8,11 +8,13 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { CheckCircle, Circle, ArrowLeft, ArrowRight, Rocket } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
+import { FlowTemplateSelector } from './FlowTemplateSelector';
 
 interface Brand {
   id: string;
   name: string;
   approved_stores?: string[];
+  logo_url?: string;
 }
 
 interface CampaignWizardProps {
@@ -35,6 +37,7 @@ interface WizardData {
   flow: {
     name: string;
     selectedTemplate: any;
+    templateData: any;
   };
 }
 
@@ -53,10 +56,12 @@ const CampaignWizard = ({ currentBrand, onComplete, onCancel }: CampaignWizardPr
     },
     flow: {
       name: '',
-      selectedTemplate: null
+      selectedTemplate: null,
+      templateData: null
     }
   });
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showTemplateSelector, setShowTemplateSelector] = useState(false);
   const { toast } = useToast();
 
   // Update wizard data when currentBrand becomes available
@@ -86,7 +91,7 @@ const CampaignWizard = ({ currentBrand, onComplete, onCancel }: CampaignWizardPr
       case 2:
         return wizardData.batch.name.trim() !== '' && wizardData.batch.qr_code_count > 0;
       case 3:
-        return wizardData.flow.name.trim() !== '' && wizardData.flow.selectedTemplate !== null;
+        return wizardData.flow.name.trim() !== '' && wizardData.flow.templateData !== null;
       default:
         return false;
     }
@@ -106,6 +111,20 @@ const CampaignWizard = ({ currentBrand, onComplete, onCancel }: CampaignWizardPr
 
   const handleBack = () => {
     setCurrentStep(currentStep - 1);
+  };
+
+  const handleTemplateSelect = (template: any) => {
+    console.log('Template selected:', template);
+    setWizardData(prev => ({
+      ...prev,
+      flow: {
+        ...prev.flow,
+        selectedTemplate: template,
+        templateData: template,
+        name: template?.name || prev.flow.name
+      }
+    }));
+    setShowTemplateSelector(false);
   };
 
   const createCampaignFlow = async () => {
@@ -152,24 +171,34 @@ const CampaignWizard = ({ currentBrand, onComplete, onCancel }: CampaignWizardPr
 
       if (batchError) throw batchError;
 
-      // Step 3: Create Flow
+      // Step 3: Create Flow using template data
       const flowName = wizardData.flow.name || `${wizardData.campaign.name} - Flow`;
+      const flowConfig = wizardData.flow.templateData || {
+        pages: [
+          {
+            id: 'landing-page',
+            type: 'landing',
+            name: 'Landing Page',
+            sections: [],
+            settings: {},
+            order: 0
+          }
+        ],
+        globalHeader: {
+          showHeader: true,
+          brandName: currentBrand.name,
+          logoUrl: currentBrand.logo_url || '',
+          backgroundColor: '#6B7280'
+        }
+      };
+
       const { data: flowData, error: flowError } = await supabase
         .from('flows')
         .insert([{
           name: flowName,
           campaign_id: campaignData.id,
           base_url: `${window.location.origin}/flow/${campaignData.id}`,
-          flow_config: {
-            stages: [
-              { title: 'Welcome', description: 'Customer scans QR code' },
-              { title: 'Store Location', description: 'Where did you purchase this?' },
-              { title: 'Account Creation', description: 'Optional account setup' },
-              { title: 'Authentication', description: 'Product verification' },
-              { title: 'Content', description: 'Product information & docs' },
-              { title: 'Completion', description: 'Thank you & redirect' }
-            ]
-          }
+          flow_config: flowConfig
         }])
         .select()
         .single();
@@ -178,7 +207,7 @@ const CampaignWizard = ({ currentBrand, onComplete, onCancel }: CampaignWizardPr
 
       toast({
         title: "Success!",
-        description: `Campaign "${wizardData.campaign.name}" created successfully with batch and flow setup.`,
+        description: `Campaign "${wizardData.campaign.name}" created successfully with custom flow.`,
       });
 
       onComplete();
@@ -377,99 +406,47 @@ const CampaignWizard = ({ currentBrand, onComplete, onCancel }: CampaignWizardPr
             </div>
             
             <div>
-              <Label>Flow Setup Options *</Label>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-                <Card 
-                  className={`cursor-pointer transition-colors ${
-                    wizardData.flow.selectedTemplate === 'new' ? 'ring-2 ring-primary' : 'hover:bg-muted/50'
-                  }`}
-                  onClick={() => setWizardData({
-                    ...wizardData,
-                    flow: { ...wizardData.flow, selectedTemplate: 'new' }
-                  })}
-                >
-                  <CardContent className="p-4">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-3 h-3 rounded-full border-2 border-primary flex-shrink-0">
-                        {wizardData.flow.selectedTemplate === 'new' && (
-                          <div className="w-full h-full rounded-full bg-primary"></div>
-                        )}
-                      </div>
+              <Label>Flow Template</Label>
+              <div className="mt-2">
+                {wizardData.flow.templateData ? (
+                  <div className="p-4 bg-muted rounded-lg">
+                    <div className="flex items-center justify-between">
                       <div>
-                        <h4 className="font-medium">Create New Flow</h4>
-                        <p className="text-sm text-muted-foreground">Start with a blank flow and build from scratch</p>
+                        <h4 className="font-medium">{wizardData.flow.templateData.name || 'Custom Flow'}</h4>
+                        <p className="text-sm text-muted-foreground">
+                          {wizardData.flow.templateData.pages?.length || 1} pages configured
+                        </p>
                       </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowTemplateSelector(true)}
+                      >
+                        Change Template
+                      </Button>
                     </div>
-                  </CardContent>
-                </Card>
-                
-                <Card 
-                  className={`cursor-pointer transition-colors ${
-                    wizardData.flow.selectedTemplate === 'template' ? 'ring-2 ring-primary' : 'hover:bg-muted/50'
-                  }`}
-                  onClick={() => setWizardData({
-                    ...wizardData,
-                    flow: { ...wizardData.flow, selectedTemplate: 'template' }
-                  })}
-                >
-                  <CardContent className="p-4">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-3 h-3 rounded-full border-2 border-primary flex-shrink-0">
-                        {wizardData.flow.selectedTemplate === 'template' && (
-                          <div className="w-full h-full rounded-full bg-primary"></div>
-                        )}
-                      </div>
-                      <div>
-                        <h4 className="font-medium">Use Template</h4>
-                        <p className="text-sm text-muted-foreground">Choose from pre-built flow templates</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-
-            {wizardData.flow.selectedTemplate && (
-              <div className="p-4 bg-muted rounded-lg">
-                <h4 className="font-medium mb-2">
-                  {wizardData.flow.selectedTemplate === 'new' ? 'New Flow Preview' : 'Template Flow Preview'}
-                </h4>
-                <div className="space-y-2 text-sm">
-                  <div className="flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">1</span>
-                    <span>Welcome - Customer scans QR code</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">2</span>
-                    <span>Store Location - Where did you purchase this?</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">3</span>
-                    <span>Account Creation - Optional account setup</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">4</span>
-                    <span>Authentication - Product verification</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">5</span>
-                    <span>Content - Product information & docs</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">6</span>
-                    <span>Completion - Thank you & redirect</span>
-                  </div>
-                </div>
-                {wizardData.flow.selectedTemplate === 'template' && (
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Template selection will be available after campaign creation in the Flow Builder.
-                  </p>
+                ) : (
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowTemplateSelector(true)}
+                    className="w-full"
+                    disabled={!currentBrand}
+                  >
+                    Choose Flow Template
+                  </Button>
                 )}
               </div>
-            )}
+            </div>
           </CardContent>
         </Card>
       )}
+
+      <FlowTemplateSelector
+        isOpen={showTemplateSelector}
+        onClose={() => setShowTemplateSelector(false)}
+        onSelectTemplate={handleTemplateSelect}
+      />
 
       {/* Navigation */}
       <div className="flex justify-between">

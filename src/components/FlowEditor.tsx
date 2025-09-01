@@ -671,35 +671,48 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
         }
       };
 
-      // If editing an existing template, create a new flow based on it
-      if (templateToEdit) {
-        const {
-          data: {
-            user
-          }
-        } = await supabase.auth.getUser();
-        const flowData = {
-          name: flowName,
-          flow_config: flowConfig,
-          is_template: false,
-          created_by: user?.id || null,
-          template_category: null,
-          campaign_id: null // Will be set when creating campaign
-        };
-        onSave(flowData);
+      if (templateToEdit && 'campaign_id' in templateToEdit && templateToEdit.campaign_id) {
+        // Updating existing flow
+        console.log('Updating existing flow:', templateToEdit.id);
+        const { error } = await supabase
+          .from('flows')
+          .update({
+            name: flowName,
+            flow_config: flowConfig as any
+          })
+          .eq('id', templateToEdit.id);
+
+        if (error) throw error;
+        toast.success('Flow updated successfully!');
+        onClose();
       } else {
-        // Creating new template from scratch
-        const flowData = {
+        // Creating new template - save to database and return data
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        const newTemplate = {
+          flow_name: flowName,
           name: flowName,
-          flow_config: flowConfig,
-          is_template: false,
-          template_category: null,
+          flow_config: flowConfig as any,
+          is_template: true,
+          created_by: user?.id || null,
+          template_category: 'custom',
           campaign_id: null
         };
-        onSave(flowData);
-      }
 
-      // Don't show toast here - let the parent component handle notifications
+        // Save as template in database
+        const { data: savedTemplate, error } = await supabase
+          .from('flows')
+          .insert([newTemplate])
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        toast.success('Flow saved as template!');
+        
+        // Return the saved template data to the parent
+        onSave(savedTemplate);
+      }
     } catch (error) {
       console.error('Error saving flow:', error);
       toast.error('Failed to save flow');
