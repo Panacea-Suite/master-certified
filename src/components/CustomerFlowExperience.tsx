@@ -163,6 +163,10 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
 
+  // Compute brand colors and template ID at the top level - always available
+  const brandColors = useMemo(() => styleTokens ? tokensToProviderFormat(styleTokens) : undefined, [styleTokens]);
+  const templateId = useMemo(() => designTemplate?.id || flow?.flow_config?.design_template_id || flow?.flow_config?.templateId || 'classic', [designTemplate?.id, flow?.flow_config?.design_template_id, flow?.flow_config?.templateId]);
+
   // Stable pages computation with useMemo - now uses effective.pages if available
   const pages = useMemo(() => {
     // Use effective.pages if provided (pre-computed from runtime)
@@ -602,10 +606,6 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
       console.groupEnd();
     }
   }, [currentStage, currentPageIndex, pages, flow, campaign, templateData, stages.length]);
-
-  // Compute brand colors from style tokens - moved before any potential returns
-  const brandColors = styleTokens ? tokensToProviderFormat(styleTokens) : undefined;
-  const templateId = designTemplate?.id || flow?.flow_config?.design_template_id || flow?.flow_config?.templateId || 'classic';
 
   const renderTemplateFlow = () => {
     // Trace logging when ?trace=1 - moved to top for comprehensive coverage
