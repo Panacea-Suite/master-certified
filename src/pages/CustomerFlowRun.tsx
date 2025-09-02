@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import CustomerFlowExperience from '@/components/CustomerFlowExperience';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from 'lucide-react';
@@ -9,17 +9,21 @@ import { getHashSafeParam } from '@/lib/hashParams';
 import { DebugBox } from '@/components/DebugBox';
 
 export const CustomerFlowRun: React.FC = () => {
-  const { cid: routeParamCid } = useParams();
   const location = useLocation();
   
-  // Extract parameters with robust fallback strategy
-  // Priority: 1) Route path param, 2) Query param cid, 3) Query param campaign_id
-  const cid = routeParamCid || 
-              getHashSafeParam('cid', location) || 
+  // Extract parameters using query string only (Pattern 2)
+  // Priority: 1) Query param cid, 2) Query param campaign_id (legacy)
+  const cid = getHashSafeParam('cid', location) || 
               getHashSafeParam('campaign_id', location);
   const qr = getHashSafeParam('qr', location);
   const ct = getHashSafeParam('ct', location);
   const debugFlow = getHashSafeParam('debugFlow', location) === '1';
+  const trace = getHashSafeParam('trace', location) === '1';
+  
+  // Add trace logging for cid parsing
+  if (trace && cid) {
+    console.info('[FlowRun] cid', cid);
+  }
   
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
@@ -41,7 +45,6 @@ export const CustomerFlowRun: React.FC = () => {
       try {
         // Debug logging before any fetch
         console.log('🔍 CustomerFlowRun Debug:', { 
-          routeParamCid, 
           cid, 
           qr, 
           ct, 
@@ -53,7 +56,7 @@ export const CustomerFlowRun: React.FC = () => {
         });
         
         if (!cid) {
-          const errorMsg = 'Missing campaign ID in URL. Please check the URL format - it should be /flow/run/{campaign-id} or include ?cid={campaign-id}';
+          const errorMsg = 'Missing campaign ID in URL. Please check the URL format - it should include ?cid={campaign-id}';
           throw new Error(errorMsg);
         }
 
@@ -182,7 +185,7 @@ export const CustomerFlowRun: React.FC = () => {
     };
 
     loadFlowData();
-  }, [cid, qr, ct, routeParamCid]); // Update dependencies
+  }, [cid, qr, ct]); // Update dependencies
 
   if (loading) {
     return (
