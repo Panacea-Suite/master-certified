@@ -87,10 +87,11 @@ export async function loadFlowForCampaign(campaignId: string, debug = false, tra
   let mode = 'unknown';
 
   // Customer Runtime: Prioritize published_snapshot, only use draft with explicit useDraft=1
+  // This ensures customers ONLY see stable, published content
   if (forceDraft) {
-    console.log('🔍 loadFlowForCampaign: Debug mode - using draft content (useDraft=1)');
+    console.log('🔍 loadFlowForCampaign: DEBUG MODE - using draft content (useDraft=1 flag set)');
     if (flowRow.flow_config) {
-      console.log('🔍 loadFlowForCampaign: Using flow_config (draft mode)');
+      console.log('🔍 loadFlowForCampaign: Using flow_config (DRAFT mode for debugging)');
       payload = flowRow.flow_config;
       mode = 'draft-forced';
     } else if (flowRow.published_snapshot) {
@@ -103,14 +104,14 @@ export async function loadFlowForCampaign(campaignId: string, debug = false, tra
       mode = 'empty';
     }
   } else {
-    // Production mode: ONLY use published_snapshot for customers
+    // PRODUCTION MODE: STRICT - ONLY use published_snapshot for customers
     if (flowRow.published_snapshot) {
-      console.log('🔍 loadFlowForCampaign: Using published_snapshot (production mode)');
+      console.log('🔍 loadFlowForCampaign: Using published_snapshot (PRODUCTION - customers see this)');
       payload = flowRow.published_snapshot;
       mode = 'published';
     } else {
-      console.warn('🔍 loadFlowForCampaign: No published content available - flow needs to be published');
-      // Do NOT fall back to draft in production - customers should only see published content
+      console.warn('🔍 loadFlowForCampaign: No published content available - flow needs to be published first');
+      // STRICT: Do NOT fall back to draft in production - customers should ONLY see published content
       payload = null;
       mode = 'unpublished';
     }

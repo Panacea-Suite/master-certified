@@ -113,13 +113,14 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
     // Define which page types are mandatory
     const mandatoryPageTypes = ['store_selection', 'account_creation', 'authentication', 'thank_you'];
     
-    // Handle flow_config format for campaign flows (synchronous)
+    // DRAFT LOADING: Handle flow_config format for campaign flows (ALWAYS EDIT DRAFTS)
     if (templateToEdit?.flow_config?.pages) {
-      console.log('🔍 FlowEditor: Initializing pages from campaign flow:', {
+      console.log('🔍 FlowEditor: Initializing pages from DRAFT (flow_config):', {
         flowId: templateToEdit.id,
         campaignId: templateToEdit.campaign_id,
         pagesCount: templateToEdit.flow_config.pages.length,
-        isTemplate: templateToEdit.is_template
+        isTemplate: templateToEdit.is_template,
+        note: 'Loading from flow_config (editable draft)'
       });
       return templateToEdit.flow_config.pages.map((page: any, index: number) => ({
         ...page,
@@ -689,11 +690,12 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
       const isCampaignFlow = templateToEdit?.campaign_id;
       
       if (templateToEdit?.id && isCampaignFlow) {
-        // Campaign flow: Save + Auto-publish
-        console.log('🔍 FlowEditor: Saving campaign flow with auto-publish:', {
+        // CAMPAIGN FLOW: Save draft AND auto-publish for immediate live deployment
+        console.log('🔍 FlowEditor: Saving campaign flow with dual save (draft + publish):', {
           flowId: templateToEdit.id,
           campaignId: templateToEdit.campaign_id,
-          pagesCount: pages.length
+          pagesCount: pages.length,
+          action: 'Updating flow_config (draft) AND published_snapshot (live)'
         });
 
         // Create the published snapshot for immediate live deployment
@@ -704,13 +706,13 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
           version: (templateToEdit.latest_published_version || 0) + 1
         };
 
-        // Update flow with both draft config and published snapshot
+        // DUAL UPDATE: Update both draft (flow_config) and live (published_snapshot)
         const { error: updateError } = await supabase
           .from('flows')
           .update({
             name: flowName,
-            flow_config: flowConfig as any,
-            published_snapshot: publishedSnapshot as any,
+            flow_config: flowConfig as any,           // DRAFT VERSION (for editing)
+            published_snapshot: publishedSnapshot as any, // LIVE VERSION (for customers)
             latest_published_version: (templateToEdit.latest_published_version || 0) + 1,
             updated_at: new Date().toISOString()
           })
@@ -752,19 +754,22 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
           }
         }
 
-        console.log('🔍 FlowEditor: Campaign flow saved and auto-published successfully');
-        toast.success(`✅ Campaign flow saved & published! ${pages.length} pages with changes are now live.`);
+        console.log('🔍 FlowEditor: Campaign flow saved with dual update - draft AND live versions updated');
+        toast.success(`✅ Campaign flow saved & published! ${pages.length} pages are now live for customers.`);
         onClose();
         
       } else if (templateToEdit?.id) {
-        // User template: Save only (no auto-publish)
-        console.log('🔍 FlowEditor: Saving user template:', templateToEdit.id);
+        // TEMPLATE: Save ONLY to draft (flow_config) - NO auto-publish
+        console.log('🔍 FlowEditor: Saving template to DRAFT ONLY:', {
+          templateId: templateToEdit.id,
+          action: 'Updating flow_config (draft) only - NO publishing'
+        });
         
         const { error: updateError } = await supabase
           .from('flows')
           .update({
             name: flowName,
-            flow_config: flowConfig as any,
+            flow_config: flowConfig as any,  // DRAFT ONLY - templates don't auto-publish
             updated_at: new Date().toISOString()
           })
           .eq('id', templateToEdit.id);
@@ -774,16 +779,16 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
           throw updateError;
         }
 
-        toast.success('Template saved successfully!');
+        toast.success('Template saved to draft successfully! Use "Publish" to make changes live.');
         onClose();
         
       } else {
-        // Creating new template - save to database and return data
+        // NEW TEMPLATE: Create as draft only
         const { data: { user } } = await supabase.auth.getUser();
         
         const newTemplate = {
           name: flowName,
-          flow_config: flowConfig as any,
+          flow_config: flowConfig as any,  // NEW TEMPLATES START AS DRAFTS
           is_template: true,
           created_by: user?.id || null,
           template_category: 'custom',
@@ -1307,9 +1312,9 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                     {selectedDevice.width} × {selectedDevice.height}px
                   </div>
 
-                  <Button onClick={handleSave} disabled={isSaving} size="sm">
+                   <Button onClick={handleSave} disabled={isSaving} size="sm">
                     <Save className="h-4 w-4 mr-2" />
-                    {isSaving ? 'Saving...' : templateToEdit?.campaign_id ? 'Save & Publish Live' : (templateToEdit ? 'Save Template' : 'Save Flow')}
+                    {isSaving ? 'Saving...' : templateToEdit?.campaign_id ? 'Save & Publish Live' : (templateToEdit ? 'Save Draft' : 'Save Flow')}
                   </Button>
 
                   {/* Publish button only for templates - campaign flows auto-publish on save */}
