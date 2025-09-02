@@ -743,9 +743,40 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
           if (contentError) {
             console.error('🔍 FlowEditor: Error creating flow_content:', contentError);
             // Don't throw - flow_config is saved, this is just backup
-          } else {
-            console.log('🔍 FlowEditor: Created', contentRecords.length, 'flow_content records');
+        } else {
+          console.log('🔍 FlowEditor: Created', contentRecords.length, 'flow_content records');
+          
+          // Auto-publish logic: Check if published_snapshot is empty after first save
+          const publishedSnapshot = templateToEdit.published_snapshot as any;
+          const hasEmptyPublished = !publishedSnapshot?.pages || publishedSnapshot.pages.length === 0;
+          
+          if (hasEmptyPublished && pages.length > 0) {
+            console.log('🔍 FlowEditor: Published snapshot is empty, auto-publishing from flow_content...');
+            
+            const autoPublishSnapshot = {
+              pages: pages.map(page => ({
+                ...page,
+                sections: page.sections.sort((a, b) => a.order - b.order)
+              })),
+              publishedAt: new Date().toISOString(),
+              autoPublished: true
+            };
+
+            const { error: autoPublishError } = await supabase
+              .from('flows')
+              .update({
+                published_snapshot: autoPublishSnapshot as any,
+                latest_published_version: (templateToEdit.latest_published_version || 0) + 1
+              })
+              .eq('id', templateToEdit.id);
+
+            if (autoPublishError) {
+              console.warn('🔍 FlowEditor: Auto-publish failed:', autoPublishError);
+            } else {
+              console.log('🔍 FlowEditor: Auto-published flow on first save with', pages.length, 'pages');
+            }
           }
+        }
         }
 
         // VERIFICATION STEP: Re-fetch the flow to confirm persistence

@@ -240,6 +240,94 @@ export const useTemplateManager = () => {
 
       if (error) throw error;
 
+      // Auto-publish logic: Check if published_snapshot is empty and populate from draft
+      if (data && typeof data === 'object' && data !== null) {
+        const resultData = data as any;
+        if (resultData.flow_id) {
+          console.log('🔍 Checking if auto-publish is needed for flow:', resultData.flow_id);
+          
+          // Check the published_snapshot status
+          const { data: flowData, error: flowError } = await supabase
+            .from('flows')
+            .select('id, published_snapshot, flow_config')
+            .eq('id', resultData.flow_id)
+            .single();
+
+          if (flowError) {
+            console.warn('🔍 Could not fetch flow for auto-publish check:', flowError);
+          } else {
+            const publishedSnapshot = flowData.published_snapshot as any;
+            const flowConfig = flowData.flow_config as any;
+            const hasEmptyPublished = !publishedSnapshot?.pages || publishedSnapshot.pages.length === 0;
+            
+            if (hasEmptyPublished) {
+              console.log('🔍 Published snapshot is empty, attempting auto-publish...');
+              
+              // Fetch the most recent flow_content
+              const { data: contentData, error: contentError } = await supabase
+                .from('flow_content')
+                .select('content, updated_at')
+                .eq('flow_id', resultData.flow_id)
+                .order('updated_at', { ascending: false });
+
+              if (contentError) {
+                console.warn('🔍 Could not fetch flow_content for auto-publish:', contentError);
+              } else if (contentData && contentData.length > 0) {
+                // Create published snapshot from draft content
+                const draftPages = contentData.map((row, index) => ({
+                  ...(typeof row.content === 'object' && row.content ? row.content : {}),
+                  order: index
+                }));
+
+                const publishedSnapshotData = {
+                  pages: draftPages,
+                  publishedAt: new Date().toISOString(),
+                  autoPublished: true
+                };
+
+                // Update the flow with the published snapshot
+                const { error: updateError } = await supabase
+                  .from('flows')
+                  .update({
+                    published_snapshot: publishedSnapshotData,
+                    latest_published_version: 1
+                  })
+                  .eq('id', resultData.flow_id);
+
+                if (updateError) {
+                  console.warn('🔍 Auto-publish failed:', updateError);
+                } else {
+                  console.log('🔍 Auto-published flow with', draftPages.length, 'pages');
+                }
+              } else if (flowConfig?.pages && Array.isArray(flowConfig.pages) && flowConfig.pages.length > 0) {
+                // Fallback to flow_config pages if no flow_content exists
+                const publishedSnapshotData = {
+                  pages: flowConfig.pages,
+                  publishedAt: new Date().toISOString(),
+                  autoPublished: true
+                };
+
+                const { error: updateError } = await supabase
+                  .from('flows')
+                  .update({
+                    published_snapshot: publishedSnapshotData,
+                    latest_published_version: 1
+                  })
+                  .eq('id', resultData.flow_id);
+
+                if (updateError) {
+                  console.warn('🔍 Auto-publish from flow_config failed:', updateError);
+                } else {
+                  console.log('🔍 Auto-published flow from flow_config with', flowConfig.pages.length, 'pages');
+                }
+              }
+            } else {
+              console.log('🔍 Published snapshot already has pages, no auto-publish needed');
+            }
+          }
+        }
+      }
+
       toast.success('Campaign created successfully');
       return { success: true, data };
     } catch (error: any) {
