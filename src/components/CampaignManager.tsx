@@ -7,12 +7,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Plus, Edit, Trash2, Eye, Store } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, Store, Settings2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useBrandContext } from '@/contexts/BrandContext';
 import CampaignWizard from './CampaignWizard';
 import { CampaignTokenManager } from './CampaignTokenManager';
 import CampaignBatchView from './CampaignBatchView';
+import FlowManagerBackup from './FlowManager_backup';
 
 interface Campaign {
   id: string;
@@ -35,6 +36,7 @@ const CampaignManager = () => {
   const [showWizard, setShowWizard] = useState(false);
   const [showTokenManager, setShowTokenManager] = useState(false);
   const [selectedCampaignForBatches, setSelectedCampaignForBatches] = useState<Campaign | null>(null);
+  const [selectedCampaignForFlows, setSelectedCampaignForFlows] = useState<Campaign | null>(null);
   const { currentBrand, availableBrands, isLoading: brandLoading, refreshBrands } = useBrandContext();
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
@@ -172,6 +174,25 @@ const CampaignManager = () => {
     );
   }
 
+  if (selectedCampaignForFlows) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">Flow Management</h1>
+            <p className="text-muted-foreground mt-2">
+              Campaign: {selectedCampaignForFlows.name}
+            </p>
+          </div>
+          <Button variant="outline" onClick={() => setSelectedCampaignForFlows(null)}>
+            Back to Campaigns
+          </Button>
+        </div>
+        <FlowManagerBackup />
+      </div>
+    );
+  }
+
   if (selectedCampaignForBatches) {
     return (
       <CampaignBatchView
@@ -300,9 +321,13 @@ const CampaignManager = () => {
                   >
                     View Batches
                   </Button>
-                  <Button variant="outline">
-                    Manage Flows
-                  </Button>
+                   <Button 
+                     variant="outline"
+                     onClick={() => setSelectedCampaignForFlows(campaign)}
+                   >
+                     <Settings2 className="w-4 h-4 mr-2" />
+                     Manage Flows
+                   </Button>
                   <Button variant="outline">
                     Campaign Settings
                   </Button>
