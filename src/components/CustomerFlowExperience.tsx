@@ -8,8 +8,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { CheckCircle, XCircle, ArrowRight, ArrowLeft, Shield, FileText, Package, Truck } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { SectionRenderer } from '@/components/shared/SectionRenderer';
-import { FlowStyleShell } from '@/components/FlowStyleShell';
 import { FlowHeader } from '@/components/flow-editor/FlowHeader';
+import { TemplateStyleProvider } from '@/components/TemplateStyleProvider';
 import { PanaceaFooter } from '@/components/PanaceaFooter';
 import { useSearchParams } from 'react-router-dom';
 import { resolveStyleTokens, tokensToProviderFormat } from '@/utils/resolveStyleTokens';
@@ -846,16 +846,19 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
     );
   }
 
-  // Main template flow rendering - now wrapped with FlowStyleShell
+  // Compute brand colors from style tokens
+  const brandColors = styleTokens ? tokensToProviderFormat(styleTokens) : undefined;
+  const templateId = designTemplate?.id || flow?.flow_config?.design_template_id || flow?.flow_config?.templateId || 'classic';
+
+  // Main template flow rendering - wrapped with single TemplateStyleProvider
   if (templateData || (flow?.flow_config?.pages && pages.length > 0)) {
     return (
-      <FlowStyleShell
-        campaign={campaign}
-        flow={flow}
-        templateId={designTemplate?.id || flow?.flow_config?.design_template_id || flow?.flow_config?.templateId || 'classic'}
+      <TemplateStyleProvider
+        templateId={templateId}
+        brandColors={brandColors}
       >
         {renderTemplateFlow()}
-      </FlowStyleShell>
+      </TemplateStyleProvider>
     );
   }
 
@@ -873,10 +876,9 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
     };
     
     return (
-      <FlowStyleShell
-        campaign={campaign}
-        flowSnapshot={flowConfig}
+      <TemplateStyleProvider
         templateId={flowConfig?.templateId || 'classic'}
+        brandColors={brandColors}
       >
         <div 
           className="min-h-screen"
@@ -925,15 +927,14 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
             
           </div>
         </div>
-      </FlowStyleShell>
+      </TemplateStyleProvider>
     );
   }
 
   return (
-    <FlowStyleShell
-      campaign={campaign}
-      flow={flow}
-      templateId={designTemplate?.id || flow?.flow_config?.design_template_id || flow?.flow_config?.templateId || 'classic'}
+    <TemplateStyleProvider
+      templateId={templateId}
+      brandColors={brandColors}
     >
       <div className="min-h-screen bg-background flex flex-col"
         style={{ '--device-width-px': '390px' } as React.CSSProperties}
@@ -991,7 +992,7 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
           </div>
         )}
       </div>
-    </FlowStyleShell>
+    </TemplateStyleProvider>
   );
 };
 
