@@ -86,35 +86,34 @@ export async function loadFlowForCampaign(campaignId: string, debug = false, tra
   let payload: any = null;
   let mode = 'unknown';
 
-  // Build payload using precedence: forceDraft overrides, then published_snapshot, then flow_config, then flow_content
+  // Customer Runtime: Prioritize published_snapshot, only use draft with explicit useDraft=1
   if (forceDraft) {
-    console.log('🔍 loadFlowForCampaign: Force draft mode enabled, prioritizing draft content');
+    console.log('🔍 loadFlowForCampaign: Debug mode - using draft content (useDraft=1)');
     if (flowRow.flow_config) {
-      console.log('🔍 loadFlowForCampaign: Using flow_config (forced draft mode)');
+      console.log('🔍 loadFlowForCampaign: Using flow_config (draft mode)');
       payload = flowRow.flow_config;
       mode = 'draft-forced';
+    } else if (flowRow.published_snapshot) {
+      console.log('🔍 loadFlowForCampaign: No draft available, falling back to published');
+      payload = flowRow.published_snapshot;
+      mode = 'published-fallback';
     } else {
-      console.log('🔍 loadFlowForCampaign: No flow_config available for draft mode, falling back to published');
-      if (flowRow.published_snapshot) {
-        payload = flowRow.published_snapshot;
-        mode = 'published';
-      } else {
-        payload = null;
-        mode = 'empty';
-      }
+      console.warn('🔍 loadFlowForCampaign: No content available in either draft or published');
+      payload = null;
+      mode = 'empty';
     }
-  } else if (flowRow.published_snapshot) {
-    console.log('🔍 loadFlowForCampaign: Using published_snapshot');
-    payload = flowRow.published_snapshot;
-    mode = 'published';
-  } else if (flowRow.flow_config) {
-    console.log('🔍 loadFlowForCampaign: Using flow_config as fallback');
-    payload = flowRow.flow_config;
-    mode = 'draft';
   } else {
-    console.warn('🔍 loadFlowForCampaign: No published_snapshot or flow_config found');
-    payload = null;
-    mode = 'empty';
+    // Production mode: ONLY use published_snapshot for customers
+    if (flowRow.published_snapshot) {
+      console.log('🔍 loadFlowForCampaign: Using published_snapshot (production mode)');
+      payload = flowRow.published_snapshot;
+      mode = 'published';
+    } else {
+      console.warn('🔍 loadFlowForCampaign: No published content available - flow needs to be published');
+      // Do NOT fall back to draft in production - customers should only see published content
+      payload = null;
+      mode = 'unpublished';
+    }
   }
 
   // If payload is a string, JSON.parse it
@@ -167,15 +166,15 @@ export async function loadFlowForCampaign(campaignId: string, debug = false, tra
     });
   }
 
-  // If after this pages.length === 0, check for draft content fallback
-  if (payload.pages.length === 0) {
-    console.warn('🔍 loadFlowForCampaign: Empty pages array detected, trying draft fallback...');
+  // If after this pages.length === 0 and we're in draft mode, try flow_content fallback
+  if (payload.pages.length === 0 && (forceDraft || mode === 'draft-forced')) {
+    console.warn('🔍 loadFlowForCampaign: Empty pages in draft mode, trying flow_content fallback...');
     console.log('🔍 loadFlowForCampaign: Payload structure:', {
       keys: Object.keys(payload || {}),
       payload: payload
     });
     
-    // Try to find pages in alternative locations first
+    // Try to find pages in alternative locations first (only in draft mode)
     if (payload.flow && Array.isArray(payload.flow)) {
       console.log('🔍 loadFlowForCampaign: Found pages in payload.flow, using as fallback');
       payload.pages = payload.flow;
@@ -183,7 +182,7 @@ export async function loadFlowForCampaign(campaignId: string, debug = false, tra
       console.log('🔍 loadFlowForCampaign: Found pages in payload.content, using as fallback');
       payload.pages = payload.content;
     } else {
-      // Query flow_content for latest draft as final fallback
+      // Query flow_content for latest draft as final fallback (only in draft mode)
       console.log('🔍 loadFlowForCampaign: Querying flow_content for draft fallback...');
       const { data: draftRows, error: draftErr } = await supabase
         .from('flow_content')
@@ -209,6 +208,10 @@ export async function loadFlowForCampaign(campaignId: string, debug = false, tra
         console.warn('🔍 loadFlowForCampaign: No draft content found either');
       }
     }
+  } else if (payload.pages.length === 0 && mode === 'unpublished') {
+    // For unpublished flows in production mode, provide clear error
+    console.error('🔍 loadFlowForCampaign: Flow is not published - customers cannot access draft content');
+    throw new Error('This flow has not been published yet. Please publish the flow in the editor to make it available to customers.');
   }
 
   return {

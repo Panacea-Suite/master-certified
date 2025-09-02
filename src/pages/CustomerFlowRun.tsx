@@ -197,25 +197,28 @@ export const CustomerFlowRun: React.FC = () => {
               published_snapshot_pages: flowResult.flow?.published_snapshot?.pages?.length || 0,
               flow_config_pages: flowResult.flow?.flow_config?.pages?.length || 0,
               is_published_mode: flowResult.mode === 'published',
-              is_draft_mode: flowResult.mode === 'draft'
+              is_draft_mode: flowResult.mode.includes('draft'),
+              is_debug_mode: useDraft
             }
           });
         }
 
-        // Check for empty pages and provide detailed error
+        // Check for empty pages and provide mode-specific error messages
         if (pages.length === 0) {
           console.error('🔍 CustomerFlowRun: No pages found in flow!');
           console.log('🔍 CustomerFlowRun: Flow payload keys:', Object.keys(flowResult.flow || {}));
           console.log('🔍 CustomerFlowRun: Full flow payload:', flowResult.flow);
           
-          // Set specific error for empty flow with mode-aware message
+          // Provide clear, mode-specific error messages
           let errorMsg = '';
-          if (flowResult.mode === 'published') {
-            errorMsg = 'Flow published snapshot is empty. Showing editor draft requires republish.';
-          } else if (flowResult.mode === 'draft-fallback') {
-            errorMsg = 'Showing latest draft (not yet published).';
+          if (flowResult.mode === 'unpublished') {
+            errorMsg = 'This flow has not been published yet. Please publish the flow in the editor to make it available to customers.';
+          } else if (flowResult.mode === 'published') {
+            errorMsg = 'Published flow contains no pages. Please edit and republish the flow to add content.';
+          } else if (flowResult.mode === 'draft-forced') {
+            errorMsg = `Showing draft content (debug mode) but no pages found. Flow mode: ${flowResult.mode}.`;
           } else {
-            errorMsg = `Flow found but contains no pages. Flow mode: ${flowResult.mode}. Available data keys: ${Object.keys(flowResult.flow || {}).join(', ')}. Please edit this flow in the Flow Editor to add content.`;
+            errorMsg = `Flow found but contains no pages. Flow mode: ${flowResult.mode}. Please edit this flow in the Flow Editor to add content.`;
           }
           throw new Error(errorMsg);
         }
