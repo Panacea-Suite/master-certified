@@ -187,7 +187,7 @@ const CampaignFlowsView: React.FC<{ campaign: Campaign; onBack: () => void }> = 
         };
         setFlow(updatedFlow);
         
-        console.log('🔍 CampaignManager: Flow saved and verified successfully');
+        console.log('🔍 CampaignManager: Campaign flow auto-published successfully');
         toast({ title: 'Saved & Published', description: `✅ ${savedPages.length} pages, ${totalSections} sections. Flow is now live!` });
     } catch (e: any) {
       console.error('🔍 Error saving flow:', e);

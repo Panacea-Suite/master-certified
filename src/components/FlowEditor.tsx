@@ -685,68 +685,58 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
         }
       };
 
-      // Create the flow snapshot for immediate publishing
-      const flowSnapshot = {
-        pages: pages.map(page => ({
-          ...page,
-          sections: page.sections.sort((a, b) => a.order - b.order)
-        })),
-        globalHeader,
-        footerConfig,
-        design_template_id: selectedTemplateId,
-        theme: {
-          primaryColor: '#3b82f6',
-          backgroundColor: pageSettings.backgroundColor,
-          fontFamily: 'Inter'
-        },
-        settings: templateToEdit?.flow_config?.settings || {
-          showProgress: true,
-          allowBack: true,
-          autoSave: true
-        },
-        name: flowName,
-        publishedAt: new Date().toISOString()
-      };
+      // Check if this is a campaign flow (has campaign_id)
+      const isCampaignFlow = templateToEdit?.campaign_id;
+      
+      if (templateToEdit?.id && isCampaignFlow) {
+        // Campaign flow: Save + Auto-publish
+        console.log('🔍 FlowEditor: Saving campaign flow with auto-publish:', {
+          flowId: templateToEdit.id,
+          campaignId: templateToEdit.campaign_id,
+          pagesCount: pages.length
+        });
 
-      if (templateToEdit && 'campaign_id' in templateToEdit && templateToEdit.campaign_id) {
-        // Updating existing flow - automatically publish
-        console.log('🔍 FlowEditor: Updating existing flow:', templateToEdit.id);
-        
+        // Create the published snapshot for immediate live deployment
+        const publishedSnapshot = {
+          ...flowConfig,
+          name: flowName,
+          publishedAt: new Date().toISOString(),
+          version: (templateToEdit.latest_published_version || 0) + 1
+        };
+
+        // Update flow with both draft config and published snapshot
         const { error: updateError } = await supabase
           .from('flows')
           .update({
             name: flowName,
             flow_config: flowConfig as any,
-            published_snapshot: flowSnapshot as any,
-            latest_published_version: (templateToEdit.latest_published_version || 0) + 1
+            published_snapshot: publishedSnapshot as any,
+            latest_published_version: (templateToEdit.latest_published_version || 0) + 1,
+            updated_at: new Date().toISOString()
           })
           .eq('id', templateToEdit.id);
 
         if (updateError) {
-          console.error('🔍 FlowEditor: Error updating flow:', updateError);
+          console.error('🔍 FlowEditor: Error updating campaign flow:', updateError);
           throw updateError;
         }
 
-        // Create/update flow_content records for each page
-        if (pages.length > 0) {
-          console.log('🔍 FlowEditor: Creating flow_content records for', pages.length, 'pages');
-          
-          // Delete existing flow_content records
-          const { error: deleteError } = await supabase
-            .from('flow_content')
-            .delete()
-            .eq('flow_id', templateToEdit.id);
-            
-          if (deleteError) {
-            console.warn('🔍 FlowEditor: Error deleting old flow_content:', deleteError);
-          }
+        // Rebuild flow_content backup records
+        console.log('🔍 FlowEditor: Rebuilding flow_content backup records');
+        
+        // Delete existing flow_content records
+        await supabase
+          .from('flow_content')
+          .delete()
+          .eq('flow_id', templateToEdit.id);
 
-          // Insert new flow_content records
+        // Create new flow_content records for each page
+        if (pages.length > 0) {
           const contentRecords = pages.map((page, index) => ({
             flow_id: templateToEdit.id,
             title: page.name || `Page ${index + 1}`,
             content_type: 'page',
-            content: page as any, // Cast to Json type
+            content: page as any,
             order_index: page.order || index
           }));
 
@@ -755,80 +745,38 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
             .insert(contentRecords);
           
           if (contentError) {
-            console.error('🔍 FlowEditor: Error creating flow_content:', contentError);
-            // Don't throw - flow_config is saved, this is just backup
-        } else {
-          console.log('🔍 FlowEditor: Created', contentRecords.length, 'flow_content records');
-          
-          // Auto-publish logic: Check if published_snapshot is empty after first save
-          const publishedSnapshot = templateToEdit.published_snapshot as any;
-          const hasEmptyPublished = !publishedSnapshot?.pages || publishedSnapshot.pages.length === 0;
-          
-          if (hasEmptyPublished && pages.length > 0) {
-            console.log('🔍 FlowEditor: Published snapshot is empty, auto-publishing from flow_content...');
-            
-            const autoPublishSnapshot = {
-              pages: pages.map(page => ({
-                ...page,
-                sections: page.sections.sort((a, b) => a.order - b.order)
-              })),
-              publishedAt: new Date().toISOString(),
-              autoPublished: true
-            };
-
-            const { error: autoPublishError } = await supabase
-              .from('flows')
-              .update({
-                published_snapshot: autoPublishSnapshot as any,
-                latest_published_version: (templateToEdit.latest_published_version || 0) + 1
-              })
-              .eq('id', templateToEdit.id);
-
-            if (autoPublishError) {
-              console.warn('🔍 FlowEditor: Auto-publish failed:', autoPublishError);
-            } else {
-              console.log('🔍 FlowEditor: Auto-published flow on first save with', pages.length, 'pages');
-            }
+            console.error('🔍 FlowEditor: Error creating flow_content backup:', contentError);
+            // Don't throw - main flow is saved
+          } else {
+            console.log('🔍 FlowEditor: Created', contentRecords.length, 'flow_content backup records');
           }
         }
-        }
 
-        // VERIFICATION STEP: Re-fetch the flow to confirm persistence
-        console.log('🔍 FlowEditor: Verifying save by re-fetching flow...');
-        const { data: verificationFlow, error: fetchError } = await supabase
-          .from('flows')
-          .select('id, flow_config, published_snapshot, latest_published_version, campaign_id')
-          .eq('id', templateToEdit.id)
-          .single();
-
-        if (fetchError) {
-          console.error('🔍 FlowEditor: Error verifying save:', fetchError);
-          throw new Error('Save verification failed: ' + fetchError.message);
-        }
-
-        // Verify flow_config.pages structure with safe type casting
-        const verifiedFlowConfig = verificationFlow.flow_config as any;
-        const savedPages = (verifiedFlowConfig && Array.isArray(verifiedFlowConfig.pages)) ? verifiedFlowConfig.pages : [];
-        const totalSections = savedPages.reduce((total: number, page: any) => {
-          return total + (page.sections?.length || 0);
-        }, 0);
-
-        console.log('🔍 FlowEditor: Save verification results:', {
-          flowId: verificationFlow.id,
-          campaignId: verificationFlow.campaign_id,
-          pagesCount: savedPages.length,
-          totalSections: totalSections,
-          hasPublishedSnapshot: !!verificationFlow.published_snapshot,
-          latestVersion: verificationFlow.latest_published_version
-        });
-
-        if (savedPages.length === 0) {
-          throw new Error('Save verification failed: No pages found in saved flow_config');
-        }
-
-        console.log('🔍 FlowEditor: Flow saved and verified successfully');
-        toast.success(`Flow saved & published! ✅ ${savedPages.length} pages, ${totalSections} sections. Changes are now live.`);
+        console.log('🔍 FlowEditor: Campaign flow saved and auto-published successfully');
+        toast.success(`✅ Campaign flow saved & published! ${pages.length} pages with changes are now live.`);
         onClose();
+        
+      } else if (templateToEdit?.id) {
+        // User template: Save only (no auto-publish)
+        console.log('🔍 FlowEditor: Saving user template:', templateToEdit.id);
+        
+        const { error: updateError } = await supabase
+          .from('flows')
+          .update({
+            name: flowName,
+            flow_config: flowConfig as any,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', templateToEdit.id);
+
+        if (updateError) {
+          console.error('🔍 FlowEditor: Error updating template:', updateError);
+          throw updateError;
+        }
+
+        toast.success('Template saved successfully!');
+        onClose();
+        
       } else {
         // Creating new template - save to database and return data
         const { data: { user } } = await supabase.auth.getUser();
@@ -842,7 +790,6 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
           campaign_id: null
         };
 
-        // Save as template in database
         const { data: savedTemplate, error: insertError } = await supabase
           .from('flows')
           .insert([newTemplate])
@@ -854,42 +801,10 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
           throw insertError;
         }
 
-        // VERIFICATION STEP: Re-fetch the template to confirm persistence
-        console.log('🔍 FlowEditor: Verifying template save by re-fetching...');
-        const { data: verificationFlow, error: fetchError } = await supabase
-          .from('flows')
-          .select('id, flow_config, is_template, name')
-          .eq('id', savedTemplate.id)
-          .single();
-
-        if (fetchError) {
-          console.error('🔍 FlowEditor: Error verifying template save:', fetchError);
-          throw new Error('Template save verification failed: ' + fetchError.message);
-        }
-
-        // Verify flow_config.pages structure with safe type casting
-        const verifiedFlowConfig = verificationFlow.flow_config as any;
-        const savedPages = (verifiedFlowConfig && Array.isArray(verifiedFlowConfig.pages)) ? verifiedFlowConfig.pages : [];
-        const totalSections = savedPages.reduce((total: number, page: any) => {
-          return total + (page.sections?.length || 0);
-        }, 0);
-
-        console.log('🔍 FlowEditor: Template save verification results:', {
-          templateId: verificationFlow.id,
-          templateName: verificationFlow.name,
-          pagesCount: savedPages.length,
-          totalSections: totalSections,
-          isTemplate: verificationFlow.is_template
-        });
-
-        if (savedPages.length === 0) {
-          throw new Error('Template save verification failed: No pages found in saved flow_config');
-        }
-
-        console.log('🔍 FlowEditor: Template saved and verified successfully');
-        toast.success(`Template saved! ✅ ${savedPages.length} pages, ${totalSections} sections created.`);
+        console.log('🔍 FlowEditor: New user template created successfully');
+        toast.success(`Template saved! ✅ ${pages.length} pages created.`);
         
-        // Return the verified template data to the parent
+        // Return the template data to the parent
         onSave(savedTemplate);
       }
     } catch (error) {
@@ -1394,17 +1309,27 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
 
                   <Button onClick={handleSave} disabled={isSaving} size="sm">
                     <Save className="h-4 w-4 mr-2" />
-                    {isSaving ? 'Saving...' : templateToEdit ? 'Save my template' : 'Save Flow'}
+                    {isSaving ? 'Saving...' : templateToEdit?.campaign_id ? 'Save & Publish Live' : (templateToEdit ? 'Save Template' : 'Save Flow')}
                   </Button>
 
-                  <Button 
-                    onClick={handlePublish}
-                    disabled={isPublishing || isSaving}
-                    className="bg-purple-500 hover:bg-purple-600 text-white disabled:opacity-50"
-                    size="sm"
-                  >
-                    {isPublishing ? 'Publishing...' : 'Publish Version'}
-                  </Button>
+                  {/* Publish button only for templates - campaign flows auto-publish on save */}
+                  {!templateToEdit?.campaign_id && (
+                    <Button 
+                      onClick={handlePublish}
+                      disabled={isPublishing || isSaving}
+                      className="bg-purple-500 hover:bg-purple-600 text-white disabled:opacity-50"
+                      size="sm"
+                    >
+                      {isPublishing ? 'Publishing...' : 'Publish Version'}
+                    </Button>
+                  )}
+
+                  {/* Campaign flow auto-publish indicator */}
+                  {templateToEdit?.campaign_id && (
+                    <div className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded border border-blue-200">
+                      ⚡ Auto-publishes on save
+                    </div>
+                  )}
 
                   {/* Test as User button - only for master_admin */}
                   {profile?.role === 'master_admin' && templateToEdit && (
