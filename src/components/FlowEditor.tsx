@@ -19,13 +19,12 @@ import { MobilePreview } from './flow-editor/MobilePreview';
 import { ComponentEditor } from './flow-editor/ComponentEditor';
 import { PageSection } from './flow-editor/PageSection';
 import { FlowHeader } from './flow-editor/FlowHeader';
-import { TemplateStyleProvider } from './TemplateStyleProvider';
+import { FlowStyleShell, useEditorTokens } from '@/components/FlowStyleShell';
 import { SectionRenderer } from '@/components/shared/SectionRenderer';
 import { PanaceaFooter } from '@/components/PanaceaFooter';
 import { Smartphone, Save, ChevronDown, ChevronRight, ArrowLeft, TestTube2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { resolveStyleTokens, tokensToProviderFormat } from '@/utils/resolveStyleTokens';
 import { useAuth } from '@/hooks/useAuth';
 import { TestLinkModal } from './TestLinkModal';
 import { DesignTemplateSelector } from './DesignTemplateSelector';
@@ -1079,28 +1078,10 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
       setCreatingTestLink(false);
     }
   };
-  // Compute consistent style tokens for editor preview
-  const computeEditorStyleTokens = () => {
-    const editorFlowData = {
-      flow_config: {
-        pages: pages,
-        designConfig: {
-          // Use minimal design config from editor state
-          backgroundColor: pageSettings.backgroundColor,
-          // Other properties will use defaults from the resolver
-        }
-      }
-    };
-    
-    const tokens = resolveStyleTokens(
-      undefined, // No campaign in editor context
-      editorFlowData, // Pass current editor state as snapshot
-      selectedTemplateId || 'classic'
-    );
-    return tokensToProviderFormat(tokens);
-  };
-
-  return <TemplateStyleProvider templateId={selectedTemplateId} brandColors={computeEditorStyleTokens()}>
+  return <FlowStyleShell
+    templateId={selectedTemplateId || 'classic'}
+    flow={{ flow_config: { pages, designConfig: { backgroundColor: pageSettings?.backgroundColor } } }}
+  >
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="max-w-7xl max-h-[95vh] overflow-hidden p-0">
           <DialogHeader className="sr-only">
@@ -1324,9 +1305,9 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
 
           {/* Middle Panel - Preview */}
           <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-            <TemplateStyleProvider 
-              templateId={selectedTemplateId} 
-              brandColors={computeEditorStyleTokens()}
+            <FlowStyleShell
+              templateId={selectedTemplateId || 'classic'} 
+              flow={{ flow_config: { pages, designConfig: { backgroundColor: pageSettings?.backgroundColor } } }}
             >
               <div className="p-4 bg-white border-b">
                 <div className="flex items-center justify-center gap-6">
@@ -1448,7 +1429,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                   </div>
                 </div>
               </ScrollArea>
-            </TemplateStyleProvider>
+            </FlowStyleShell>
           </div>
 
           {/* Right Panel - Section Properties */}
@@ -1484,5 +1465,5 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
         isEphemeralCampaign={!!(templateToEdit && (!templateToEdit.campaign_id || templateToEdit.kind === 'system' || templateToEdit.kind === 'brand'))}
       />
     </Dialog>
-    </TemplateStyleProvider>;
+    </FlowStyleShell>;
 };

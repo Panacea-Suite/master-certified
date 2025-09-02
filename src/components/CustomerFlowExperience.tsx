@@ -8,8 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { CheckCircle, XCircle, ArrowRight, ArrowLeft, Shield, FileText, Package, Truck } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { SectionRenderer } from '@/components/shared/SectionRenderer';
-import { TemplateStyleProvider } from '@/components/TemplateStyleProvider';
-import { resolveStyleTokens, tokensToProviderFormat } from '@/utils/resolveStyleTokens';
+import { FlowStyleShell } from '@/components/FlowStyleShell';
 import { FlowHeader } from '@/components/flow-editor/FlowHeader';
 import { PanaceaFooter } from '@/components/PanaceaFooter';
 import { useSearchParams } from 'react-router-dom';
@@ -350,15 +349,7 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
     );
   };
 
-  // Compute style tokens using centralized resolver
-  const computeStyleTokens = () => {
-    const tokens = resolveStyleTokens(
-      campaign,
-      flow,
-      flow?.flow_config?.templateId || 'classic'
-    );
-    return tokensToProviderFormat(tokens);
-  };
+  // Style tokens now handled entirely by FlowStyleShell
 
   const renderTemplateFlow = () => {
     if (!pages || pages.length === 0) {
@@ -391,9 +382,10 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
     const sectionsToRender = (currentPageData.sections || []).sort((a: any, b: any) => a.order - b.order);
 
     return (
-      <TemplateStyleProvider 
+      <FlowStyleShell
+        campaign={campaign}
+        flow={flow}
         templateId={flow?.flow_config?.templateId || 'classic'}
-        brandColors={computeStyleTokens()}
       >
         <div className="flex flex-col min-h-screen bg-background" style={{ '--device-width-px': '390px' } as React.CSSProperties}>
           {/* Header */}
@@ -445,7 +437,7 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
             </div>
           )}
         </div>
-      </TemplateStyleProvider>
+      </FlowStyleShell>
     );
   };
 
@@ -755,9 +747,10 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
     };
     
     return (
-      <TemplateStyleProvider 
+      <FlowStyleShell
+        campaign={campaign}
+        flowSnapshot={flowConfig}
         templateId={flowConfig?.templateId || 'classic'}
-        brandColors={computeStyleTokens()}
       >
         <div 
           className="min-h-screen"
@@ -799,14 +792,14 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
             
           </div>
         </div>
-      </TemplateStyleProvider>
+      </FlowStyleShell>
     );
   }
 
   return (
-    <TemplateStyleProvider 
+    <FlowStyleShell
+      campaign={campaign}
       templateId="classic"
-      brandColors={computeStyleTokens()}
     >
       <div className="min-h-screen bg-background">
         {/* Progress Bar */}
@@ -858,7 +851,7 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
           
         </div>
       </div>
-    </TemplateStyleProvider>
+    </FlowStyleShell>
   );
 };
 
