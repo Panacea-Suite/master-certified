@@ -225,64 +225,43 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
         return;
       }
 
-      // Fallback: Direct database query for authenticated users only
-      const { data: flowData, error: flowError } = await supabase
+      // Fallback using runtime hardened loader
+      console.log('Falling back to hardened runtime loader');
+      
+      const { loadFlowForCampaign } = await import('@/runtime/loadFlow');
+      
+      // Get campaign ID for this flow
+      const { data: flowRow, error: flowError } = await supabase
         .from('flows')
-        .select('*')
+        .select('id, campaign_id')
         .eq('id', flowId)
         .single();
 
-      if (flowError) {
-        console.error('Error fetching flow:', flowError);
-        throw flowError;
+      if (flowError || !flowRow?.campaign_id) {
+        console.error('Error fetching flow or no campaign:', flowError);
+        throw new Error('Flow not found or not associated with campaign');
       }
 
-      if (!flowData) {
-        console.error('No flow data found');
-        return;
-      }
+      // Use hardened loader that prefers published snapshot
+      const result = await loadFlowForCampaign(flowRow.campaign_id);
+      console.log(`Flow loaded in ${result.mode} mode:`, result.flow);
 
-      console.log('Flow data (direct DB):', flowData);
-      setFlow(flowData);
-      
-      // For direct DB access, we can't get campaign data due to RLS
-      // This path should only be used for authenticated admin users
-      console.warn('Using direct DB access - campaign data may not be available');
+      // Set basic flow info
+      setFlow({ 
+        id: flowRow.id, 
+        name: 'Customer Flow',
+        flow_config: result.flow
+      });
 
-      // Handle different flow configurations
-      const flowConfig = flowData.flow_config as any;
-      if (flowConfig?.pages) {
-        console.log('Using multi-page flow configuration');
-        // Multi-page flow configuration
-        setPages(flowConfig.pages);
-        setCurrentPageIndex(0);
-      } else if (flowConfig?.sections) {
-        console.log('Using section-based flow configuration');
-        // Section-based flow configuration - create a single page
-        const singlePage = {
-          id: 'main-page',
-          name: 'Main Content',
-          type: 'content_display',
-          sections: flowConfig.sections,
-          settings: {}
-        };
-        setPages([singlePage]);
+      // Handle flow content based on loader result
+      const flowData = result.flow as any;
+      if (flowData?.pages && Array.isArray(flowData.pages)) {
+        console.log('Using pages from runtime loader');
+        setPages(flowData.pages);
         setCurrentPageIndex(0);
       } else {
-        console.log('Using legacy flow configuration, fetching content');
-        // Legacy flow - fetch from flow_content table
-        const { data: contentData, error: contentError } = await supabase
-          .from('flow_content')
-          .select('*')
-          .eq('flow_id', flowId)
-          .order('order_index');
-
-        if (contentError) {
-          console.error('Error fetching content:', contentError);
-          throw contentError;
-        }
-
-        setContent(contentData || []);
+        console.log('No pages found, setting empty content');
+        setContent([]);
       }
 
     } catch (error) {
