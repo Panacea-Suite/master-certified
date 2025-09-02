@@ -786,6 +786,10 @@ export type Database = {
             }
         Returns: Json
       }
+      owns_flow: {
+        Args: { _flow_id: string }
+        Returns: boolean
+      }
       publish_flow_version: {
         Args: {
           p_design_tokens?: Json
@@ -797,6 +801,14 @@ export type Database = {
       run_verification: {
         Args: { p_session_id: string }
         Returns: Json
+      }
+      snapshot_flow: {
+        Args: { p_flow_id: string }
+        Returns: {
+          flow_id: string
+          new_version: number
+          published_at: string
+        }[]
       }
       start_flow_session: {
         Args:
