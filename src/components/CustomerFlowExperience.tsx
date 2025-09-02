@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -334,10 +334,10 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
     const draft = flowData?.flow_config?.pages ?? [];
     const configPages = flowData?.pages ?? []; // Direct pages property
     
-    // Priority: published -> draft -> configPages
-    let pages = published.length > 0 ? published : 
-                draft.length > 0 ? draft : 
-                configPages;
+    // Priority: published -> draft -> configPages - stable computation
+    const stablePages = (published.length > 0 ? published : 
+            draft.length > 0 ? draft : 
+            configPages).filter(Boolean);
     
     const mode = published.length > 0 ? 'published' : 
                  draft.length > 0 ? 'draft' : 
@@ -347,11 +347,11 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
       publishedCount: published.length, 
       draftCount: draft.length, 
       configCount: configPages.length,
-      finalCount: pages.length,
+      finalCount: stablePages.length,
       mode: mode 
     });
     
-    return { pages, mode };
+    return { pages: stablePages, mode };
   };
 
   const renderEmptyPagesMessage = (mode: string) => (
@@ -431,6 +431,13 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
     );
   }
 
+  // Stable pages computation with useMemo
+  const stablePages = useMemo(() => {
+    const published = flow?.published_snapshot?.pages ?? [];
+    const draft = flow?.flow_config?.pages ?? [];
+    return (published.length > 0 ? published : draft).filter(Boolean);
+  }, [flow?.published_snapshot?.pages, flow?.flow_config?.pages]);
+
   // SectionHost component that follows React hooks rules
   function SectionHost({ section, page, styleTokens }: { section: any; page: any; styleTokens: any }) {
     // Call hooks unconditionally at the top - no conditional hook calls allowed
@@ -491,7 +498,7 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
       );
     }
 
-    const sectionsToRender = (currentPageData.sections || []).sort((a: any, b: any) => a.order - b.order);
+    const safeSections = useMemo(() => (currentPageData.sections || []).filter(Boolean).sort((a: any, b: any) => a.order - b.order), [currentPageData]);
 
     return (
       <div className="flex flex-col min-h-screen bg-background" style={{ '--device-width-px': '390px' } as React.CSSProperties}>
@@ -508,18 +515,18 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
         {/* Page Content */}
         <div className="flex-1 flex flex-col">
           <div className="flex-1">
-            {sectionsToRender.map((section: any, idx: number) => 
+            {safeSections.map((section: any, idx: number) => 
               <SectionHost 
                 section={section} 
                 page={currentPageData} 
                 styleTokens={styleTokens} 
-                key={section.id || idx} 
+                key={section.id || `s-${idx}`} 
               />
             )}
           </div>
 
           {/* Default footer - sticks to bottom */}
-          {sectionsToRender.every((s: any) => s.type !== 'footer') && (
+          {safeSections.every((s: any) => s.type !== 'footer') && (
             <div className="mt-auto">
               <PanaceaFooter backgroundColor="var(--template-secondary)" logoSize={60} />
             </div>
@@ -911,7 +918,7 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
                   section={section} 
                   page={null} 
                   styleTokens={styleTokens} 
-                  key={section.id || idx} 
+                  key={section.id || `s-${idx}`} 
                 />
               )}
             </div>
