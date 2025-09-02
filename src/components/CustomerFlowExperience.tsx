@@ -612,28 +612,13 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
     }
   }, [currentStage, currentPageIndex, pages, flow, campaign, templateData, stages.length]);
 
-  // Stability trace logging when ?trace=1 - verify hook map consistency
-  React.useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const isTraceMode = new URLSearchParams(window.location.search).get('trace') === '1';
-    
-    if (isTraceMode && pages.length > 0) {
-      console.group('🔍 [TRACE] Hook Map Stability Check');
-      console.log('Mode:', templateData ? 'Template Preview' : 'Flow Runtime');
-      console.log('Pages Length:', pages.length);
-      
-      pages.forEach((page, pageIndex) => {
-        const sections = Array.isArray(page?.sections) ? page.sections : [];
-        const sectionTypes = sections.map(s => s?.type || 'unknown');
-        console.log(`Page ${pageIndex + 1}:`, {
-          name: page?.name || `Page ${pageIndex + 1}`,
-          sectionsLength: sections.length,
-          sectionTypes: sectionTypes
-        });
-      });
-      console.groupEnd();
-    }
-  }, [pages, templateData]); // Only depend on structure-affecting variables
+  // Stabilized section-based flow sections computation
+  const sectionBasedFlowSections = useMemo(() => {
+    const flowConfig = flow?.flow_config as any;
+    if (!flowConfig?.sections) return [];
+    const sections = flowConfig.sections || [];
+    return Array.isArray(sections) ? sections.filter(Boolean).sort((a: any, b: any) => (a.order || 0) - (b.order || 0)) : [];
+  }, [flow?.flow_config]);
 
   const renderTemplateFlow = () => {
     // Trace logging when ?trace=1 - moved to top for comprehensive coverage
@@ -1083,10 +1068,8 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
         // Check if this is a section-based flow
         const flowConfig = flow?.flow_config as any;
         if (flowConfig?.sections) {
-          const safeSections = useMemo(() => {
-            const sections = flowConfig.sections || [];
-            return Array.isArray(sections) ? sections.filter(Boolean).sort((a: any, b: any) => (a.order || 0) - (b.order || 0)) : [];
-          }, [flowConfig?.sections]);
+          // Use the pre-computed sections from top-level useMemo
+          const safeSections = sectionBasedFlowSections;
           
           const backgroundColor = flowConfig?.theme?.backgroundColor || '#ffffff';
           const globalHeader = flowConfig?.globalHeader || {
