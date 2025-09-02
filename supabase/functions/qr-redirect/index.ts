@@ -159,16 +159,8 @@ Deno.serve(async (req) => {
     const campaign = qr.batches?.campaigns
     
     if (campaign) {
-      // Create customer flow URL with safe fallback for app origin
-      let appOrigin = Deno.env.get('EDGE_APP_ORIGIN')
-      
-      // Safe fallback: derive app origin from request if not configured
-      if (!appOrigin) {
-        const reqUrl = new URL(req.url)
-        appOrigin = `${reqUrl.protocol}//${reqUrl.host}`
-        console.warn(`EDGE_APP_ORIGIN not configured, using fallback: ${appOrigin}`)
-      }
-      
+      // Create customer flow URL: https://<app-origin>/#/flow/run?cid=<campaign_id>&qr=<qr_id>&ct=<customer_access_token>
+      const appOrigin = Deno.env.get('EDGE_APP_ORIGIN')! // Use your actual app origin
       const flowUrl = new URL(`${appOrigin}/#/flow/run`)
       
       // Add required parameters
