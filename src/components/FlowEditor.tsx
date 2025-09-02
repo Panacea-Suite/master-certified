@@ -1087,7 +1087,9 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
           <DialogHeader className="sr-only">
             <DialogTitle>Flow Builder</DialogTitle>
           </DialogHeader>
-        <div className="flex h-[95vh]">
+        <div className="flex h-[95vh]"
+          style={{ '--device-width-px': '390px' } as React.CSSProperties}
+        >
           {/* Left Panel - Pages & Components */}
           <div className="w-80 border-r bg-muted/30 p-4 overflow-y-auto">
             <div className="space-y-4">
@@ -1305,16 +1307,12 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
 
           {/* Middle Panel - Preview */}
           <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-            <FlowStyleShell
-              templateId={selectedTemplateId || 'classic'} 
-              flow={{ flow_config: { pages, designConfig: { backgroundColor: pageSettings?.backgroundColor } } }}
-            >
-              <div className="p-4 bg-white border-b">
-                <div className="flex items-center justify-center gap-6">
-                  <div className="flex items-center gap-2">
-                    <Smartphone className="h-5 w-5 text-primary" />
-                    <h3 className="font-semibold">Flow Preview</h3>
-                  </div>
+            <div className="p-4 bg-white border-b">
+              <div className="flex items-center justify-center gap-6">
+                <div className="flex items-center gap-2">
+                  <Smartphone className="h-5 w-5 text-primary" />
+                  <h3 className="font-semibold">Flow Preview</h3>
+                </div>
                   
                   <div className="flex items-center gap-2">
                     <Select 
@@ -1425,12 +1423,11 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                             </div>
                           )}
                         </div>
-                      </div>
+                    </div>
                   </div>
                 </div>
               </ScrollArea>
-            </FlowStyleShell>
-          </div>
+            </div>
 
           {/* Right Panel - Section Properties */}
           <div className="w-80 border-l bg-muted/30 flex flex-col overflow-hidden">

@@ -13,7 +13,6 @@ import { FlowHeader } from '@/components/flow-editor/FlowHeader';
 import { PanaceaFooter } from '@/components/PanaceaFooter';
 import { useSearchParams } from 'react-router-dom';
 import { resolveStyleTokens, tokensToProviderFormat } from '@/utils/resolveStyleTokens';
-import { TemplateStyleProvider } from '@/components/TemplateStyleProvider';
 
 // Cache-busting utility
 const withCacheBust = (url: string, seed?: string | number): string => {
@@ -356,27 +355,25 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
   };
 
   const renderEmptyPagesMessage = (mode: string) => (
-    <TemplateStyleProvider templateId={designTemplate?.id} brandColors={styleTokens ? tokensToProviderFormat(styleTokens) : undefined}>
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <CardTitle className="text-muted-foreground">No Pages Available</CardTitle>
-            <CardDescription>
-              No pages available for this flow.
-              <br />
-              <span className="text-xs font-mono bg-muted px-2 py-1 rounded mt-2 inline-block">
-                Mode: {mode}
-              </span>
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="text-center">
-            <p className="text-sm text-muted-foreground">
-              This flow needs to be configured with content in the Flow Editor.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    </TemplateStyleProvider>
+    <div className="min-h-screen flex items-center justify-center p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center">
+          <CardTitle className="text-muted-foreground">No Pages Available</CardTitle>
+          <CardDescription>
+            No pages available for this flow.
+            <br />
+            <span className="text-xs font-mono bg-muted px-2 py-1 rounded mt-2 inline-block">
+              Mode: {mode}
+            </span>
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="text-center">
+          <p className="text-sm text-muted-foreground">
+            This flow needs to be configured with content in the Flow Editor.
+          </p>
+        </CardContent>
+      </Card>
+    </div>
   );
   const handleStoreSelection = (store: string) => {
     setUserInputs({ ...userInputs, selectedStore: store });
@@ -479,74 +476,70 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
     const currentPageData = pages[externalPageIndex ?? currentPageIndex];
     if (!currentPageData) {
       return (
-        <TemplateStyleProvider templateId={designTemplate?.id} brandColors={styleTokens ? tokensToProviderFormat(styleTokens) : undefined}>
-          <div style={{ '--device-width-px': '390px' } as React.CSSProperties}>
-            <div className="text-center p-8">
-              <div className="text-muted-foreground">
-                <div className="text-lg mb-2">Page not found</div>
-                <div className="text-sm">The requested page could not be loaded.</div>
-              </div>
+        <div style={{ '--device-width-px': '390px' } as React.CSSProperties}>
+          <div className="text-center p-8">
+            <div className="text-muted-foreground">
+              <div className="text-lg mb-2">Page not found</div>
+              <div className="text-sm">The requested page could not be loaded.</div>
             </div>
           </div>
-        </TemplateStyleProvider>
+        </div>
       );
     }
 
     const sectionsToRender = (currentPageData.sections || []).sort((a: any, b: any) => a.order - b.order);
 
     return (
-      <TemplateStyleProvider templateId={designTemplate?.id} brandColors={styleTokens ? tokensToProviderFormat(styleTokens) : undefined}>
-        <div className="flex flex-col min-h-screen bg-background" style={{ '--device-width-px': '390px' } as React.CSSProperties}>
-          {/* Header */}
-          {flow?.flow_config?.globalHeader?.showHeader && (
-            <FlowHeader 
-              globalHeader={{
-                ...flow.flow_config.globalHeader,
-                brandName: '' // Remove brand text
-              }} 
-            />
-          )}
+      <div className="flex flex-col min-h-screen bg-background" style={{ '--device-width-px': '390px' } as React.CSSProperties}>
+        {/* Header */}
+        {flow?.flow_config?.globalHeader?.showHeader && (
+          <FlowHeader 
+            globalHeader={{
+              ...flow.flow_config.globalHeader,
+              brandName: '' // Remove brand text
+            }} 
+          />
+        )}
 
-          {/* Page Content */}
-          <div className="flex-1 flex flex-col">
-            <div className="flex-1">
-              {sectionsToRender.map((section: any) => 
-                renderTemplateSection(section)
-              )}
-            </div>
-
-            {/* Default footer - sticks to bottom */}
-            {sectionsToRender.every((s: any) => s.type !== 'footer') && (
-              <div className="mt-auto">
-                <PanaceaFooter backgroundColor="var(--template-secondary)" logoSize={60} />
-              </div>
+        {/* Page Content */}
+        <div className="flex-1 flex flex-col">
+          <div className="flex-1">
+            {sectionsToRender.map((section: any) => 
+              renderTemplateSection(section)
             )}
           </div>
 
-          {/* Navigation */}
-          {!hideInternalNavigation && (
-            <div className="bg-background border-t" style={{ maxWidth: 'var(--device-width-px, 390px)', margin: '0 auto', width: '100%' }}>
-              <div className="p-4 flex justify-between">
-                <Button
-                  variant="outline"
-                  onClick={() => setCurrentPageIndex(Math.max(0, currentPageIndex - 1))}
-                  disabled={currentPageIndex === 0}
-                >
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Previous
-                </Button>
-                <Button
-                  onClick={() => setCurrentPageIndex(Math.min(pages.length - 1, currentPageIndex + 1))}
-                  disabled={currentPageIndex === pages.length - 1}
-                >
-                  Next
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              </div>
+          {/* Default footer - sticks to bottom */}
+          {sectionsToRender.every((s: any) => s.type !== 'footer') && (
+            <div className="mt-auto">
+              <PanaceaFooter backgroundColor="var(--template-secondary)" logoSize={60} />
             </div>
           )}
         </div>
-      </TemplateStyleProvider>
+
+        {/* Navigation */}
+        {!hideInternalNavigation && (
+          <div className="bg-background border-t" style={{ maxWidth: 'var(--device-width-px, 390px)', margin: '0 auto', width: '100%' }}>
+            <div className="p-4 flex justify-between">
+              <Button
+                variant="outline"
+                onClick={() => setCurrentPageIndex(Math.max(0, currentPageIndex - 1))}
+                disabled={currentPageIndex === 0}
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Previous
+              </Button>
+              <Button
+                onClick={() => setCurrentPageIndex(Math.min(pages.length - 1, currentPageIndex + 1))}
+                disabled={currentPageIndex === pages.length - 1}
+              >
+                Next
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
     );
   };
 
@@ -837,9 +830,17 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
     );
   }
 
-  // If templateData is provided or flow has template structure, use template flow
+  // Main template flow rendering - now wrapped with FlowStyleShell
   if (templateData || (flow?.flow_config?.pages && pages.length > 0)) {
-    return renderTemplateFlow();
+    return (
+      <FlowStyleShell
+        campaign={campaign}
+        flow={flow}
+        templateId={designTemplate?.id || flow?.flow_config?.design_template_id || flow?.flow_config?.templateId || 'classic'}
+      >
+        {renderTemplateFlow()}
+      </FlowStyleShell>
+    );
   }
 
   // Check if this is a section-based flow
@@ -908,57 +909,64 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
   return (
     <FlowStyleShell
       campaign={campaign}
-      templateId="classic"
+      flow={flow}
+      templateId={designTemplate?.id || flow?.flow_config?.design_template_id || flow?.flow_config?.templateId || 'classic'}
     >
-      <div className="min-h-screen bg-background">
-        {/* Progress Bar */}
-        <div className="bg-card border-b">
-          <div className="max-w-sm mx-auto px-4 py-3">
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-xs text-muted-foreground">Step {currentStage + 1} of {stages.length}</span>
-              <span className="text-xs text-muted-foreground">{Math.round(((currentStage + 1) / stages.length) * 100)}%</span>
+      <div className="min-h-screen bg-background flex flex-col"
+        style={{ '--device-width-px': '390px' } as React.CSSProperties}
+      >
+        {/* Legacy flow rendering */}
+        {renderStageContent() && (
+          <div className="flex-1 flex flex-col">
+            {/* Progress Bar */}
+            <div className="bg-card border-b">
+              <div className="max-w-sm mx-auto px-4 py-3">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-xs text-muted-foreground">Step {currentStage + 1} of {stages.length}</span>
+                  <span className="text-xs text-muted-foreground">{Math.round(((currentStage + 1) / stages.length) * 100)}%</span>
+                </div>
+                <div className="w-full bg-muted rounded-full h-2">
+                  <div 
+                    className="bg-primary h-2 rounded-full transition-all duration-300"
+                    style={{ width: `${((currentStage + 1) / stages.length) * 100}%` }}
+                  ></div>
+                </div>
+              </div>
             </div>
-            <div className="w-full bg-muted rounded-full h-2">
-              <div 
-                className="bg-primary h-2 rounded-full transition-all duration-300"
-                style={{ width: `${((currentStage + 1) / stages.length) * 100}%` }}
-              ></div>
+
+            {/* Main Content */}
+            <div className="max-w-sm mx-auto px-4 py-6">
+              <div className="mb-8">
+                {renderStageContent()}
+              </div>
+
+              {/* Navigation Buttons */}
+              <div className="flex gap-3">
+                {currentStage > 0 && currentStage < 4 && (
+                  <Button 
+                    variant="outline" 
+                    onClick={prevStage}
+                    className="flex-1"
+                  >
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    Back
+                  </Button>
+                )}
+                
+                {currentStage < 4 && currentStage !== 3 && (
+                  <Button 
+                    onClick={nextStage}
+                    className="flex-1"
+                    disabled={currentStage === 1 && (!userInputs.purchaseChannel || !userInputs.selectedStore)}
+                  >
+                    Continue
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-
-        {/* Main Content */}
-        <div className="max-w-sm mx-auto px-4 py-6">
-          <div className="mb-8">
-            {renderStageContent()}
-          </div>
-
-          {/* Navigation Buttons */}
-          <div className="flex gap-3">
-            {currentStage > 0 && currentStage < 4 && (
-              <Button 
-                variant="outline" 
-                onClick={prevStage}
-                className="flex-1"
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back
-              </Button>
-            )}
-            
-            {currentStage < 4 && currentStage !== 3 && (
-              <Button 
-                onClick={nextStage}
-                className="flex-1"
-                disabled={currentStage === 1 && (!userInputs.purchaseChannel || !userInputs.selectedStore)}
-              >
-                Continue
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-            )}
-          </div>
-          
-        </div>
+        )}
       </div>
     </FlowStyleShell>
   );
