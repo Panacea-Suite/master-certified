@@ -131,16 +131,49 @@ const CampaignFlowsView: React.FC<{ campaign: Campaign; onBack: () => void }> = 
         }
       }
 
-      const updatedFlow = { 
-        ...flow, 
-        ...updated, 
-        published_snapshot: flowSnapshot,
-        latest_published_version: (flow.latest_published_version || 0) + 1
-      };
-      setFlow(updatedFlow);
-      
-      console.log('🔍 Flow saved successfully with published_snapshot');
-      toast({ title: 'Saved & Published', description: 'Flow is now live for customers' });
+        // VERIFICATION STEP: Re-fetch the flow to confirm persistence
+        console.log('🔍 CampaignManager: Verifying save by re-fetching flow...');
+        const { data: verificationFlow, error: fetchError } = await supabase
+          .from('flows')
+          .select('id, flow_config, published_snapshot, latest_published_version, campaign_id')
+          .eq('id', flow.id)
+          .single();
+
+        if (fetchError) {
+          console.error('🔍 CampaignManager: Error verifying save:', fetchError);
+          throw new Error('Save verification failed: ' + fetchError.message);
+        }
+
+        // Verify flow_config.pages structure with safe type casting
+        const verifiedFlowConfig = verificationFlow.flow_config as any;
+        const savedPages = (verifiedFlowConfig && Array.isArray(verifiedFlowConfig.pages)) ? verifiedFlowConfig.pages : [];
+        const totalSections = savedPages.reduce((total: number, page: any) => {
+          return total + (page.sections?.length || 0);
+        }, 0);
+
+        console.log('🔍 CampaignManager: Save verification results:', {
+          flowId: verificationFlow.id,
+          campaignId: verificationFlow.campaign_id,
+          pagesCount: savedPages.length,
+          totalSections: totalSections,
+          hasPublishedSnapshot: !!verificationFlow.published_snapshot,
+          latestVersion: verificationFlow.latest_published_version
+        });
+
+        if (savedPages.length === 0) {
+          throw new Error('Save verification failed: No pages found in saved flow_config');
+        }
+
+        const updatedFlow = { 
+          ...flow, 
+          ...updated, 
+          published_snapshot: flowSnapshot,
+          latest_published_version: (flow.latest_published_version || 0) + 1
+        };
+        setFlow(updatedFlow);
+        
+        console.log('🔍 CampaignManager: Flow saved and verified successfully');
+        toast({ title: 'Saved & Published', description: `✅ ${savedPages.length} pages, ${totalSections} sections. Flow is now live!` });
     } catch (e: any) {
       console.error('🔍 Error saving flow:', e);
       toast({ title: 'Error', description: e.message || 'Failed to save flow', variant: 'destructive' });

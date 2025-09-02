@@ -698,7 +698,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
         // Updating existing flow - automatically publish
         console.log('🔍 FlowEditor: Updating existing flow:', templateToEdit.id);
         
-        const { error } = await supabase
+        const { error: updateError } = await supabase
           .from('flows')
           .update({
             name: flowName,
@@ -708,17 +708,24 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
           })
           .eq('id', templateToEdit.id);
 
-        if (error) throw error;
+        if (updateError) {
+          console.error('🔍 FlowEditor: Error updating flow:', updateError);
+          throw updateError;
+        }
 
         // Create/update flow_content records for each page
         if (pages.length > 0) {
           console.log('🔍 FlowEditor: Creating flow_content records for', pages.length, 'pages');
           
           // Delete existing flow_content records
-          await supabase
+          const { error: deleteError } = await supabase
             .from('flow_content')
             .delete()
             .eq('flow_id', templateToEdit.id);
+            
+          if (deleteError) {
+            console.warn('🔍 FlowEditor: Error deleting old flow_content:', deleteError);
+          }
 
           // Insert new flow_content records
           const contentRecords = pages.map((page, index) => ({
@@ -741,8 +748,41 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
           }
         }
 
-        console.log('🔍 FlowEditor: Flow saved and published successfully');
-        toast.success('Flow saved and published! Changes are now live.');
+        // VERIFICATION STEP: Re-fetch the flow to confirm persistence
+        console.log('🔍 FlowEditor: Verifying save by re-fetching flow...');
+        const { data: verificationFlow, error: fetchError } = await supabase
+          .from('flows')
+          .select('id, flow_config, published_snapshot, latest_published_version, campaign_id')
+          .eq('id', templateToEdit.id)
+          .single();
+
+        if (fetchError) {
+          console.error('🔍 FlowEditor: Error verifying save:', fetchError);
+          throw new Error('Save verification failed: ' + fetchError.message);
+        }
+
+        // Verify flow_config.pages structure with safe type casting
+        const verifiedFlowConfig = verificationFlow.flow_config as any;
+        const savedPages = (verifiedFlowConfig && Array.isArray(verifiedFlowConfig.pages)) ? verifiedFlowConfig.pages : [];
+        const totalSections = savedPages.reduce((total: number, page: any) => {
+          return total + (page.sections?.length || 0);
+        }, 0);
+
+        console.log('🔍 FlowEditor: Save verification results:', {
+          flowId: verificationFlow.id,
+          campaignId: verificationFlow.campaign_id,
+          pagesCount: savedPages.length,
+          totalSections: totalSections,
+          hasPublishedSnapshot: !!verificationFlow.published_snapshot,
+          latestVersion: verificationFlow.latest_published_version
+        });
+
+        if (savedPages.length === 0) {
+          throw new Error('Save verification failed: No pages found in saved flow_config');
+        }
+
+        console.log('🔍 FlowEditor: Flow saved and verified successfully');
+        toast.success(`Flow saved & published! ✅ ${savedPages.length} pages, ${totalSections} sections. Changes are now live.`);
         onClose();
       } else {
         // Creating new template - save to database and return data
@@ -759,18 +799,53 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
         };
 
         // Save as template in database
-        const { data: savedTemplate, error } = await supabase
+        const { data: savedTemplate, error: insertError } = await supabase
           .from('flows')
           .insert([newTemplate])
           .select()
           .single();
 
-        if (error) throw error;
+        if (insertError) {
+          console.error('🔍 FlowEditor: Error creating template:', insertError);
+          throw insertError;
+        }
 
-        console.log('🔍 FlowEditor: Template saved successfully');
-        toast.success('Flow saved as template!');
+        // VERIFICATION STEP: Re-fetch the template to confirm persistence
+        console.log('🔍 FlowEditor: Verifying template save by re-fetching...');
+        const { data: verificationFlow, error: fetchError } = await supabase
+          .from('flows')
+          .select('id, flow_config, is_template, name')
+          .eq('id', savedTemplate.id)
+          .single();
+
+        if (fetchError) {
+          console.error('🔍 FlowEditor: Error verifying template save:', fetchError);
+          throw new Error('Template save verification failed: ' + fetchError.message);
+        }
+
+        // Verify flow_config.pages structure with safe type casting
+        const verifiedFlowConfig = verificationFlow.flow_config as any;
+        const savedPages = (verifiedFlowConfig && Array.isArray(verifiedFlowConfig.pages)) ? verifiedFlowConfig.pages : [];
+        const totalSections = savedPages.reduce((total: number, page: any) => {
+          return total + (page.sections?.length || 0);
+        }, 0);
+
+        console.log('🔍 FlowEditor: Template save verification results:', {
+          templateId: verificationFlow.id,
+          templateName: verificationFlow.name,
+          pagesCount: savedPages.length,
+          totalSections: totalSections,
+          isTemplate: verificationFlow.is_template
+        });
+
+        if (savedPages.length === 0) {
+          throw new Error('Template save verification failed: No pages found in saved flow_config');
+        }
+
+        console.log('🔍 FlowEditor: Template saved and verified successfully');
+        toast.success(`Template saved! ✅ ${savedPages.length} pages, ${totalSections} sections created.`);
         
-        // Return the saved template data to the parent
+        // Return the verified template data to the parent
         onSave(savedTemplate);
       }
     } catch (error) {

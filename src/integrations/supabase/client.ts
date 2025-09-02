@@ -8,10 +8,19 @@ const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiO
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
+// Create client with consistent headers for edge function compatibility
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   auth: {
     storage: localStorage,
     persistSession: true,
     autoRefreshToken: true,
+  },
+  global: {
+    headers: {
+      // Ensure consistent branch/environment headers with edge functions
+      ...(typeof window !== 'undefined' && window.location.search.includes('branch=') && {
+        'x-supabase-branch': new URLSearchParams(window.location.search).get('branch') || ''
+      })
+    }
   }
 });
