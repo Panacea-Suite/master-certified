@@ -1,41 +1,68 @@
 import React, { useEffect, useState } from 'react';
-import { useSearchParams, useParams } from 'react-router-dom';
+import { useSearchParams, useParams, useLocation } from 'react-router-dom';
 import CustomerFlowExperience from '@/components/CustomerFlowExperience';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useHashSafeSearchParams } from '@/hooks/useHashSafeSearchParams';
+import { DebugBox } from '@/components/DebugBox';
 
 export const CustomerFlowRun: React.FC = () => {
-  const [searchParams] = useSearchParams();
-  const campaignId = searchParams.get('cid'); // Get campaign ID from query params
-  const qrId = searchParams.get('qr'); // Get QR ID from query params  
-  const token = searchParams.get('ct'); // Get customer access token from query params
+  const { cid: routeParamCid } = useParams();
+  const location = useLocation();
+  const qs = useHashSafeSearchParams();
+  
+  // Compute parameters with fallbacks
+  const cid = routeParamCid || qs.get('cid') || qs.get('campaign_id');
+  const qr = qs.get('qr');
+  const ct = qs.get('ct');
+  const debugFlow = qs.get('debugFlow') === '1';
+  
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
   const [flowData, setFlowData] = useState<any>(null);
   const [campaignData, setCampaignData] = useState<any>(null);
+  const [lastRequest, setLastRequest] = useState<any>(null);
+  const [lastError, setLastError] = useState<any>(null);
 
   useEffect(() => {
     const loadFlowData = async () => {
       try {
-        if (!campaignId) {
+        // Debug logging before any fetch
+        console.log('🔍 CustomerFlowRun Debug:', { cid, qr, ct, location });
+        
+        if (!cid) {
           throw new Error('Missing campaign ID (cid) in URL parameters');
         }
 
         // Validate the customer access token if provided
-        if (token) {
-          const { data: isValid } = await supabase
+        if (ct) {
+          console.log('🔍 Validating token:', ct);
+          const tokenUrl = `validate_campaign_token(${cid}, ${ct})`;
+          setLastRequest({ url: tokenUrl, status: 0 });
+          
+          const { data: isValid, error: tokenError } = await supabase
             .rpc('validate_campaign_token', {
-              p_campaign_id: campaignId,
-              p_token: token
+              p_campaign_id: cid,
+              p_token: ct
             });
 
+          setLastRequest({ url: tokenUrl, status: tokenError ? 400 : 200, response: { isValid, error: tokenError } });
+
+          if (tokenError) {
+            throw new Error(`Token validation error: ${tokenError.message}`);
+          }
+          
           if (!isValid) {
             throw new Error('Invalid access token');
           }
         }
 
         // Fetch campaign and flow data
+        const campaignQuery = `campaigns?select=*,brands(*),flows(*)&eq.id=${cid}`;
+        console.log('🔍 Fetching campaign:', campaignQuery);
+        setLastRequest({ url: campaignQuery, status: 0 });
+        
         const { data: campaign, error: campaignError } = await supabase
           .from('campaigns')
           .select(`
@@ -43,37 +70,57 @@ export const CustomerFlowRun: React.FC = () => {
             brands (*),
             flows (*)
           `)
-          .eq('id', campaignId)
+          .eq('id', cid)
           .single();
 
+        setLastRequest({ 
+          url: campaignQuery, 
+          status: campaignError ? 400 : 200, 
+          response: campaignError ? { error: campaignError } : campaign 
+        });
+
         if (campaignError) {
-          throw new Error('Campaign not found');
+          console.error('🔍 Campaign fetch error:', campaignError);
+          throw new Error(`Campaign not found: ${campaignError.message}`);
         }
 
+        if (!campaign) {
+          console.error('🔍 Empty campaign response');
+          throw new Error('Campaign data is empty');
+        }
+
+        console.log('🔍 Campaign loaded:', campaign);
         setCampaignData(campaign);
         
         // Use the first flow from the campaign
         const flow = campaign.flows?.[0];
         if (flow) {
+          console.log('🔍 Flow loaded:', flow);
           setFlowData({
             ...flow,
             campaign,
-            qrId
+            qrId: qr
           });
         } else {
+          console.error('🔍 No flows in campaign:', campaign.flows);
           throw new Error('No flow found for this campaign');
         }
 
         setLoading(false);
       } catch (err) {
-        console.error('Error loading flow:', err);
-        setError(err instanceof Error ? err.message : 'Failed to load flow');
+        console.error('🔍 Error loading flow:', err);
+        const errorInfo = {
+          message: err instanceof Error ? err.message : 'Failed to load flow',
+          stack: err instanceof Error ? err.stack : undefined
+        };
+        setLastError(errorInfo);
+        setError(errorInfo.message);
         setLoading(false);
       }
     };
 
     loadFlowData();
-  }, [campaignId, qrId, token]); // Update dependencies
+  }, [cid, qr, ct]); // Update dependencies
 
   if (loading) {
     return (
@@ -123,6 +170,15 @@ export const CustomerFlowRun: React.FC = () => {
         brandData={campaignData?.brands}
         flowId={flowData.id}
         qrCode={flowData.qrId}
+      />
+      <DebugBox
+        cid={cid}
+        qr={qr}
+        ct={ct}
+        location={location}
+        lastRequest={lastRequest}
+        lastError={lastError}
+        visible={debugFlow}
       />
     </div>
   );
