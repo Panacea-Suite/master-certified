@@ -520,6 +520,10 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
     }
   }, [currentStage, currentPageIndex, pages, flow, campaign, templateData, stages.length]);
 
+  // Compute brand colors from style tokens - moved before any potential returns
+  const brandColors = styleTokens ? tokensToProviderFormat(styleTokens) : undefined;
+  const templateId = designTemplate?.id || flow?.flow_config?.design_template_id || flow?.flow_config?.templateId || 'classic';
+
   const renderTemplateFlow = () => {
     // Check for empty pages and render friendly message
     if (!pages || pages.length === 0) {
@@ -904,186 +908,165 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
     }
   };
 
-  // Show error state if there's an error
-  if (error) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-destructive">Error: {error}</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Compute brand colors from style tokens
-  const brandColors = styleTokens ? tokensToProviderFormat(styleTokens) : undefined;
-  const templateId = designTemplate?.id || flow?.flow_config?.design_template_id || flow?.flow_config?.templateId || 'classic';
-
-  // Main template flow rendering - wrapped with single TemplateStyleProvider
-  if (templateData || (flow?.flow_config?.pages && pages.length > 0)) {
-    return (
-      <TemplateStyleProvider
-        templateId={templateId}
-        brandColors={brandColors}
-      >
-        {renderTemplateFlow()}
-      </TemplateStyleProvider>
-    );
-  }
-
-  // Check if this is a section-based flow
-  const flowConfig = flow?.flow_config as any;
-  if (flowConfig?.sections) {
-    const sections = flowConfig.sections;
-    const backgroundColor = flowConfig?.theme?.backgroundColor || '#ffffff';
-    const globalHeader = flowConfig?.globalHeader || {
-      showHeader: true,
-      brandName: '',
-      logoUrl: '',
-      backgroundColor: '#3b82f6',
-      logoSize: 'medium'
-    };
-    
-    return (
-      <TemplateStyleProvider
-        templateId={flowConfig?.templateId || 'classic'}
-        brandColors={brandColors}
-      >
-        <div 
-          className="min-h-screen"
-          style={{ backgroundColor }}
-        >
-          {/* Global Header */}
-          {globalHeader.showHeader && (globalHeader.logoUrl || globalHeader.brandName) && (
-            <div 
-              className="sticky top-0 z-50 p-4 text-white text-center"
-              style={{ backgroundColor: globalHeader.backgroundColor }}
-            >
-              <div className="flex items-center justify-center gap-3">
-                {globalHeader.logoUrl && (
-                  <img 
-                    src={globalHeader.logoUrl} 
-                    alt="Brand Logo"
-                    className={`${
-                      globalHeader.logoSize === 'small' ? 'h-6' :
-                      globalHeader.logoSize === 'large' ? 'h-12' : 'h-8'
-                    } object-contain`}
-                  />
-                )}
-                {globalHeader.brandName && (
-                  <h1 className={`font-semibold ${
-                    globalHeader.logoSize === 'small' ? 'text-lg' :
-                    globalHeader.logoSize === 'large' ? 'text-2xl' : 'text-xl'
-                  }`}>
-                    {globalHeader.brandName}
-                  </h1>
-                )}
-              </div>
-            </div>
-          )}
-          
-          <div className="max-w-sm mx-auto px-4 py-6">
-            <div className="space-y-4">
-              {sections.map((section: any, idx: number) => {
-                // Trace logging when ?trace=1
-                const isTraceMode = new URLSearchParams(window.location.search).get('trace') === '1';
-                if (isTraceMode) {
-                  console.log('🔍 [TRACE] CustomerFlowExperience section-based flow:', {
-                    pagesLength: 0, // section-based flow has no pages
-                    currentPageIndex: 0,
-                    sectionsLength: sections.length,
-                    totalSections: sections.length
-                  });
-                  console.log(`🔍 [TRACE] Rendering SectionHost #${idx}:`, {
-                    sectionType: section.type,
-                    sectionId: section.id,
-                    sectionOrder: section.order
-                  });
-                }
-                
-                return (
-                  <SectionHost 
-                    section={section} 
-                    page={null} 
-                    styleTokens={styleTokens}
-                    campaign={campaign}
-                    userInputs={userInputs}
-                    setUserInputs={setUserInputs}
-                    key={section.id || `s-${idx}`} 
-                  />
-                );
-              })}
-            </div>
-            
-          </div>
-        </div>
-      </TemplateStyleProvider>
-    );
-  }
-
+  // Single TemplateStyleProvider wrapper for entire component
   return (
     <TemplateStyleProvider
       templateId={templateId}
       brandColors={brandColors}
     >
-      <div className="min-h-screen bg-background flex flex-col"
-        style={{ '--device-width-px': '390px' } as React.CSSProperties}
-      >
-        {/* Legacy flow rendering */}
-        {renderStageContent() && (
-          <div className="flex-1 flex flex-col">
-            {/* Progress Bar */}
-            <div className="bg-card border-b">
-              <div className="max-w-sm mx-auto px-4 py-3">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-xs text-muted-foreground">Step {currentStage + 1} of {stages.length}</span>
-                  <span className="text-xs text-muted-foreground">{Math.round(((currentStage + 1) / stages.length) * 100)}%</span>
-                </div>
-                <div className="w-full bg-muted rounded-full h-2">
-                  <div 
-                    className="bg-primary h-2 rounded-full transition-all duration-300"
-                    style={{ width: `${((currentStage + 1) / stages.length) * 100}%` }}
-                  ></div>
-                </div>
-              </div>
-            </div>
+      {(() => {
+        // Main template flow rendering
+        if (templateData || (flow?.flow_config?.pages && pages.length > 0)) {
+          return renderTemplateFlow();
+        }
 
-            {/* Main Content */}
-            <div className="max-w-sm mx-auto px-4 py-6">
-              <div className="mb-8">
-                {renderStageContent()}
-              </div>
-
-              {/* Navigation Buttons */}
-              <div className="flex gap-3">
-                {currentStage > 0 && currentStage < 4 && (
-                  <Button 
-                    variant="outline" 
-                    onClick={prevStage}
-                    className="flex-1"
-                  >
-                    <ArrowLeft className="w-4 h-4 mr-2" />
-                    Back
-                  </Button>
-                )}
+        // Check if this is a section-based flow
+        const flowConfig = flow?.flow_config as any;
+        if (flowConfig?.sections) {
+          const sections = flowConfig.sections;
+          const backgroundColor = flowConfig?.theme?.backgroundColor || '#ffffff';
+          const globalHeader = flowConfig?.globalHeader || {
+            showHeader: true,
+            brandName: '',
+            logoUrl: '',
+            backgroundColor: '#3b82f6',
+            logoSize: 'medium'
+          };
+          
+          return (
+            <div 
+              className="min-h-screen"
+              style={{ backgroundColor }}
+            >
+              {/* Global Header */}
+              {globalHeader.showHeader && (globalHeader.logoUrl || globalHeader.brandName) && (
+                <div 
+                  className="sticky top-0 z-50 p-4 text-white text-center"
+                  style={{ backgroundColor: globalHeader.backgroundColor }}
+                >
+                  <div className="flex items-center justify-center gap-3">
+                    {globalHeader.logoUrl && (
+                      <img 
+                        src={globalHeader.logoUrl} 
+                        alt="Brand Logo"
+                        className={`${
+                          globalHeader.logoSize === 'small' ? 'h-6' :
+                          globalHeader.logoSize === 'large' ? 'h-12' : 'h-8'
+                        } object-contain`}
+                      />
+                    )}
+                    {globalHeader.brandName && (
+                      <h1 className={`font-semibold ${
+                        globalHeader.logoSize === 'small' ? 'text-lg' :
+                        globalHeader.logoSize === 'large' ? 'text-2xl' : 'text-xl'
+                      }`}>
+                        {globalHeader.brandName}
+                      </h1>
+                    )}
+                  </div>
+                </div>
+              )}
+              
+              <div className="max-w-sm mx-auto px-4 py-6">
+                <div className="space-y-4">
+                  {sections.map((section: any, idx: number) => {
+                    // Trace logging when ?trace=1
+                    const isTraceMode = new URLSearchParams(window.location.search).get('trace') === '1';
+                    if (isTraceMode) {
+                      console.log('🔍 [TRACE] CustomerFlowExperience section-based flow:', {
+                        pagesLength: 0, // section-based flow has no pages
+                        currentPageIndex: 0,
+                        sectionsLength: sections.length,
+                        totalSections: sections.length
+                      });
+                      console.log(`🔍 [TRACE] Rendering SectionHost #${idx}:`, {
+                        sectionType: section.type,
+                        sectionId: section.id,
+                        sectionOrder: section.order
+                      });
+                    }
+                    
+                    return (
+                      <SectionHost 
+                        section={section} 
+                        page={null} 
+                        styleTokens={styleTokens}
+                        campaign={campaign}
+                        userInputs={userInputs}
+                        setUserInputs={setUserInputs}
+                        key={section.id || `s-${idx}`} 
+                      />
+                    );
+                  })}
+                </div>
                 
-                {currentStage < 4 && currentStage !== 3 && (
-                  <Button 
-                    onClick={nextStage}
-                    className="flex-1"
-                    disabled={currentStage === 1 && (!userInputs.purchaseChannel || !userInputs.selectedStore)}
-                  >
-                    Continue
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </Button>
-                )}
               </div>
             </div>
+          );
+        }
+
+        // Legacy flow rendering
+        return (
+          <div className="min-h-screen bg-background flex flex-col"
+            style={{ '--device-width-px': '390px' } as React.CSSProperties}
+          >
+            {/* Legacy flow rendering */}
+            {renderStageContent() && (
+              <div className="flex-1 flex flex-col">
+                {/* Progress Bar */}
+                <div className="bg-card border-b">
+                  <div className="max-w-sm mx-auto px-4 py-3">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-xs text-muted-foreground">Step {currentStage + 1} of {stages.length}</span>
+                      <span className="text-xs text-muted-foreground">{Math.round(((currentStage + 1) / stages.length) * 100)}%</span>
+                    </div>
+                    <div className="w-full bg-muted rounded-full h-2">
+                      <div 
+                        className="bg-primary h-2 rounded-full transition-all duration-300"
+                        style={{ width: `${((currentStage + 1) / stages.length) * 100}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Main Content */}
+                <div className="max-w-sm mx-auto px-4 py-6">
+                  <div className="mb-8">
+                    {renderStageContent()}
+                  </div>
+
+                  {/* Navigation Buttons */}
+                  <div className="flex gap-3">
+                    {currentStage > 0 && currentStage < 4 && (
+                      <Button 
+                        variant="outline" 
+                        onClick={prevStage}
+                        className="flex-1"
+                      >
+                        <ArrowLeft className="w-4 h-4 mr-2" />
+                        Back
+                      </Button>
+                    )}
+                    
+                    {currentStage < 4 && currentStage !== 3 && (
+                      <Button 
+                        onClick={nextStage}
+                        className="flex-1"
+                        disabled={currentStage === 1 && (!userInputs.purchaseChannel || !userInputs.selectedStore)}
+                      >
+                        Continue
+                        <ArrowRight className="w-4 h-4 ml-2" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        );
+      })()}
     </TemplateStyleProvider>
   );
-};
+ };
 
-export default CustomerFlowExperience;
+ export default CustomerFlowExperience;
