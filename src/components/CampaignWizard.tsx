@@ -200,7 +200,7 @@ const CampaignWizard = ({ currentBrand, onComplete, onCancel }: CampaignWizardPr
         version: 1
       };
 
-      console.log('🔍 CampaignWizard: Creating flow with published_snapshot');
+      console.log('🔍 CampaignWizard: Creating campaign flow (not template)');
       const { data: flowData, error: flowError } = await supabase
         .from('flows')
         .insert([{
@@ -209,7 +209,8 @@ const CampaignWizard = ({ currentBrand, onComplete, onCancel }: CampaignWizardPr
           base_url: `${window.location.origin}/flow/${campaignData.id}`,
           flow_config: flowConfig,
           published_snapshot: publishedSnapshot,
-          latest_published_version: 1
+          latest_published_version: 1,
+          is_template: false // Explicitly set as campaign flow
         }])
         .select()
         .single();

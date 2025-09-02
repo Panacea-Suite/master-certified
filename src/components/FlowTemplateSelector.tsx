@@ -18,6 +18,15 @@ interface FlowTemplate {
   created_by: string | null;
 }
 
+interface SystemTemplate {
+  id: string;
+  name: string;
+  description?: string;
+  content: any;
+  kind: 'system' | 'brand';
+  status: 'draft' | 'published' | 'deprecated';
+}
+
 interface FlowTemplateSelectorProps {
   onSelectTemplate: (template: FlowTemplateData | FlowTemplate | null) => void;
   onClose: () => void;
@@ -59,16 +68,25 @@ export const FlowTemplateSelector: React.FC<FlowTemplateSelectorProps> = ({
     try {
       setIsLoading(true);
       
-      // Fetch system templates (created_by is null)
-      const { data: systemTemplates, error: systemError } = await supabase
-        .from('flows')
+      // Fetch system templates from templates table (published system templates)
+      const { data: systemTemplatesData, error: systemError } = await supabase
+        .from('templates')
         .select('*')
-        .eq('is_template', true)
-        .is('created_by', null);
+        .eq('kind', 'system')
+        .eq('status', 'published');
 
       if (systemError) throw systemError;
 
-      // Fetch user templates (created by current user)
+      // Convert templates table format to FlowTemplate format
+      const systemTemplates = (systemTemplatesData || []).map(template => ({
+        id: template.id,
+        name: template.name,
+        template_category: 'certification', // Default category for system templates
+        flow_config: template.content,
+        created_by: null
+      }));
+
+      // Fetch user templates (created by current user from flows table)
       const { data: { user } } = await supabase.auth.getUser();
       let customTemplates: FlowTemplate[] = [];
       
@@ -83,7 +101,7 @@ export const FlowTemplateSelector: React.FC<FlowTemplateSelectorProps> = ({
         customTemplates = customTemplatesData || [];
       }
 
-      setTemplates(systemTemplates || []);
+      setTemplates(systemTemplates);
       setUserTemplates(customTemplates);
     } catch (error) {
       console.error('Error fetching templates:', error);

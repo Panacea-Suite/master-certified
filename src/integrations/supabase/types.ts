@@ -697,6 +697,15 @@ export type Database = {
         Args: { tpl_id: string }
         Returns: Json
       }
+      apply_flow_template_to_campaign: {
+        Args: {
+          p_campaign_id: string
+          p_created_by?: string
+          p_flow_name: string
+          p_template_id: string
+        }
+        Returns: Json
+      }
       brand_fork_system_template: {
         Args: { system_tpl_id: string; target_brand_id: string }
         Returns: Json
