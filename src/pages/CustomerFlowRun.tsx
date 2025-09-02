@@ -19,6 +19,7 @@ export const CustomerFlowRun: React.FC = () => {
   const ct = getHashSafeParam('ct', location);
   const debugFlow = getHashSafeParam('debugFlow', location) === '1';
   const trace = getHashSafeParam('trace', location) === '1';
+  const useDraft = getHashSafeParam('useDraft', location) === '1';
   
   // Add trace logging for cid parsing
   if (trace && cid) {
@@ -158,11 +159,11 @@ export const CustomerFlowRun: React.FC = () => {
           });
         }
         
-        // Load flow using runtime hardened loader with trace logging
-        console.log('🔍 Loading flow for campaign:', cid);
+        // Load flow using runtime hardened loader with trace logging and draft override
+        console.log('🔍 Loading flow for campaign:', cid, useDraft ? '(forcing draft mode)' : '');
         let flowResult;
         try {
-          flowResult = await loadFlowForCampaign(cid, debugFlow, trace);
+          flowResult = await loadFlowForCampaign(cid, debugFlow, trace, useDraft);
         } catch (flowError: any) {
           // Enhanced trace logging for flow loading errors
           if (trace) {
@@ -271,7 +272,7 @@ export const CustomerFlowRun: React.FC = () => {
     };
 
     loadFlowData();
-  }, [cid, qr, ct]); // Update dependencies
+  }, [cid, qr, ct, useDraft]); // Update dependencies
 
   if (loading) {
     return (
@@ -328,7 +329,7 @@ export const CustomerFlowRun: React.FC = () => {
       {/* Trace mode debug pill */}
       {trace && (
         <div className="fixed bottom-4 left-4 bg-primary text-primary-foreground px-3 py-2 rounded-full text-xs font-mono shadow-lg z-50">
-          Pages: {debugState.pagesLength} | Mode: {debugState.flowMode}
+          Pages: {debugState.pagesLength} | Mode: {debugState.flowMode} {useDraft ? '| DRAFT FORCED' : ''}
         </div>
       )}
       

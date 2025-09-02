@@ -1,10 +1,10 @@
 import { supabase } from '@/integrations/supabase/client';
 
-export async function loadFlowForCampaign(campaignId: string, debug = false, trace = false) {
-  console.log('🔍 loadFlowForCampaign: Loading flow for campaign:', campaignId);
+export async function loadFlowForCampaign(campaignId: string, debug = false, trace = false, forceDraft = false) {
+  console.log('🔍 loadFlowForCampaign: Loading flow for campaign:', campaignId, forceDraft ? '(forcing draft)' : '');
   
   if (debug) {
-    console.log('🔍 DEBUG: Campaign ID resolved to:', campaignId);
+    console.log('🔍 DEBUG: Campaign ID resolved to:', campaignId, { forceDraft });
   }
   
   // Fetch the single flow row by campaign_id with specific fields for runtime
@@ -86,8 +86,24 @@ export async function loadFlowForCampaign(campaignId: string, debug = false, tra
   let payload: any = null;
   let mode = 'unknown';
 
-  // Build payload using precedence: published_snapshot first, then flow_config, then flow_content
-  if (flowRow.published_snapshot) {
+  // Build payload using precedence: forceDraft overrides, then published_snapshot, then flow_config, then flow_content
+  if (forceDraft) {
+    console.log('🔍 loadFlowForCampaign: Force draft mode enabled, prioritizing draft content');
+    if (flowRow.flow_config) {
+      console.log('🔍 loadFlowForCampaign: Using flow_config (forced draft mode)');
+      payload = flowRow.flow_config;
+      mode = 'draft-forced';
+    } else {
+      console.log('🔍 loadFlowForCampaign: No flow_config available for draft mode, falling back to published');
+      if (flowRow.published_snapshot) {
+        payload = flowRow.published_snapshot;
+        mode = 'published';
+      } else {
+        payload = null;
+        mode = 'empty';
+      }
+    }
+  } else if (flowRow.published_snapshot) {
     console.log('🔍 loadFlowForCampaign: Using published_snapshot');
     payload = flowRow.published_snapshot;
     mode = 'published';
