@@ -143,16 +143,17 @@ const TemplateManager: React.FC = () => {
       let flowConfig: any;
       
       if ('pages' in template) {
-        // System template from flowTemplates.ts
+        // System template from templates table
         flowConfig = {
           pages: template.pages,
           designConfig: template.designConfig
         };
       } else {
-        // User template or database template
+        // Brand template - clone for campaign use
         flowConfig = template.flow_config;
       }
 
+      // This will create an independent campaign flow (clones the template)
       await createFlowAtomic(
         `${template.name} Flow`,
         brandData.id,
@@ -162,7 +163,7 @@ const TemplateManager: React.FC = () => {
 
       toast({
         title: "Success",
-        description: "Flow created from template successfully",
+        description: "Independent campaign flow created from template successfully",
       });
     } catch (error) {
       console.error('Error creating flow from template:', error);
@@ -176,7 +177,65 @@ const TemplateManager: React.FC = () => {
 
   const handleEditAsNew = async (template: SystemTemplate | UserTemplate) => {
     try {
-      // Fetch user's brand data first
+      // System templates must be cloned to brand templates
+      if ('pages' in template) {
+        // This is a system template - clone it first
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          toast({
+            title: "Authentication Error",
+            description: "You must be logged in to edit templates",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        const { data: brandData } = await supabase
+          .from('brands')
+          .select('id')
+          .eq('user_id', user.id)
+          .limit(1)
+          .single();
+
+        if (!brandData) {
+          toast({
+            title: "No Brand Found",
+            description: "Please create a brand first before editing system templates",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        // Clone system template from templates table
+        const { data: cloneResult, error: cloneError } = await supabase
+          .from('templates')
+          .insert({
+            kind: 'brand',
+            status: 'draft',
+            name: `${template.name} (Copy)`,
+            description: template.description,
+            created_by: user.id,
+            brand_id: brandData.id,
+            base_template_id: template.id,
+            schema: { pages: template.pages, designConfig: template.designConfig },
+            content: { pages: template.pages, designConfig: template.designConfig }
+          })
+          .select()
+          .single();
+
+        if (cloneError) throw cloneError;
+
+        toast({
+          title: "Template Cloned",
+          description: `System template "${template.name}" has been cloned to your brand templates for editing`,
+        });
+
+        // Refresh templates to show the new brand template
+        await loadTemplates();
+        return;
+      }
+
+      // Brand template - can be edited directly
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         toast({
@@ -448,7 +507,7 @@ const TemplateManager: React.FC = () => {
             className="flex-1 min-w-[120px] px-3 py-2"
           >
             <Edit3 className="h-4 w-4 mr-2" />
-            Edit Template
+            {('pages' in template) ? 'Clone & Edit' : 'Edit Template'}
           </Button>
 
             {profile?.role === 'master_admin' && !isUserTemplate && (

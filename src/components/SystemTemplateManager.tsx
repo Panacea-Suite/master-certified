@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Plus, Edit, Eye, Trash2, Send, Copy, Users } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 import { useTemplateManager, SystemTemplate, Brand } from '@/hooks/useTemplateManager';
 import { FlowEditor } from '@/components/FlowEditor';
 import { FLOW_TEMPLATES } from '@/data/flowTemplates';
@@ -69,9 +70,50 @@ export const SystemTemplateManager: React.FC = () => {
     }
   };
 
-  const handleEditTemplate = (template: SystemTemplate) => {
-    setSelectedTemplate(template);
-    setIsEditorOpen(true);
+  const handleEditTemplate = async (template: SystemTemplate) => {
+    // System templates should be cloned to brand templates for editing
+    if (template.kind === 'system') {
+      try {
+        // Get user's first brand
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          toast.error('You must be logged in to edit templates');
+          return;
+        }
+
+        const { data: brandData } = await supabase
+          .from('brands')
+          .select('id')
+          .eq('user_id', user.id)
+          .limit(1)
+          .single();
+
+        if (!brandData) {
+          toast.error('Please create a brand first before editing system templates');
+          return;
+        }
+
+        // Fork the system template to a brand template
+        const result = await supabase.rpc('brand_fork_system_template', {
+          system_tpl_id: template.id,
+          target_brand_id: brandData.id
+        });
+
+        if (result.error) throw result.error;
+
+        toast.success(`System template "${template.name}" cloned to your brand templates for editing`);
+        
+        // Reload templates to show the new brand template
+        await loadSystemTemplates();
+      } catch (error: any) {
+        console.error('Error cloning system template:', error);
+        toast.error('Failed to clone system template for editing');
+      }
+    } else {
+      // Brand templates can be edited directly
+      setSelectedTemplate(template);
+      setIsEditorOpen(true);
+    }
   };
 
   const handleSaveTemplate = async (templateData: any) => {
@@ -262,8 +304,8 @@ export const SystemTemplateManager: React.FC = () => {
                       size="sm"
                       onClick={() => handleEditTemplate(template)}
                     >
-                      <Edit className="w-4 h-4 mr-1" />
-                      Edit
+                      <Copy className="w-4 h-4 mr-1" />
+                      Clone & Edit
                     </Button>
                     <Button
                       variant="default"
@@ -309,8 +351,8 @@ export const SystemTemplateManager: React.FC = () => {
                       size="sm"
                       onClick={() => handleEditTemplate(template)}
                     >
-                      <Eye className="w-4 h-4 mr-1" />
-                      View
+                      <Copy className="w-4 h-4 mr-1" />
+                      Clone & Edit
                     </Button>
                     <Button
                       variant="outline"
@@ -355,8 +397,8 @@ export const SystemTemplateManager: React.FC = () => {
                       size="sm"
                       onClick={() => handleEditTemplate(template)}
                     >
-                      <Eye className="w-4 h-4 mr-1" />
-                      View
+                      <Copy className="w-4 h-4 mr-1" />
+                      Clone & Edit
                     </Button>
                     <Button
                       variant="destructive"
