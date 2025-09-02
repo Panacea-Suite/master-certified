@@ -1,22 +1,22 @@
 import React, { useEffect, useState } from 'react';
-import { useSearchParams, useParams, useLocation } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom';
 import CustomerFlowExperience from '@/components/CustomerFlowExperience';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { useHashSafeSearchParams } from '@/hooks/useHashSafeSearchParams';
+import { loadFlowForCampaign } from '@/runtime/loadFlow';
+import { getHashSafeParam } from '@/lib/hashParams';
 import { DebugBox } from '@/components/DebugBox';
 
 export const CustomerFlowRun: React.FC = () => {
   const { cid: routeParamCid } = useParams();
   const location = useLocation();
-  const qs = useHashSafeSearchParams();
   
-  // Compute parameters with fallbacks
-  const cid = routeParamCid || qs.get('cid') || qs.get('campaign_id');
-  const qr = qs.get('qr');
-  const ct = qs.get('ct');
-  const debugFlow = qs.get('debugFlow') === '1';
+  // Extract parameters from both search and hash with fallbacks
+  const cid = routeParamCid || getHashSafeParam('cid', location) || getHashSafeParam('campaign_id', location);
+  const qr = getHashSafeParam('qr', location);
+  const ct = getHashSafeParam('ct', location);
+  const debugFlow = getHashSafeParam('debugFlow', location) === '1';
   
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
@@ -58,18 +58,14 @@ export const CustomerFlowRun: React.FC = () => {
           }
         }
 
-        // Fetch campaign and flow data
-        const campaignQuery = `campaigns?select=*,brands(*),flows(*)&eq.id=${cid}`;
+        // Fetch campaign data
+        const campaignQuery = `campaigns?select=*,brands(*)&eq.id=${cid}`;
         console.log('🔍 Fetching campaign:', campaignQuery);
         setLastRequest({ url: campaignQuery, status: 0 });
         
         const { data: campaign, error: campaignError } = await supabase
           .from('campaigns')
-          .select(`
-            *,
-            brands (*),
-            flows (*)
-          `)
+          .select('*, brands (*)')
           .eq('id', cid)
           .single();
 
@@ -92,19 +88,22 @@ export const CustomerFlowRun: React.FC = () => {
         console.log('🔍 Campaign loaded:', campaign);
         setCampaignData(campaign);
         
-        // Use the first flow from the campaign
-        const flow = campaign.flows?.[0];
-        if (flow) {
-          console.log('🔍 Flow loaded:', flow);
-          setFlowData({
-            ...flow,
-            campaign,
-            qrId: qr
-          });
-        } else {
-          console.error('🔍 No flows in campaign:', campaign.flows);
-          throw new Error('No flow found for this campaign');
-        }
+        // Load flow using runtime hardened loader
+        console.log('🔍 Loading flow for campaign:', cid);
+        const flowResult = await loadFlowForCampaign(cid);
+        console.log('🔍 Flow result:', flowResult);
+
+        // Create flow data with proper structure
+        const flowData = {
+          id: 'flow-' + cid, // Temp ID for flow data
+          name: campaign.name + ' Flow',
+          flow_config: flowResult.flow, // This contains either published_snapshot or draft pages
+          campaign,
+          qrId: qr,
+          mode: flowResult.mode
+        };
+
+        setFlowData(flowData);
 
         setLoading(false);
       } catch (err) {
