@@ -563,14 +563,57 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
   const templateId = designTemplate?.id || flow?.flow_config?.design_template_id || flow?.flow_config?.templateId || 'classic';
 
   const renderTemplateFlow = () => {
+    // Trace logging when ?trace=1 - moved to top for comprehensive coverage
+    const isTraceMode = new URLSearchParams(window.location.search).get('trace') === '1';
+    
+    if (isTraceMode) {
+      console.log('🔍 [TRACE] CustomerFlowExperience.renderTemplateFlow() START:', {
+        timestamp: new Date().toISOString(),
+        pagesTotal: pages.length,
+        currentPageIndex: externalPageIndex ?? currentPageIndex,
+        externalPageIndex,
+        internalPageIndex: currentPageIndex,
+        flowId: flow?.id,
+        campaignId: campaign?.id
+      });
+      
+      // Log each page and its sections
+      pages.forEach((page, pageIdx) => {
+        const sectionsCount = (page.sections || []).length;
+        console.log(`🔍 [TRACE] Page #${pageIdx}:`, {
+          pageId: page.id,
+          pageName: page.name,
+          sectionsCount,
+          isCurrentPage: pageIdx === (externalPageIndex ?? currentPageIndex)
+        });
+        
+        // Log sections for current page in detail
+        if (pageIdx === (externalPageIndex ?? currentPageIndex)) {
+          (page.sections || []).forEach((section, sectionIdx) => {
+            console.log(`🔍 [TRACE] Page #${pageIdx} Section #${sectionIdx}:`, {
+              sectionType: section?.type,
+              sectionId: section?.id,
+              sectionOrder: section?.order
+            });
+          });
+        }
+      });
+    }
+
     // Check for empty pages and render friendly message
     if (!pages || pages.length === 0) {
       const { mode } = processSafePages(flow?.flow_config || {}, 'template');
+      if (isTraceMode) {
+        console.log('🔍 [TRACE] No pages available, showing empty message');
+      }
       return renderEmptyPagesMessage(mode);
     }
 
     const currentPageData = pages[externalPageIndex ?? currentPageIndex];
     if (!currentPageData) {
+      if (isTraceMode) {
+        console.log('🔍 [TRACE] Current page data not found');
+      }
       return (
         <div style={{ '--device-width-px': '390px' } as React.CSSProperties}>
           <div className="text-center p-8">
@@ -585,15 +628,17 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
 
     const safeSections = useMemo(() => (currentPageData.sections || []).filter(Boolean).sort((a: any, b: any) => a.order - b.order), [currentPageData]);
 
-    // Trace logging when ?trace=1
-    const isTraceMode = new URLSearchParams(window.location.search).get('trace') === '1';
     if (isTraceMode) {
-      console.log('🔍 [TRACE] CustomerFlowExperience renderTemplateFlow:', {
-        pagesLength: pages.length,
-        currentPageIndex: externalPageIndex ?? currentPageIndex,
-        sectionsLength: safeSections.length,
+      console.log('🔍 [TRACE] About to render current page sections:', {
         currentPageId: currentPageData.id,
-        currentPageName: currentPageData.name
+        currentPageName: currentPageData.name,
+        rawSectionsLength: (currentPageData.sections || []).length,
+        safeSectionsLength: safeSections.length,
+        sectionsAfterFilter: safeSections.map(s => ({
+          type: s.type,
+          id: s.id,
+          order: s.order
+        }))
       });
     }
 
@@ -618,7 +663,8 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
                 console.log(`🔍 [TRACE] Rendering SectionHost #${idx}:`, {
                   sectionType: section.type,
                   sectionId: section.id,
-                  sectionOrder: section.order
+                  sectionOrder: section.order,
+                  renderTimestamp: new Date().toISOString()
                 });
               }
               
@@ -1008,19 +1054,29 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
               <div className="max-w-sm mx-auto px-4 py-6">
                 <div className="space-y-4">
                   {sections.filter(Boolean).map((section: any, idx: number) => {
-                    // Trace logging when ?trace=1
+                    // Trace logging when ?trace=1 - enhanced for section-based flow
                     const isTraceMode = new URLSearchParams(window.location.search).get('trace') === '1';
                     if (isTraceMode) {
-                      console.log('🔍 [TRACE] CustomerFlowExperience section-based flow:', {
-                        pagesLength: 0, // section-based flow has no pages
-                        currentPageIndex: 0,
-                        sectionsLength: sections.length,
-                        totalSections: sections.length
-                      });
-                      console.log(`🔍 [TRACE] Rendering SectionHost #${idx}:`, {
+                      // Only log overview once per render, not per section
+                      if (idx === 0) {
+                        console.log('🔍 [TRACE] CustomerFlowExperience section-based flow START:', {
+                          timestamp: new Date().toISOString(),
+                          pagesLength: 0, // section-based flow has no pages
+                          currentPageIndex: 0,
+                          sectionsLength: sections.length,
+                          sectionsAfterFilter: sections.filter(Boolean).map(s => ({
+                            type: s.type,
+                            id: s.id,
+                            order: s.order
+                          }))
+                        });
+                      }
+                      
+                      console.log(`🔍 [TRACE] Section-based SectionHost #${idx}:`, {
                         sectionType: section.type,
                         sectionId: section.id,
-                        sectionOrder: section.order
+                        sectionOrder: section.order,
+                        renderTimestamp: new Date().toISOString()
                       });
                     }
                     
