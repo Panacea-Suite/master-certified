@@ -1,41 +1,81 @@
 import { supabase } from '@/integrations/supabase/client';
 
-export async function loadFlowForCampaign(campaignId: string, debug = false) {
+export async function loadFlowForCampaign(campaignId: string, debug = false, trace = false) {
   console.log('🔍 loadFlowForCampaign: Loading flow for campaign:', campaignId);
   
   if (debug) {
     console.log('🔍 DEBUG: Campaign ID resolved to:', campaignId);
   }
   
-  // Fetch the single flow row by campaign_id (limit 1)
+  // Fetch the single flow row by campaign_id with specific fields for runtime
   const { data: flowRow, error: flowErr } = await supabase
     .from('flows')
-    .select('id, published_snapshot, flow_config, latest_published_version, name')
+    .select('id, published_snapshot, flow_config, latest_published_version, name, campaign_id')
     .eq('campaign_id', campaignId)
     .maybeSingle();
   
+  // Enhanced trace logging for Supabase errors
+  if (trace && flowErr) {
+    console.error('[TRACE] Supabase Flow Error:', {
+      code: flowErr.code,
+      message: flowErr.message,
+      details: flowErr.details,
+      hint: flowErr.hint,
+      campaignId: campaignId,
+      query: `flows?select=id,published_snapshot,flow_config,latest_published_version,name,campaign_id&eq.campaign_id=${campaignId}`
+    });
+  }
+  
   if (flowErr) {
     console.error('🔍 loadFlowForCampaign: Error fetching flow:', flowErr);
+    // Enhanced error message for RLS issues
+    if (flowErr.code && flowErr.code.includes('42501')) {
+      throw new Error(`Permission denied accessing flow for campaign ${campaignId}. Check RLS policies for anonymous access.`);
+    }
     throw new Error('Flow not found: ' + flowErr.message);
   }
   
   if (!flowRow) {
     console.error('🔍 loadFlowForCampaign: No flow found for campaign:', campaignId);
+    if (trace) {
+      console.error('[TRACE] No Flow Found:', {
+        campaignId: campaignId,
+        message: 'Flow query returned no results for this campaign ID'
+      });
+    }
     throw new Error('Flow not found for campaign');
+  }
+
+  // Validate campaign_id match for security
+  if (flowRow.campaign_id !== campaignId) {
+    console.error('🔍 loadFlowForCampaign: Campaign ID mismatch:', {
+      requested: campaignId,
+      actual: flowRow.campaign_id
+    });
+    if (trace) {
+      console.error('[TRACE] Campaign ID Mismatch:', {
+        requestedCampaignId: campaignId,
+        actualCampaignId: flowRow.campaign_id,
+        flowId: flowRow.id
+      });
+    }
+    throw new Error('Flow campaign ID mismatch');
   }
 
   console.log('🔍 loadFlowForCampaign: Flow row found:', {
     id: flowRow.id,
     name: flowRow.name,
+    campaignId: flowRow.campaign_id,
     hasPublishedSnapshot: !!flowRow.published_snapshot,
     hasFlowConfig: !!flowRow.flow_config,
     latestVersion: flowRow.latest_published_version
   });
 
-  if (debug) {
+  if (debug || trace) {
     console.log('🔍 DEBUG: Flow database row details:', {
-      campaignId: flowRow.id, // This should match the requested campaignId
-      flowCampaignId: campaignId, // The campaign this flow belongs to
+      flowId: flowRow.id,
+      campaignId: flowRow.campaign_id,
+      requestedCampaignId: campaignId,
       hasPublishedSnapshot: !!flowRow.published_snapshot,
       hasFlowConfig: !!flowRow.flow_config,
       flowConfigType: typeof flowRow.flow_config,
@@ -86,11 +126,28 @@ export async function loadFlowForCampaign(campaignId: string, debug = false) {
 
   console.log('🔍 loadFlowForCampaign: Final payload pages length:', payload.pages.length);
 
-  if (debug) {
+  if (debug || trace) {
     console.log('🔍 DEBUG: Final payload analysis:', {
       pagesLength: payload.pages.length,
       payloadKeys: Object.keys(payload || {}),
-      mode: mode
+      mode: mode,
+      campaignId: campaignId,
+      flowId: flowRow.id
+    });
+  }
+
+  // Enhanced trace logging for data structure analysis
+  if (trace) {
+    console.table({
+      'Flow Data Structure Analysis': {
+        campaign_id: campaignId,
+        flow_id: flowRow.id,
+        mode: mode,
+        has_published_snapshot: !!flowRow.published_snapshot,
+        has_flow_config: !!flowRow.flow_config,
+        pages_count: payload.pages.length,
+        payload_keys: Object.keys(payload || {}).join(', ')
+      }
     });
   }
 
@@ -118,9 +175,10 @@ export async function loadFlowForCampaign(campaignId: string, debug = false) {
     flowId: flowRow.id,
     flowName: flowRow.name,
     // Return debug details for diagnostic purposes
-    debugDetails: debug ? {
-      campaignId: flowRow.id,
-      flowCampaignId: campaignId,
+    debugDetails: (debug || trace) ? {
+      flowId: flowRow.id,
+      campaignId: campaignId,
+      actualCampaignId: flowRow.campaign_id,
       hasPublishedSnapshot: !!flowRow.published_snapshot,
       hasFlowConfig: !!flowRow.flow_config,
       flowConfigType: typeof flowRow.flow_config,

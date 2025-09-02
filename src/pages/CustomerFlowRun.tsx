@@ -97,14 +97,14 @@ export const CustomerFlowRun: React.FC = () => {
           }
         }
 
-        // Fetch campaign data
-        const campaignQuery = `campaigns?select=*,brands(*)&eq.id=${cid}`;
+        // Fetch campaign data with specific fields for runtime
+        const campaignQuery = `campaigns?select=id,name,brands(id,name),locked_design_tokens&eq.id=${cid}`;
         console.log('🔍 Fetching campaign:', campaignQuery);
         setLastRequest({ url: campaignQuery, status: 0 });
         
         const { data: campaign, error: campaignError } = await supabase
           .from('campaigns')
-          .select('*, brands (*)')
+          .select('id, name, brands(id, name), locked_design_tokens')
           .eq('id', cid)
           .single();
 
@@ -114,12 +114,28 @@ export const CustomerFlowRun: React.FC = () => {
           response: campaignError ? { error: campaignError } : campaign 
         });
 
+        // Enhanced trace logging for Supabase errors
+        if (trace && campaignError) {
+          console.error('[TRACE] Supabase Campaign Error:', {
+            code: campaignError.code,
+            message: campaignError.message,
+            details: campaignError.details,
+            hint: campaignError.hint,
+            query: campaignQuery,
+            cid: cid
+          });
+        }
+
         if (campaignError) {
           console.error('🔍 Campaign fetch error:', campaignError);
           if (campaignError.code === 'PGRST116') {
             throw new Error(`No campaign found with ID: ${cid}. Please verify the campaign ID is correct.`);
           }
-          throw new Error(`Campaign not found: ${campaignError.message}`);
+          // Enhanced error message for RLS issues
+          if (campaignError.code && campaignError.code.includes('42501')) {
+            throw new Error(`Permission denied accessing campaign ${cid}. Check RLS policies for anonymous access.`);
+          }
+          throw new Error(`Campaign fetch failed: ${campaignError.message}`);
         }
 
         if (!campaign) {
@@ -137,15 +153,28 @@ export const CustomerFlowRun: React.FC = () => {
               campaign_id: campaign.id,
               campaign_name: campaign.name,
               brand_name: campaign.brands?.name || 'No brand',
-              has_published_snapshot: !!(campaign as any).published_snapshot,
-              has_flow_config: !!(campaign as any).flow_config
+              has_locked_design_tokens: !!campaign.locked_design_tokens
             }
           });
         }
         
-        // Load flow using runtime hardened loader
+        // Load flow using runtime hardened loader with trace logging
         console.log('🔍 Loading flow for campaign:', cid);
-        const flowResult = await loadFlowForCampaign(cid, debugFlow);
+        let flowResult;
+        try {
+          flowResult = await loadFlowForCampaign(cid, debugFlow, trace);
+        } catch (flowError: any) {
+          // Enhanced trace logging for flow loading errors
+          if (trace) {
+            console.error('[TRACE] Flow Loading Error:', {
+              error: flowError,
+              message: flowError?.message,
+              stack: flowError?.stack,
+              cid: cid
+            });
+          }
+          throw flowError;
+        }
         console.log('🔍 Flow result:', flowResult);
 
         // Extract pages for debug info with safe type checking
@@ -209,8 +238,21 @@ export const CustomerFlowRun: React.FC = () => {
         console.error('🔍 Error loading flow:', err);
         const errorInfo = {
           message: err instanceof Error ? err.message : 'Failed to load flow',
-          stack: err instanceof Error ? err.stack : undefined
+          stack: err instanceof Error ? err.stack : undefined,
+          supabaseError: err
         };
+        
+        // Enhanced trace logging for errors
+        if (trace) {
+          console.error('[TRACE] Full Error Details:', {
+            error: errorInfo,
+            cid: cid,
+            qr: qr,
+            ct: ct,
+            location: location.search
+          });
+        }
+        
         setLastError(errorInfo);
         setError(errorInfo.message);
         
