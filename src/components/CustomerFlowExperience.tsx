@@ -584,18 +584,6 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
     setCurrentStage(Math.max(0, currentStage - 1));
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p>Loading verification flow...</p>
-        </div>
-      </div>
-    );
-  }
-
-
   // Debug logging for style tokens when ?debugStyle=1
   React.useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -1065,7 +1053,14 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
       templateId={templateId}
       brandColors={brandColors}
     >
-      {(() => {
+      {isLoading ? (
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p>Loading verification flow...</p>
+          </div>
+        </div>
+      ) : (() => {
         // Main template flow rendering
         if (templateData || effective?.pages?.length > 0 || (flow?.flow_config?.pages && pages.length > 0)) {
           return renderTemplateFlow();
