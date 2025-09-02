@@ -109,7 +109,6 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
   const [flow, setFlow] = useState<any>(null);
   const [campaign, setCampaign] = useState<any>(null);
   const [content, setContent] = useState<FlowContent[]>([]);
-  const [pages, setPages] = useState<any[]>([]);
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [designTemplate, setDesignTemplate] = useState<any>(null);
@@ -137,10 +136,10 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
   const [searchParams] = useSearchParams();
 
   // Stable pages computation with useMemo - moved to top
-  const stablePages = useMemo(() => {
+  const pages = useMemo(() => {
     const published = flow?.published_snapshot?.pages ?? [];
     const draft = flow?.flow_config?.pages ?? [];
-    return (published.length > 0 ? published : draft).filter(Boolean);
+    return (published?.length ? published : draft || []).filter(Boolean);
   }, [flow?.published_snapshot?.pages, flow?.flow_config?.pages]);
 
   const stages = [
@@ -220,7 +219,14 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
         // Use safe page processing
         const { pages: safePages, mode } = processSafePages(flowConfig, 'session');
         if (safePages.length > 0) {
-          setPages(safePages);
+          // Update the flow structure so pages are computed by memo
+          setFlow(prevFlow => ({
+            ...prevFlow,
+            flow_config: {
+              ...prevFlow?.flow_config,
+              pages: safePages
+            }
+          }));
           setCurrentPageIndex(0);
         } else if (flowConfig?.sections) {
           const singlePage = {
@@ -230,10 +236,17 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
             sections: flowConfig.sections,
             settings: {}
           };
-          setPages([singlePage]);
+          // Update the flow structure with single page
+          setFlow(prevFlow => ({
+            ...prevFlow,
+            flow_config: {
+              ...prevFlow?.flow_config,
+              pages: [singlePage]
+            }
+          }));
           setCurrentPageIndex(0);
         } else {
-          setPages([]);
+          // No pages to set, flow will compute empty array
           setContent(d.content || []);
         }
       } catch (e) {
@@ -282,10 +295,11 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
         setFlow({
           id: processedTemplate.id,
           name: processedTemplate.name,
-          flow_config: flowConfig
+          flow_config: {
+            ...flowConfig,
+            pages: processedTemplate.pages
+          }
         });
-        
-        setPages(processedTemplate.pages);
         // Use external page index if provided, otherwise start at 0
         setCurrentPageIndex(externalPageIndex ?? 0);
         
@@ -331,7 +345,14 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
         const flowConfig = data.flow?.config;
         const { pages: safePages, mode } = processSafePages(flowConfig, 'qr');
         if (safePages.length > 0) {
-          setPages(safePages);
+          // Update flow with pages
+          setFlow(prevFlow => ({
+            ...prevFlow,
+            flow_config: {
+              ...prevFlow?.flow_config,
+              pages: safePages
+            }
+          }));
           setCurrentPageIndex(0);
         } else if (flowConfig?.sections) {
           const singlePage = {
@@ -339,10 +360,17 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
             name: 'Main Page',
             sections: flowConfig.sections
           };
-          setPages([singlePage]);
+          // Update flow with single page
+          setFlow(prevFlow => ({
+            ...prevFlow,
+            flow_config: {
+              ...prevFlow?.flow_config,
+              pages: [singlePage]
+            }
+          }));
           setCurrentPageIndex(0);
         } else {
-          setPages([]);
+          // No pages to set
         }
         return;
       }
@@ -378,8 +406,15 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
       // Set flow config and pages with safe processing
       const flowConfig = (flowData.flow_config && typeof flowData.flow_config === 'object' && !Array.isArray(flowData.flow_config)) ? flowData.flow_config as any : {};
       const { pages: safePages, mode } = processSafePages(flowConfig, result.mode);
-      setFlow(flowData);
-      setPages(safePages);
+      
+      // Set flow data with pages embedded
+      setFlow({
+        ...flowData,
+        flow_config: {
+          ...flowConfig,
+          pages: safePages
+        }
+      });
       setCurrentPageIndex(0);
 
     } catch (error) {
@@ -969,7 +1004,7 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
               
               <div className="max-w-sm mx-auto px-4 py-6">
                 <div className="space-y-4">
-                  {sections.map((section: any, idx: number) => {
+                  {sections.filter(Boolean).map((section: any, idx: number) => {
                     // Trace logging when ?trace=1
                     const isTraceMode = new URLSearchParams(window.location.search).get('trace') === '1';
                     if (isTraceMode) {
