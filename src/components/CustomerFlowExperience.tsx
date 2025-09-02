@@ -22,7 +22,7 @@ const withCacheBust = (url: string, seed?: string | number): string => {
   return `${url}${separator}cb=${timestamp}`;
 };
 
-// SectionHost component - moved outside to avoid hooks inside component
+// SectionHost component - hooks called unconditionally at top
 function SectionHost({ 
   section, 
   page, 
@@ -38,55 +38,78 @@ function SectionHost({
   userInputs: any; 
   setUserInputs: any; 
 }) {
-  // ALL HOOKS MUST BE CALLED FIRST - no conditional returns before hooks!
-  // (No hooks are actually needed here, but ensuring pattern is followed)
+  // ALL HOOKS MUST BE CALLED FIRST UNCONDITIONALLY - no conditional returns before hooks!
+  const [warningLogged, setWarningLogged] = React.useState(false);
   
-  // After hooks, handle rendering conditionally
-  if (!section) {
-    return <UnknownSection type="missing-section" message="Section data is missing" />;
-  }
-  
-  if (!section.type) {
-    return <UnknownSection type="unknown" message="Section type is not defined" />;
-  }
-  
-  // Pure component rendering - no hooks called after this point
-  return (
-    <SectionRenderer
-      key={section.id}
-      section={section}
-      isPreview={true}
-      isRuntimeMode={true}
-      storeOptions={campaign?.approved_stores || []}
-      brandColors={null}
-      // Controlled store selector props for runtime binding
-      purchaseChannel={userInputs.purchaseChannel}
-      selectedStore={userInputs.selectedStore}
-      onPurchaseChannelChange={(channel) => setUserInputs(prev => ({ ...prev, purchaseChannel: channel, selectedStore: '' }))}
-      onSelectedStoreChange={(store) => setUserInputs(prev => ({ ...prev, selectedStore: store }))}
-    />
-  );
-}
-
-// UnknownSection fallback component - moved outside to avoid hooks inside component  
-function UnknownSection({ type, message }: { type: string; message?: string }) {
+  // Log warning for missing sections only once
   React.useEffect(() => {
-    console.warn(`🚨 CustomerFlowExperience: Unknown section encountered`, { type, message });
-  }, [type, message]);
+    if (!warningLogged && (!section || !section.type)) {
+      console.warn(`🚨 CustomerFlowExperience: Invalid section encountered`, { 
+        section, 
+        hasSection: !!section, 
+        hasType: !!section?.type 
+      });
+      setWarningLogged(true);
+    }
+  }, [section, warningLogged]);
   
-  return (
-    <div className="p-4 border border-dashed border-orange-300 bg-orange-50/50 rounded-lg">
-      <div className="flex items-center gap-2 text-orange-700">
-        <span className="text-sm font-medium">⚠️ Unknown Section</span>
+  // After hooks, handle rendering conditionally with switch statement
+  if (!section) {
+    return (
+      <div className="p-4 border border-dashed border-orange-300 bg-orange-50/50 rounded-lg">
+        <div className="flex items-center gap-2 text-orange-700">
+          <span className="text-sm font-medium">⚠️ Missing Section</span>
+        </div>
+        <div className="mt-2 text-xs text-orange-600">
+          Section data is missing
+        </div>
       </div>
-      <div className="mt-2 text-xs text-orange-600">
-        <div>Type: <code className="bg-orange-100 px-1 rounded">{type}</code></div>
-        {message && (
-          <div className="mt-1 text-orange-500">{message}</div>
-        )}
-      </div>
-    </div>
-  );
+    );
+  }
+  
+  // Switch statement that only returns JSX - no hooks inside
+  switch (section.type) {
+    case 'image':
+    case 'hero':
+    case 'text':
+    case 'features':
+    case 'cta':
+    case 'product-showcase':
+    case 'divider':
+    case 'column':
+    case 'footer':
+    case 'header':
+    case 'login-step':
+    case 'store-selector':
+      return (
+        <SectionRenderer
+          key={section.id}
+          section={section}
+          isPreview={true}
+          isRuntimeMode={true}
+          storeOptions={campaign?.approved_stores || []}
+          brandColors={null}
+          // Controlled store selector props for runtime binding
+          purchaseChannel={userInputs.purchaseChannel}
+          selectedStore={userInputs.selectedStore}
+          onPurchaseChannelChange={(channel) => setUserInputs(prev => ({ ...prev, purchaseChannel: channel, selectedStore: '' }))}
+          onSelectedStoreChange={(store) => setUserInputs(prev => ({ ...prev, selectedStore: store }))}
+        />
+      );
+    
+    default:
+      return (
+        <div className="p-4 border border-dashed border-orange-300 bg-orange-50/50 rounded-lg">
+          <div className="flex items-center gap-2 text-orange-700">
+            <span className="text-sm font-medium">⚠️ Unknown Section</span>
+          </div>
+          <div className="mt-2 text-xs text-orange-600">
+            <div>Type: <code className="bg-orange-100 px-1 rounded">{section.type}</code></div>
+            <div className="mt-1 text-orange-500">Section type is not recognized</div>
+          </div>
+        </div>
+      );
+  }
 }
 
 interface FlowContent {
