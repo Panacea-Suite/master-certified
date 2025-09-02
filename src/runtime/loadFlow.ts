@@ -86,7 +86,7 @@ export async function loadFlowForCampaign(campaignId: string, debug = false, tra
   let payload: any = null;
   let mode = 'unknown';
 
-  // Build payload using precedence: published_snapshot first, then flow_config
+  // Build payload using precedence: published_snapshot first, then flow_config, then flow_content
   if (flowRow.published_snapshot) {
     console.log('🔍 loadFlowForCampaign: Using published_snapshot');
     payload = flowRow.published_snapshot;
@@ -151,21 +151,47 @@ export async function loadFlowForCampaign(campaignId: string, debug = false, tra
     });
   }
 
-  // If after this pages.length === 0, log the keys for debugging
+  // If after this pages.length === 0, check for draft content fallback
   if (payload.pages.length === 0) {
-    console.warn('🔍 loadFlowForCampaign: Empty pages array detected!');
+    console.warn('🔍 loadFlowForCampaign: Empty pages array detected, trying draft fallback...');
     console.log('🔍 loadFlowForCampaign: Payload structure:', {
       keys: Object.keys(payload || {}),
       payload: payload
     });
     
-    // Try to find pages in alternative locations
+    // Try to find pages in alternative locations first
     if (payload.flow && Array.isArray(payload.flow)) {
       console.log('🔍 loadFlowForCampaign: Found pages in payload.flow, using as fallback');
       payload.pages = payload.flow;
     } else if (payload.content && Array.isArray(payload.content)) {
       console.log('🔍 loadFlowForCampaign: Found pages in payload.content, using as fallback');
       payload.pages = payload.content;
+    } else {
+      // Query flow_content for latest draft as final fallback
+      console.log('🔍 loadFlowForCampaign: Querying flow_content for draft fallback...');
+      const { data: draftRows, error: draftErr } = await supabase
+        .from('flow_content')
+        .select('content, updated_at')
+        .eq('flow_id', flowRow.id)
+        .order('updated_at', { ascending: false });
+
+      if (draftErr) {
+        console.error('🔍 loadFlowForCampaign: Error fetching draft content:', draftErr);
+      } else if (draftRows && draftRows.length > 0) {
+        console.log('🔍 loadFlowForCampaign: Found', draftRows.length, 'draft content rows');
+        
+        // Construct pages from draft content
+        const draftPages = draftRows.map((row, index) => ({
+          ...(typeof row.content === 'object' && row.content ? row.content : {}),
+          order: index
+        }));
+        
+        payload = { pages: draftPages };
+        mode = 'draft-fallback';
+        console.log('🔍 loadFlowForCampaign: Using draft-fallback with', draftPages.length, 'pages');
+      } else {
+        console.warn('🔍 loadFlowForCampaign: No draft content found either');
+      }
     }
   }
 

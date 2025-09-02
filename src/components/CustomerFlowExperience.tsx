@@ -104,9 +104,10 @@ interface CustomerFlowExperienceProps {
   brandData?: any; // For provided brand data from parent
   externalPageIndex?: number; // For external page navigation control
   hideInternalNavigation?: boolean; // Hide internal navigation when controlled externally
+  runtimeMode?: string; // Runtime mode: 'published' | 'draft' | 'draft-fallback'
 }
 
-const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId, qrCode, templateData, brandData, externalPageIndex, hideInternalNavigation }) => {
+const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId, qrCode, templateData, brandData, externalPageIndex, hideInternalNavigation, runtimeMode }) => {
   // ALL HOOKS MUST BE CALLED UNCONDITIONALLY AT THE TOP
   const [currentStage, setCurrentStage] = useState(0);
   const [flow, setFlow] = useState<any>(null);

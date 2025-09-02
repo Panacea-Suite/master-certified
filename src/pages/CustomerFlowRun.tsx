@@ -320,6 +320,7 @@ export const CustomerFlowRun: React.FC = () => {
         brandData={campaignData?.brands}
         flowId={flowData.id}
         qrCode={flowData.qrId}
+        runtimeMode={flowData.mode}
       />
       
       {/* Trace mode debug pill */}
