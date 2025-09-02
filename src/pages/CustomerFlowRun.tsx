@@ -43,6 +43,20 @@ export const CustomerFlowRun: React.FC = () => {
   useEffect(() => {
     const loadFlowData = async () => {
       try {
+        // Trace logging for URL parameters
+        if (trace) {
+          console.table({
+            'URL Parameters': {
+              cid,
+              qr,
+              ct,
+              pathname: location.pathname,
+              search: location.search,
+              hash: location.hash
+            }
+          });
+        }
+        
         // Debug logging before any fetch
         console.log('🔍 CustomerFlowRun Debug:', { 
           cid, 
@@ -116,6 +130,19 @@ export const CustomerFlowRun: React.FC = () => {
         console.log('🔍 Campaign loaded:', campaign);
         setCampaignData(campaign);
         
+        // Trace logging for campaign fetch result
+        if (trace) {
+          console.table({
+            'Campaign Fetch Result': {
+              campaign_id: campaign.id,
+              campaign_name: campaign.name,
+              brand_name: campaign.brands?.name || 'No brand',
+              has_published_snapshot: !!(campaign as any).published_snapshot,
+              has_flow_config: !!(campaign as any).flow_config
+            }
+          });
+        }
+        
         // Load flow using runtime hardened loader
         console.log('🔍 Loading flow for campaign:', cid);
         const flowResult = await loadFlowForCampaign(cid, debugFlow);
@@ -128,6 +155,22 @@ export const CustomerFlowRun: React.FC = () => {
         }
 
         console.log('🔍 Final pages extracted:', pages.length, 'pages');
+        
+        // Trace logging for flow fetch result
+        if (trace) {
+          console.table({
+            'Flow Fetch Result': {
+              mode: flowResult.mode,
+              flow_id: flowResult.flowId,
+              flow_name: flowResult.flowName,
+              pages_length: pages.length,
+              published_snapshot_pages: flowResult.flow?.published_snapshot?.pages?.length || 0,
+              flow_config_pages: flowResult.flow?.flow_config?.pages?.length || 0,
+              is_published_mode: flowResult.mode === 'published',
+              is_draft_mode: flowResult.mode === 'draft'
+            }
+          });
+        }
 
         // Check for empty pages and provide detailed error
         if (pages.length === 0) {
@@ -236,6 +279,14 @@ export const CustomerFlowRun: React.FC = () => {
         flowId={flowData.id}
         qrCode={flowData.qrId}
       />
+      
+      {/* Trace mode debug pill */}
+      {trace && (
+        <div className="fixed bottom-4 left-4 bg-primary text-primary-foreground px-3 py-2 rounded-full text-xs font-mono shadow-lg z-50">
+          Pages: {debugState.pagesLength} | Mode: {debugState.flowMode}
+        </div>
+      )}
+      
       <DebugBox
         cid={cid}
         qr={qr}
