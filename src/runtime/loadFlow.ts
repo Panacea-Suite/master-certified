@@ -1,7 +1,11 @@
 import { supabase } from '@/integrations/supabase/client';
 
-export async function loadFlowForCampaign(campaignId: string) {
+export async function loadFlowForCampaign(campaignId: string, debug = false) {
   console.log('🔍 loadFlowForCampaign: Loading flow for campaign:', campaignId);
+  
+  if (debug) {
+    console.log('🔍 DEBUG: Campaign ID resolved to:', campaignId);
+  }
   
   // Fetch the single flow row by campaign_id (limit 1)
   const { data: flowRow, error: flowErr } = await supabase
@@ -28,6 +32,17 @@ export async function loadFlowForCampaign(campaignId: string) {
     latestVersion: flowRow.latest_published_version
   });
 
+  if (debug) {
+    console.log('🔍 DEBUG: Flow database row details:', {
+      campaignId: flowRow.id, // This should match the requested campaignId
+      flowCampaignId: campaignId, // The campaign this flow belongs to
+      hasPublishedSnapshot: !!flowRow.published_snapshot,
+      hasFlowConfig: !!flowRow.flow_config,
+      flowConfigType: typeof flowRow.flow_config,
+      publishedSnapshotType: typeof flowRow.published_snapshot
+    });
+  }
+
   let payload: any = null;
   let mode = 'unknown';
 
@@ -49,6 +64,9 @@ export async function loadFlowForCampaign(campaignId: string) {
   // If payload is a string, JSON.parse it
   if (typeof payload === 'string') {
     console.log('🔍 loadFlowForCampaign: Parsing string payload');
+    if (debug) {
+      console.log('🔍 DEBUG: Payload was string, parsing JSON...');
+    }
     try {
       payload = JSON.parse(payload);
     } catch (parseErr) {
@@ -67,6 +85,14 @@ export async function loadFlowForCampaign(campaignId: string) {
   }
 
   console.log('🔍 loadFlowForCampaign: Final payload pages length:', payload.pages.length);
+
+  if (debug) {
+    console.log('🔍 DEBUG: Final payload analysis:', {
+      pagesLength: payload.pages.length,
+      payloadKeys: Object.keys(payload || {}),
+      mode: mode
+    });
+  }
 
   // If after this pages.length === 0, log the keys for debugging
   if (payload.pages.length === 0) {
@@ -90,6 +116,16 @@ export async function loadFlowForCampaign(campaignId: string) {
     mode,
     flow: payload,
     flowId: flowRow.id,
-    flowName: flowRow.name
+    flowName: flowRow.name,
+    // Return debug details for diagnostic purposes
+    debugDetails: debug ? {
+      campaignId: flowRow.id,
+      flowCampaignId: campaignId,
+      hasPublishedSnapshot: !!flowRow.published_snapshot,
+      hasFlowConfig: !!flowRow.flow_config,
+      flowConfigType: typeof flowRow.flow_config,
+      publishedSnapshotType: typeof flowRow.published_snapshot,
+      payloadKeys: Object.keys(payload || {})
+    } : undefined
   };
 }

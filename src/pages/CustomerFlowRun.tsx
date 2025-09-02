@@ -32,7 +32,8 @@ export const CustomerFlowRun: React.FC = () => {
   const [debugState, setDebugState] = useState({
     flowFound: false,
     pagesLength: 0,
-    flowMode: 'unknown'
+    flowMode: 'unknown',
+    debugDetails: undefined as any
   });
 
   useEffect(() => {
@@ -52,7 +53,8 @@ export const CustomerFlowRun: React.FC = () => {
         });
         
         if (!cid) {
-          throw new Error('Missing campaign ID (cid) in URL parameters. Please check the URL format.');
+          const errorMsg = 'Missing campaign ID in URL. Please check the URL format - it should be /flow/run/{campaign-id} or include ?cid={campaign-id}';
+          throw new Error(errorMsg);
         }
 
         // Validate the customer access token if provided
@@ -97,6 +99,9 @@ export const CustomerFlowRun: React.FC = () => {
 
         if (campaignError) {
           console.error('🔍 Campaign fetch error:', campaignError);
+          if (campaignError.code === 'PGRST116') {
+            throw new Error(`No campaign found with ID: ${cid}. Please verify the campaign ID is correct.`);
+          }
           throw new Error(`Campaign not found: ${campaignError.message}`);
         }
 
@@ -110,7 +115,7 @@ export const CustomerFlowRun: React.FC = () => {
         
         // Load flow using runtime hardened loader
         console.log('🔍 Loading flow for campaign:', cid);
-        const flowResult = await loadFlowForCampaign(cid);
+        const flowResult = await loadFlowForCampaign(cid, debugFlow);
         console.log('🔍 Flow result:', flowResult);
 
         // Extract pages for debug info with safe type checking
@@ -136,7 +141,8 @@ export const CustomerFlowRun: React.FC = () => {
         setDebugState({
           flowFound: !!flowResult.flow,
           pagesLength: pages.length,
-          flowMode: flowResult.mode
+          flowMode: flowResult.mode,
+          debugDetails: flowResult.debugDetails
         });
 
         // Create flow data with proper structure
@@ -167,7 +173,8 @@ export const CustomerFlowRun: React.FC = () => {
           ...prev,
           flowFound: false,
           pagesLength: 0,
-          flowMode: 'error'
+          flowMode: 'error',
+          debugDetails: undefined
         }));
         
         setLoading(false);
@@ -236,6 +243,7 @@ export const CustomerFlowRun: React.FC = () => {
         flowFound={debugState.flowFound}
         pagesLength={debugState.pagesLength}
         flowMode={debugState.flowMode}
+        flowDetails={debugState.debugDetails}
         visible={debugFlow}
       />
     </div>

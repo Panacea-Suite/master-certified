@@ -19,6 +19,15 @@ interface DebugBoxProps {
   flowFound?: boolean;
   pagesLength?: number;
   flowMode?: string;
+  flowDetails?: {
+    campaignId?: string;
+    flowCampaignId?: string;
+    hasPublishedSnapshot?: boolean;
+    hasFlowConfig?: boolean;
+    flowConfigType?: string;
+    publishedSnapshotType?: string;
+    payloadKeys?: string[];
+  };
   visible?: boolean;
 }
 
@@ -32,6 +41,7 @@ export const DebugBox: React.FC<DebugBoxProps> = ({
   flowFound,
   pagesLength,
   flowMode,
+  flowDetails,
   visible = false
 }) => {
   if (!visible && !lastError) return null;
@@ -69,6 +79,23 @@ export const DebugBox: React.FC<DebugBoxProps> = ({
             <div><strong>Flow Mode:</strong> <span className="text-blue-600">{flowMode || 'unknown'}</span></div>
           </div>
         </div>
+
+        {flowDetails && (
+          <div className="pt-2 border-t border-yellow-200">
+            <div><strong>Flow Details:</strong></div>
+            <div className="ml-2">
+              <div><strong>Campaign ID:</strong> <span className="text-blue-600">{flowDetails.campaignId || 'N/A'}</span></div>
+              <div><strong>Flow Campaign ID:</strong> <span className="text-blue-600">{flowDetails.flowCampaignId || 'N/A'}</span></div>
+              <div><strong>Has Published Snapshot:</strong> <span className={flowDetails.hasPublishedSnapshot ? 'text-green-600' : 'text-yellow-600'}>{flowDetails.hasPublishedSnapshot ? 'YES' : 'NO'}</span></div>
+              <div><strong>Has Flow Config:</strong> <span className={flowDetails.hasFlowConfig ? 'text-green-600' : 'text-red-500'}>{flowDetails.hasFlowConfig ? 'YES' : 'NO'}</span></div>
+              <div><strong>Flow Config Type:</strong> <span className="text-blue-600">{flowDetails.flowConfigType || 'N/A'}</span></div>
+              <div><strong>Published Snapshot Type:</strong> <span className="text-blue-600">{flowDetails.publishedSnapshotType || 'N/A'}</span></div>
+              {flowDetails.payloadKeys && flowDetails.payloadKeys.length > 0 && (
+                <div><strong>Payload Keys:</strong> <span className="text-blue-600">{flowDetails.payloadKeys.join(', ')}</span></div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {lastRequest && (
