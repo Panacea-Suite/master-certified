@@ -349,6 +349,37 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
     );
   };
 
+  // Compute style tokens for TemplateStyleProvider
+  const computeStyleTokens = () => {
+    // Priority order: 1) campaign.locked_design_tokens, 2) flow designConfig, 3) defaults
+    let styleTokens = {
+      primary: '#3b82f6',
+      secondary: '#6366f1', 
+      accent: '#8b5cf6'
+    };
+    
+    // Layer in flow config design tokens
+    const flowDesignConfig = flow?.flow_config?.designConfig || flow?.published_snapshot?.designConfig;
+    if (flowDesignConfig) {
+      styleTokens = { 
+        primary: flowDesignConfig.primary || styleTokens.primary,
+        secondary: flowDesignConfig.secondary || styleTokens.secondary,
+        accent: flowDesignConfig.accent || styleTokens.accent
+      };
+    }
+    
+    // Override with campaign locked tokens (highest priority)
+    if (campaign?.locked_design_tokens) {
+      styleTokens = {
+        primary: campaign.locked_design_tokens.primary || styleTokens.primary,
+        secondary: campaign.locked_design_tokens.secondary || styleTokens.secondary,
+        accent: campaign.locked_design_tokens.accent || styleTokens.accent
+      };
+    }
+    
+    return styleTokens;
+  };
+
   const renderTemplateFlow = () => {
     if (!pages || pages.length === 0) {
       return (
@@ -380,56 +411,61 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
     const sectionsToRender = (currentPageData.sections || []).sort((a: any, b: any) => a.order - b.order);
 
     return (
-      <div className="flex flex-col min-h-screen bg-background" style={{ '--device-width-px': '390px' } as React.CSSProperties}>
-        {/* Header */}
-        {flow?.flow_config?.globalHeader?.showHeader && (
-          <FlowHeader 
-            globalHeader={{
-              ...flow.flow_config.globalHeader,
-              brandName: '' // Remove brand text
-            }} 
-          />
-        )}
+      <TemplateStyleProvider 
+        templateId={flow?.flow_config?.templateId || 'classic'}
+        brandColors={computeStyleTokens()}
+      >
+        <div className="flex flex-col min-h-screen bg-background" style={{ '--device-width-px': '390px' } as React.CSSProperties}>
+          {/* Header */}
+          {flow?.flow_config?.globalHeader?.showHeader && (
+            <FlowHeader 
+              globalHeader={{
+                ...flow.flow_config.globalHeader,
+                brandName: '' // Remove brand text
+              }} 
+            />
+          )}
 
-        {/* Page Content */}
-        <div className="flex-1 flex flex-col">
-          <div className="flex-1">
-            {sectionsToRender.map((section: any) => 
-              renderTemplateSection(section)
+          {/* Page Content */}
+          <div className="flex-1 flex flex-col">
+            <div className="flex-1">
+              {sectionsToRender.map((section: any) => 
+                renderTemplateSection(section)
+              )}
+            </div>
+
+            {/* Default footer - sticks to bottom */}
+            {sectionsToRender.every((s: any) => s.type !== 'footer') && (
+              <div className="mt-auto">
+                <PanaceaFooter backgroundColor="var(--template-secondary)" logoSize={60} />
+              </div>
             )}
           </div>
 
-          {/* Default footer - sticks to bottom */}
-          {sectionsToRender.every((s: any) => s.type !== 'footer') && (
-            <div className="mt-auto">
-              <PanaceaFooter backgroundColor="var(--template-secondary)" logoSize={60} />
+          {/* Navigation */}
+          {!hideInternalNavigation && (
+            <div className="bg-background border-t" style={{ maxWidth: 'var(--device-width-px, 390px)', margin: '0 auto', width: '100%' }}>
+              <div className="p-4 flex justify-between">
+                <Button
+                  variant="outline"
+                  onClick={() => setCurrentPageIndex(Math.max(0, currentPageIndex - 1))}
+                  disabled={currentPageIndex === 0}
+                >
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Previous
+                </Button>
+                <Button
+                  onClick={() => setCurrentPageIndex(Math.min(pages.length - 1, currentPageIndex + 1))}
+                  disabled={currentPageIndex === pages.length - 1}
+                >
+                  Next
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              </div>
             </div>
           )}
         </div>
-
-        {/* Navigation */}
-        {!hideInternalNavigation && (
-          <div className="bg-background border-t" style={{ maxWidth: 'var(--device-width-px, 390px)', margin: '0 auto', width: '100%' }}>
-            <div className="p-4 flex justify-between">
-              <Button
-                variant="outline"
-                onClick={() => setCurrentPageIndex(Math.max(0, currentPageIndex - 1))}
-                disabled={currentPageIndex === 0}
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Previous
-              </Button>
-              <Button
-                onClick={() => setCurrentPageIndex(Math.min(pages.length - 1, currentPageIndex + 1))}
-                disabled={currentPageIndex === pages.length - 1}
-              >
-                Next
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-            </div>
-          </div>
-        )}
-      </div>
+      </TemplateStyleProvider>
     );
   };
 
@@ -739,100 +775,110 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
     };
     
     return (
-      <div 
-        className="min-h-screen"
-        style={{ backgroundColor }}
+      <TemplateStyleProvider 
+        templateId={flowConfig?.templateId || 'classic'}
+        brandColors={computeStyleTokens()}
       >
-        {/* Global Header */}
-        {globalHeader.showHeader && (globalHeader.logoUrl || globalHeader.brandName) && (
-          <div 
-            className="sticky top-0 z-50 p-4 text-white text-center"
-            style={{ backgroundColor: globalHeader.backgroundColor }}
-          >
-            <div className="flex items-center justify-center gap-3">
-              {globalHeader.logoUrl && (
-                <img 
-                  src={globalHeader.logoUrl} 
-                  alt="Brand Logo"
-                  className={`${
-                    globalHeader.logoSize === 'small' ? 'h-6' :
-                    globalHeader.logoSize === 'large' ? 'h-12' : 'h-8'
-                  } object-contain`}
-                />
-              )}
-              {globalHeader.brandName && (
-                <h1 className={`font-semibold ${
-                  globalHeader.logoSize === 'small' ? 'text-lg' :
-                  globalHeader.logoSize === 'large' ? 'text-2xl' : 'text-xl'
-                }`}>
-                  {globalHeader.brandName}
-                </h1>
-              )}
+        <div 
+          className="min-h-screen"
+          style={{ backgroundColor }}
+        >
+          {/* Global Header */}
+          {globalHeader.showHeader && (globalHeader.logoUrl || globalHeader.brandName) && (
+            <div 
+              className="sticky top-0 z-50 p-4 text-white text-center"
+              style={{ backgroundColor: globalHeader.backgroundColor }}
+            >
+              <div className="flex items-center justify-center gap-3">
+                {globalHeader.logoUrl && (
+                  <img 
+                    src={globalHeader.logoUrl} 
+                    alt="Brand Logo"
+                    className={`${
+                      globalHeader.logoSize === 'small' ? 'h-6' :
+                      globalHeader.logoSize === 'large' ? 'h-12' : 'h-8'
+                    } object-contain`}
+                  />
+                )}
+                {globalHeader.brandName && (
+                  <h1 className={`font-semibold ${
+                    globalHeader.logoSize === 'small' ? 'text-lg' :
+                    globalHeader.logoSize === 'large' ? 'text-2xl' : 'text-xl'
+                  }`}>
+                    {globalHeader.brandName}
+                  </h1>
+                )}
+              </div>
             </div>
-          </div>
-        )}
-        
-        <div className="max-w-sm mx-auto px-4 py-6">
-          <div className="space-y-4">
-            {sections.map((section: any) => renderTemplateSection(section))}
-          </div>
+          )}
           
+          <div className="max-w-sm mx-auto px-4 py-6">
+            <div className="space-y-4">
+              {sections.map((section: any) => renderTemplateSection(section))}
+            </div>
+            
+          </div>
         </div>
-      </div>
+      </TemplateStyleProvider>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Progress Bar */}
-      <div className="bg-card border-b">
-        <div className="max-w-sm mx-auto px-4 py-3">
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-xs text-muted-foreground">Step {currentStage + 1} of {stages.length}</span>
-            <span className="text-xs text-muted-foreground">{Math.round(((currentStage + 1) / stages.length) * 100)}%</span>
-          </div>
-          <div className="w-full bg-muted rounded-full h-2">
-            <div 
-              className="bg-primary h-2 rounded-full transition-all duration-300"
-              style={{ width: `${((currentStage + 1) / stages.length) * 100}%` }}
-            ></div>
+    <TemplateStyleProvider 
+      templateId="classic"
+      brandColors={computeStyleTokens()}
+    >
+      <div className="min-h-screen bg-background">
+        {/* Progress Bar */}
+        <div className="bg-card border-b">
+          <div className="max-w-sm mx-auto px-4 py-3">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-xs text-muted-foreground">Step {currentStage + 1} of {stages.length}</span>
+              <span className="text-xs text-muted-foreground">{Math.round(((currentStage + 1) / stages.length) * 100)}%</span>
+            </div>
+            <div className="w-full bg-muted rounded-full h-2">
+              <div 
+                className="bg-primary h-2 rounded-full transition-all duration-300"
+                style={{ width: `${((currentStage + 1) / stages.length) * 100}%` }}
+              ></div>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Main Content */}
-      <div className="max-w-sm mx-auto px-4 py-6">
-        <div className="mb-8">
-          {renderStageContent()}
-        </div>
+        {/* Main Content */}
+        <div className="max-w-sm mx-auto px-4 py-6">
+          <div className="mb-8">
+            {renderStageContent()}
+          </div>
 
-        {/* Navigation Buttons */}
-        <div className="flex gap-3">
-          {currentStage > 0 && currentStage < 4 && (
-            <Button 
-              variant="outline" 
-              onClick={prevStage}
-              className="flex-1"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back
-            </Button>
-          )}
+          {/* Navigation Buttons */}
+          <div className="flex gap-3">
+            {currentStage > 0 && currentStage < 4 && (
+              <Button 
+                variant="outline" 
+                onClick={prevStage}
+                className="flex-1"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back
+              </Button>
+            )}
+            
+            {currentStage < 4 && currentStage !== 3 && (
+              <Button 
+                onClick={nextStage}
+                className="flex-1"
+                disabled={currentStage === 1 && (!userInputs.purchaseChannel || !userInputs.selectedStore)}
+              >
+                Continue
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            )}
+          </div>
           
-          {currentStage < 4 && currentStage !== 3 && (
-            <Button 
-              onClick={nextStage}
-              className="flex-1"
-              disabled={currentStage === 1 && (!userInputs.purchaseChannel || !userInputs.selectedStore)}
-            >
-              Continue
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
-          )}
         </div>
-        
       </div>
-    </div>
+    </TemplateStyleProvider>
   );
 };
 
