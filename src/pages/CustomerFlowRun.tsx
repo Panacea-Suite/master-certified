@@ -23,12 +23,16 @@ function normalizeFlow(cfg: any) {
 export const CustomerFlowRun: React.FC = () => {
   const location = useLocation();
   
-  // Extract parameters using query string only (Pattern 2)
-  // Priority: 1) Query param cid, 2) Query param campaign_id (legacy)
+  // Extract campaign ID: 1) Query param cid, 2) Path param (legacy), 3) Query param campaign_id (legacy)
+  const pathMatch = location.pathname.match(/\/flow\/run\/([^/?#]+)/);
   const cid = getHashSafeParam('cid', location) || 
+              pathMatch?.[1] ||
               getHashSafeParam('campaign_id', location);
+  
   const qr = getHashSafeParam('qr', location);
-  const ct = getHashSafeParam('ct', location);
+  // Accept both 'ct' (new standard) and 'token' (legacy) for customer token
+  const ct = getHashSafeParam('ct', location) || 
+             getHashSafeParam('token', location);
   const debugFlow = getHashSafeParam('debugFlow', location) === '1';
   const trace = getHashSafeParam('trace', location) === '1';
   const useDraft = getHashSafeParam('useDraft', location) === '1';

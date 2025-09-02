@@ -51,14 +51,15 @@ export const QrRedirect: React.FC = () => {
         const campaign = qrData.batches?.campaigns;
         
         if (campaign) {
-          // Navigate to customer flow with the campaign ID and access token
+          // Navigate to customer flow with standardized query parameters
           const params = new URLSearchParams();
-          if (campaign.customer_access_token) {
-            params.set('token', campaign.customer_access_token);
-          }
+          params.set('cid', campaign.id);
           params.set('qr', uniqueCode);
+          if (campaign.customer_access_token) {
+            params.set('ct', campaign.customer_access_token);
+          }
           
-          const flowUrl = `/flow/run/${campaign.id}?${params.toString()}`;
+          const flowUrl = `/flow/run?${params.toString()}`;
           console.log(`Redirecting to customer flow: ${flowUrl}`);
           navigate(flowUrl);
           return;

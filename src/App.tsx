@@ -57,6 +57,7 @@ const App = () => {
                   <Route path="/qr/:uniqueCode" element={<QrRedirect />} />
                   <Route path="/flow/test" element={<CustomerShell><TestFlowGate /></CustomerShell>} />
                   <Route path="/flow/run" element={<ErrorBoundary><CustomerShell><CustomerFlowRun /></CustomerShell></ErrorBoundary>} />
+                  <Route path="/flow/run/:id" element={<ErrorBoundary><CustomerShell><CustomerFlowRun /></CustomerShell></ErrorBoundary>} />
                   <Route path="/not-found" element={<CustomerShell><NotFound /></CustomerShell>} />
                   
                   {/* Admin routes - require auth, use admin shell */}
