@@ -38,7 +38,10 @@ function SectionHost({
   userInputs: any; 
   setUserInputs: any; 
 }) {
-  // Guard against missing section data
+  // ALL HOOKS MUST BE CALLED FIRST - no conditional returns before hooks!
+  // (No hooks are actually needed here, but ensuring pattern is followed)
+  
+  // After hooks, handle rendering conditionally
   if (!section) {
     return <UnknownSection type="missing-section" message="Section data is missing" />;
   }
