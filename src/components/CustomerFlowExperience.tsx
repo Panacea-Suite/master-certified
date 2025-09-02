@@ -145,8 +145,11 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
         const flowConfig = d.flow.config as any;
         setFlow({ id: d.flow.id, name: d.flow.name, flow_config: flowConfig });
         setCampaign(d.campaign);
-        if (flowConfig?.pages) {
-          setPages(flowConfig.pages);
+        
+        // Use safe page processing
+        const { pages: safePages, mode } = processSafePages(flowConfig, 'session');
+        if (safePages.length > 0) {
+          setPages(safePages);
           setCurrentPageIndex(0);
         } else if (flowConfig?.sections) {
           const singlePage = {
@@ -159,6 +162,7 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
           setPages([singlePage]);
           setCurrentPageIndex(0);
         } else {
+          setPages([]);
           setContent(d.content || []);
         }
       } catch (e) {
@@ -252,10 +256,11 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
         setCampaign(data.campaign);
         setContent(data.content || []);
         
-        // Handle different flow configurations
+        // Handle different flow configurations with safe processing
         const flowConfig = data.flow?.config;
-        if (flowConfig?.pages) {
-          setPages(flowConfig.pages);
+        const { pages: safePages, mode } = processSafePages(flowConfig, 'qr');
+        if (safePages.length > 0) {
+          setPages(safePages);
           setCurrentPageIndex(0);
         } else if (flowConfig?.sections) {
           const singlePage = {
@@ -265,6 +270,8 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
           };
           setPages([singlePage]);
           setCurrentPageIndex(0);
+        } else {
+          setPages([]);
         }
         return;
       }
@@ -297,11 +304,11 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
         flow_config: result.flow
       };
 
-      // Set flow config and pages as specified
+      // Set flow config and pages with safe processing
       const flowConfig = (flowData.flow_config && typeof flowData.flow_config === 'object' && !Array.isArray(flowData.flow_config)) ? flowData.flow_config as any : {};
-      const pages = Array.isArray(flowConfig.pages) ? flowConfig.pages : [];
+      const { pages: safePages, mode } = processSafePages(flowConfig, result.mode);
       setFlow(flowData);
-      setPages(pages);
+      setPages(safePages);
       setCurrentPageIndex(0);
 
     } catch (error) {
@@ -318,6 +325,59 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
       setCurrentPageIndex(externalPageIndex);
     }
   }, [externalPageIndex]);
+
+  // Safe page processing with defensive guards
+  const processSafePages = (flowData: any, flowMode: string = 'unknown') => {
+    console.log('Processing safe pages:', { flowData, flowMode });
+    
+    // Extract pages with safe fallbacks
+    const published = flowData?.published_snapshot?.pages ?? [];
+    const draft = flowData?.flow_config?.pages ?? [];
+    const configPages = flowData?.pages ?? []; // Direct pages property
+    
+    // Priority: published -> draft -> configPages
+    let pages = published.length > 0 ? published : 
+                draft.length > 0 ? draft : 
+                configPages;
+    
+    const mode = published.length > 0 ? 'published' : 
+                 draft.length > 0 ? 'draft' : 
+                 configPages.length > 0 ? 'config' : 'empty';
+    
+    console.log('Safe page processing result:', { 
+      publishedCount: published.length, 
+      draftCount: draft.length, 
+      configCount: configPages.length,
+      finalCount: pages.length,
+      mode: mode 
+    });
+    
+    return { pages, mode };
+  };
+
+  const renderEmptyPagesMessage = (mode: string) => (
+    <TemplateStyleProvider templateId={designTemplate?.id} brandColors={styleTokens ? tokensToProviderFormat(styleTokens) : undefined}>
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <CardTitle className="text-muted-foreground">No Pages Available</CardTitle>
+            <CardDescription>
+              No pages available for this flow.
+              <br />
+              <span className="text-xs font-mono bg-muted px-2 py-1 rounded mt-2 inline-block">
+                Mode: {mode}
+              </span>
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="text-center">
+            <p className="text-sm text-muted-foreground">
+              This flow needs to be configured with content in the Flow Editor.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    </TemplateStyleProvider>
+  );
   const handleStoreSelection = (store: string) => {
     setUserInputs({ ...userInputs, selectedStore: store });
   };
@@ -410,19 +470,10 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
   }, [currentStage, currentPageIndex, pages, flow, campaign, templateData, stages.length]);
 
   const renderTemplateFlow = () => {
+    // Check for empty pages and render friendly message
     if (!pages || pages.length === 0) {
-      return (
-        <TemplateStyleProvider templateId={designTemplate?.id} brandColors={styleTokens ? tokensToProviderFormat(styleTokens) : undefined}>
-          <div style={{ '--device-width-px': '390px' } as React.CSSProperties}>
-            <div className="text-center p-8">
-              <div className="text-muted-foreground">
-                <div className="text-lg mb-2">No template content available</div>
-                <div className="text-sm">This flow doesn't have any pages configured yet.</div>
-              </div>
-            </div>
-          </div>
-        </TemplateStyleProvider>
-      );
+      const { mode } = processSafePages(flow?.flow_config || {}, 'template');
+      return renderEmptyPagesMessage(mode);
     }
 
     const currentPageData = pages[externalPageIndex ?? currentPageIndex];
