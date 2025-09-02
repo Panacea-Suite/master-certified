@@ -28,6 +28,12 @@ export const FlowStyleShell: React.FC<FlowStyleShellProps> = ({
   templateId = 'classic',
   brandColors // Legacy fallback
 }) => {
+  // Check for debug mode
+  const isDebugMode = React.useMemo(() => {
+    if (typeof window === 'undefined') return false;
+    return new URLSearchParams(window.location.search).get('debugStyle') === '1';
+  }, []);
+
   // Resolve style tokens using centralized logic
   const resolvedTokens = React.useMemo(() => {
     console.log('FlowStyleShell: Resolving tokens for', {
@@ -53,8 +59,29 @@ export const FlowStyleShell: React.FC<FlowStyleShellProps> = ({
     } : providerTokens;
     
     console.log('FlowStyleShell: Final resolved tokens', finalTokens);
+    
+    // Debug mode logging
+    if (isDebugMode) {
+      console.group('🎨 FlowStyleShell Debug (?debugStyle=1)');
+      console.log('📋 Template ID:', templateId);
+      console.log('🏢 Campaign:', campaign ? {
+        id: campaign.id,
+        name: campaign.name,
+        hasLockedTokens: !!campaign.locked_design_tokens
+      } : 'None');
+      console.log('🔄 Flow:', flow ? {
+        id: flow.id,
+        name: flow.name,
+        hasFlowConfig: !!flow.flow_config,
+        hasPublishedSnapshot: !!flow.published_snapshot
+      } : 'None');
+      console.log('🎨 Final Style Tokens:', finalTokens);
+      console.log('📄 Flow Snapshot:', flowSnapshot ? 'Present' : 'None');
+      console.groupEnd();
+    }
+    
     return finalTokens;
-  }, [campaign, flow, flowSnapshot, templateId, brandColors]);
+  }, [campaign, flow, flowSnapshot, templateId, brandColors, isDebugMode]);
 
   return (
     <TemplateStyleProvider 

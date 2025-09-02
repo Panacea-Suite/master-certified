@@ -349,7 +349,21 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
     );
   };
 
-  // Style tokens now handled entirely by FlowStyleShell
+  // Debug logging for style tokens when ?debugStyle=1
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const isDebugMode = new URLSearchParams(window.location.search).get('debugStyle') === '1';
+    
+    if (isDebugMode && (flow || campaign)) {
+      console.group('🔍 CustomerFlowExperience Debug (?debugStyle=1)');
+      console.log('📊 Current Stage:', currentStage, '/', stages.length);
+      console.log('📄 Current Page:', currentPageIndex, pages[currentPageIndex]?.name || 'Unknown');
+      console.log('🏗️ Current Page Sections:', pages[currentPageIndex]?.sections?.length || 0);
+      console.log('📋 Flow Pages Total:', pages.length);
+      console.log('🎯 Template Mode:', templateData ? 'Template Preview' : 'Flow Runtime');
+      console.groupEnd();
+    }
+  }, [currentStage, currentPageIndex, pages, flow, campaign, templateData, stages.length]);
 
   const renderTemplateFlow = () => {
     if (!pages || pages.length === 0) {
