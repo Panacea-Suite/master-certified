@@ -440,10 +440,20 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
 
   // SectionHost component that follows React hooks rules
   function SectionHost({ section, page, styleTokens }: { section: any; page: any; styleTokens: any }) {
-    // Call hooks unconditionally at the top - no conditional hook calls allowed
+    // Call ALL hooks unconditionally at the top - no conditional hook calls allowed
     const { toast } = useToast();
+    const templateStyle = React.useMemo(() => styleTokens, [styleTokens]);
     
-    // Pure switch that returns elements but doesn't call hooks
+    // Guard against missing section data
+    if (!section) {
+      return <UnknownSection type="missing-section" message="Section data is missing" />;
+    }
+    
+    if (!section.type) {
+      return <UnknownSection type="unknown" message="Section type is not defined" />;
+    }
+    
+    // Pure component rendering - no hooks called after this point
     return (
       <SectionRenderer
         key={section.id}
@@ -458,6 +468,30 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
         onPurchaseChannelChange={(channel) => setUserInputs(prev => ({ ...prev, purchaseChannel: channel, selectedStore: '' }))}
         onSelectedStoreChange={(store) => setUserInputs(prev => ({ ...prev, selectedStore: store }))}
       />
+    );
+  }
+
+  // UnknownSection fallback component - always call hooks first
+  function UnknownSection({ type, message }: { type: string; message?: string }) {
+    // Call hooks unconditionally at the top
+    const { toast } = useToast();
+    
+    React.useEffect(() => {
+      console.warn(`🚨 CustomerFlowExperience: Unknown section encountered`, { type, message });
+    }, [type, message]);
+    
+    return (
+      <div className="p-4 border border-dashed border-orange-300 bg-orange-50/50 rounded-lg">
+        <div className="flex items-center gap-2 text-orange-700">
+          <span className="text-sm font-medium">⚠️ Unknown Section</span>
+        </div>
+        <div className="mt-2 text-xs text-orange-600">
+          <div>Type: <code className="bg-orange-100 px-1 rounded">{type}</code></div>
+          {message && (
+            <div className="mt-1 text-orange-500">{message}</div>
+          )}
+        </div>
+      </div>
     );
   }
 
