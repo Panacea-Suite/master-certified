@@ -12,6 +12,8 @@ import { FlowStyleShell } from '@/components/FlowStyleShell';
 import { FlowHeader } from '@/components/flow-editor/FlowHeader';
 import { PanaceaFooter } from '@/components/PanaceaFooter';
 import { useSearchParams } from 'react-router-dom';
+import { resolveStyleTokens, tokensToProviderFormat } from '@/utils/resolveStyleTokens';
+import { TemplateStyleProvider } from '@/components/TemplateStyleProvider';
 
 // Cache-busting utility
 const withCacheBust = (url: string, seed?: string | number): string => {
@@ -46,6 +48,8 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
   const [pages, setPages] = useState<any[]>([]);
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [designTemplate, setDesignTemplate] = useState<any>(null);
+  const [styleTokens, setStyleTokens] = useState<any>(null);
   const [userInputs, setUserInputs] = useState<{
     purchaseChannel: 'in-store' | 'online' | '';
     selectedStore: string;
@@ -79,6 +83,46 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
   useEffect(() => {
     fetchFlowData();
   }, [flowId, templateData, brandData, externalPageIndex, searchParams]);
+
+  // Compute style tokens when campaign, flow, or design template changes
+  useEffect(() => {
+    const computeStyleTokens = async () => {
+      try {
+        // Get design template if templateId is available
+        let template = null;
+        const templateId = flow?.flow_config?.design_template_id || flow?.flow_config?.templateId;
+        
+        if (templateId) {
+          const { data } = await supabase
+            .from('design_templates')
+            .select('*')
+            .eq('id', templateId)
+            .single();
+          template = data;
+          setDesignTemplate(template);
+        }
+
+        // Resolve tokens with defensive merging
+        const resolvedTokens = resolveStyleTokens(campaign, flow?.flow_config, templateId);
+        setStyleTokens(resolvedTokens);
+
+        // Trace logging when ?trace=1
+        const isTraceMode = new URLSearchParams(window.location.search).get('trace') === '1';
+        if (isTraceMode) {
+          console.log('[StyleTokens]', resolvedTokens);
+        }
+      } catch (error) {
+        console.error('Error computing style tokens:', error);
+        // Fallback to safe defaults
+        const fallbackTokens = resolveStyleTokens(null, null, null);
+        setStyleTokens(fallbackTokens);
+      }
+    };
+
+    if (campaign || flow) {
+      computeStyleTokens();
+    }
+  }, [campaign, flow]);
 
   const fetchFlowData = async () => {
     // Session-based test flow
@@ -368,39 +412,39 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
   const renderTemplateFlow = () => {
     if (!pages || pages.length === 0) {
       return (
-        <div style={{ '--device-width-px': '390px' } as React.CSSProperties}>
-          <div className="text-center p-8">
-            <div className="text-muted-foreground">
-              <div className="text-lg mb-2">No template content available</div>
-              <div className="text-sm">This flow doesn't have any pages configured yet.</div>
+        <TemplateStyleProvider templateId={designTemplate?.id} brandColors={styleTokens ? tokensToProviderFormat(styleTokens) : undefined}>
+          <div style={{ '--device-width-px': '390px' } as React.CSSProperties}>
+            <div className="text-center p-8">
+              <div className="text-muted-foreground">
+                <div className="text-lg mb-2">No template content available</div>
+                <div className="text-sm">This flow doesn't have any pages configured yet.</div>
+              </div>
             </div>
           </div>
-        </div>
+        </TemplateStyleProvider>
       );
     }
 
     const currentPageData = pages[externalPageIndex ?? currentPageIndex];
     if (!currentPageData) {
       return (
-        <div style={{ '--device-width-px': '390px' } as React.CSSProperties}>
-          <div className="text-center p-8">
-            <div className="text-muted-foreground">
-              <div className="text-lg mb-2">Page not found</div>
-              <div className="text-sm">The requested page could not be loaded.</div>
+        <TemplateStyleProvider templateId={designTemplate?.id} brandColors={styleTokens ? tokensToProviderFormat(styleTokens) : undefined}>
+          <div style={{ '--device-width-px': '390px' } as React.CSSProperties}>
+            <div className="text-center p-8">
+              <div className="text-muted-foreground">
+                <div className="text-lg mb-2">Page not found</div>
+                <div className="text-sm">The requested page could not be loaded.</div>
+              </div>
             </div>
           </div>
-        </div>
+        </TemplateStyleProvider>
       );
     }
 
     const sectionsToRender = (currentPageData.sections || []).sort((a: any, b: any) => a.order - b.order);
 
     return (
-      <FlowStyleShell
-        campaign={campaign}
-        flow={flow}
-        templateId={flow?.flow_config?.templateId || 'classic'}
-      >
+      <TemplateStyleProvider templateId={designTemplate?.id} brandColors={styleTokens ? tokensToProviderFormat(styleTokens) : undefined}>
         <div className="flex flex-col min-h-screen bg-background" style={{ '--device-width-px': '390px' } as React.CSSProperties}>
           {/* Header */}
           {flow?.flow_config?.globalHeader?.showHeader && (
@@ -451,7 +495,7 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
             </div>
           )}
         </div>
-      </FlowStyleShell>
+      </TemplateStyleProvider>
     );
   };
 
