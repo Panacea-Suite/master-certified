@@ -431,8 +431,12 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
     );
   }
 
-  // Use SectionRenderer for consistent rendering (editor is the single source of truth)
-  const renderTemplateSection = (section: any) => {
+  // SectionHost component that follows React hooks rules
+  function SectionHost({ section, page, styleTokens }: { section: any; page: any; styleTokens: any }) {
+    // Call hooks unconditionally at the top - no conditional hook calls allowed
+    const { toast } = useToast();
+    
+    // Pure switch that returns elements but doesn't call hooks
     return (
       <SectionRenderer
         key={section.id}
@@ -448,7 +452,7 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
         onSelectedStoreChange={(store) => setUserInputs(prev => ({ ...prev, selectedStore: store }))}
       />
     );
-  };
+  }
 
   // Debug logging for style tokens when ?debugStyle=1
   React.useEffect(() => {
@@ -504,8 +508,13 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
         {/* Page Content */}
         <div className="flex-1 flex flex-col">
           <div className="flex-1">
-            {sectionsToRender.map((section: any) => 
-              renderTemplateSection(section)
+            {sectionsToRender.map((section: any, idx: number) => 
+              <SectionHost 
+                section={section} 
+                page={currentPageData} 
+                styleTokens={styleTokens} 
+                key={section.id || idx} 
+              />
             )}
           </div>
 
@@ -897,7 +906,14 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
           
           <div className="max-w-sm mx-auto px-4 py-6">
             <div className="space-y-4">
-              {sections.map((section: any) => renderTemplateSection(section))}
+              {sections.map((section: any, idx: number) => 
+                <SectionHost 
+                  section={section} 
+                  page={null} 
+                  styleTokens={styleTokens} 
+                  key={section.id || idx} 
+                />
+              )}
             </div>
             
           </div>
