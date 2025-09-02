@@ -53,21 +53,12 @@ function SectionHost({
     }
   }, [section, warningLogged]);
   
-  // After hooks, handle rendering conditionally with switch statement
+  // After hooks, handle rendering conditionally with switch statement - never return null
   if (!section) {
-    return (
-      <div className="p-4 border border-dashed border-orange-300 bg-orange-50/50 rounded-lg">
-        <div className="flex items-center gap-2 text-orange-700">
-          <span className="text-sm font-medium">⚠️ Missing Section</span>
-        </div>
-        <div className="mt-2 text-xs text-orange-600">
-          Section data is missing
-        </div>
-      </div>
-    );
+    return <UnknownSection type="missing-section" message="Section data is missing" />;
   }
   
-  // Switch statement that only returns JSX - no hooks inside
+  // Switch statement that only returns JSX - no hooks inside, always returns something
   switch (section.type) {
     case 'image':
     case 'hero':
@@ -98,18 +89,30 @@ function SectionHost({
       );
     
     default:
-      return (
-        <div className="p-4 border border-dashed border-orange-300 bg-orange-50/50 rounded-lg">
-          <div className="flex items-center gap-2 text-orange-700">
-            <span className="text-sm font-medium">⚠️ Unknown Section</span>
-          </div>
-          <div className="mt-2 text-xs text-orange-600">
-            <div>Type: <code className="bg-orange-100 px-1 rounded">{section.type}</code></div>
-            <div className="mt-1 text-orange-500">Section type is not recognized</div>
-          </div>
-        </div>
-      );
+      // Always render placeholder for unknown types - never return null
+      return <UnknownSection type={section.type || 'undefined'} message="Section type is not recognized" />;
   }
+}
+
+// UnknownSection placeholder component
+function UnknownSection({ type, message }: { type: string; message?: string }) {
+  React.useEffect(() => {
+    console.warn(`🚨 CustomerFlowExperience: Unknown section encountered`, { type, message });
+  }, [type, message]);
+  
+  return (
+    <div className="p-4 border border-dashed border-orange-300 bg-orange-50/50 rounded-lg">
+      <div className="flex items-center gap-2 text-orange-700">
+        <span className="text-sm font-medium">⚠️ Unknown Section</span>
+      </div>
+      <div className="mt-2 text-xs text-orange-600">
+        <div>Type: <code className="bg-orange-100 px-1 rounded">{type}</code></div>
+        {message && (
+          <div className="mt-1 text-orange-500">{message}</div>
+        )}
+      </div>
+    </div>
+  );
 }
 
 interface FlowContent {
