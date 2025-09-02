@@ -534,6 +534,18 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
 
     const safeSections = useMemo(() => (currentPageData.sections || []).filter(Boolean).sort((a: any, b: any) => a.order - b.order), [currentPageData]);
 
+    // Trace logging when ?trace=1
+    const isTraceMode = new URLSearchParams(window.location.search).get('trace') === '1';
+    if (isTraceMode) {
+      console.log('🔍 [TRACE] CustomerFlowExperience renderTemplateFlow:', {
+        pagesLength: pages.length,
+        currentPageIndex: externalPageIndex ?? currentPageIndex,
+        sectionsLength: safeSections.length,
+        currentPageId: currentPageData.id,
+        currentPageName: currentPageData.name
+      });
+    }
+
     return (
       <div className="flex flex-col min-h-screen bg-background" style={{ '--device-width-px': '390px' } as React.CSSProperties}>
         {/* Header */}
@@ -549,14 +561,25 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
         {/* Page Content */}
         <div className="flex-1 flex flex-col">
           <div className="flex-1">
-            {safeSections.map((section: any, idx: number) => 
-              <SectionHost 
-                section={section} 
-                page={currentPageData} 
-                styleTokens={styleTokens} 
-                key={section.id || `s-${idx}`} 
-              />
-            )}
+            {safeSections.map((section: any, idx: number) => {
+              // Trace logging before each section render
+              if (isTraceMode) {
+                console.log(`🔍 [TRACE] Rendering SectionHost #${idx}:`, {
+                  sectionType: section.type,
+                  sectionId: section.id,
+                  sectionOrder: section.order
+                });
+              }
+              
+              return (
+                <SectionHost 
+                  section={section} 
+                  page={currentPageData} 
+                  styleTokens={styleTokens} 
+                  key={section.id || `s-${idx}`} 
+                />
+              );
+            })}
           </div>
 
           {/* Default footer - sticks to bottom */}
@@ -949,14 +972,32 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
           
           <div className="max-w-sm mx-auto px-4 py-6">
             <div className="space-y-4">
-              {sections.map((section: any, idx: number) => 
-                <SectionHost 
-                  section={section} 
-                  page={null} 
-                  styleTokens={styleTokens} 
-                  key={section.id || `s-${idx}`} 
-                />
-              )}
+              {sections.map((section: any, idx: number) => {
+                // Trace logging when ?trace=1
+                const isTraceMode = new URLSearchParams(window.location.search).get('trace') === '1';
+                if (isTraceMode) {
+                  console.log('🔍 [TRACE] CustomerFlowExperience section-based flow:', {
+                    pagesLength: 0, // section-based flow has no pages
+                    currentPageIndex: 0,
+                    sectionsLength: sections.length,
+                    totalSections: sections.length
+                  });
+                  console.log(`🔍 [TRACE] Rendering SectionHost #${idx}:`, {
+                    sectionType: section.type,
+                    sectionId: section.id,
+                    sectionOrder: section.order
+                  });
+                }
+                
+                return (
+                  <SectionHost 
+                    section={section} 
+                    page={null} 
+                    styleTokens={styleTokens} 
+                    key={section.id || `s-${idx}`} 
+                  />
+                );
+              })}
             </div>
             
           </div>
