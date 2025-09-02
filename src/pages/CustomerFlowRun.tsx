@@ -115,24 +115,21 @@ export const CustomerFlowRun: React.FC = () => {
 
         // Extract pages for debug info with safe type checking
         let pages: any[] = [];
-        if (flowResult.flow) {
-          // Check if it's an object with pages property
-          if (typeof flowResult.flow === 'object' && flowResult.flow !== null && 'pages' in flowResult.flow) {
-            const flowObj = flowResult.flow as { pages?: any[] };
-            pages = flowObj.pages || [];
-          } 
-          // Check if it's directly an array (flow_content format)
-          else if (Array.isArray(flowResult.flow)) {
-            pages = flowResult.flow;
-          }
-          // For other object formats, try to find pages-like structure
-          else if (typeof flowResult.flow === 'object' && flowResult.flow !== null) {
-            const flowObj = flowResult.flow as Record<string, any>;
-            // Look for common page indicators
-            if (flowObj.version !== undefined && Array.isArray(flowObj.pages)) {
-              pages = flowObj.pages;
-            }
-          }
+        if (flowResult.flow && flowResult.flow.pages) {
+          pages = flowResult.flow.pages;
+        }
+
+        console.log('🔍 Final pages extracted:', pages.length, 'pages');
+
+        // Check for empty pages and provide detailed error
+        if (pages.length === 0) {
+          console.error('🔍 CustomerFlowRun: No pages found in flow!');
+          console.log('🔍 CustomerFlowRun: Flow payload keys:', Object.keys(flowResult.flow || {}));
+          console.log('🔍 CustomerFlowRun: Full flow payload:', flowResult.flow);
+          
+          // Set specific error for empty flow
+          const errorMsg = `Flow found but contains no pages. Flow mode: ${flowResult.mode}. Available data keys: ${Object.keys(flowResult.flow || {}).join(', ')}. Please edit this flow in the Flow Editor to add content.`;
+          throw new Error(errorMsg);
         }
 
         // Update debug state
@@ -144,9 +141,9 @@ export const CustomerFlowRun: React.FC = () => {
 
         // Create flow data with proper structure
         const flowData = {
-          id: 'flow-' + cid, // Temp ID for flow data
-          name: campaign.name + ' Flow',
-          flow_config: flowResult.flow, // This contains either published_snapshot or draft pages
+          id: flowResult.flowId || 'flow-' + cid,
+          name: flowResult.flowName || campaign.name + ' Flow',
+          flow_config: flowResult.flow, // This contains the properly parsed payload
           campaign,
           qrId: qr,
           mode: flowResult.mode
