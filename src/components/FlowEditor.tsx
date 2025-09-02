@@ -98,15 +98,29 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
   ];
   
   const [selectedDevice, setSelectedDevice] = useState(deviceOptions[0]);
-  const [flowName, setFlowName] = useState(templateToEdit && 'name' in templateToEdit ? templateToEdit.name : 'Untitled Flow');
+  const [flowName, setFlowName] = useState(() => {
+    // Always initialize from templateToEdit if it's a campaign flow
+    if (templateToEdit && 'name' in templateToEdit && templateToEdit.campaign_id) {
+      console.log('🔍 FlowEditor: Initializing with campaign flow name:', templateToEdit.name);
+      return templateToEdit.name;
+    }
+    console.log('🔍 FlowEditor: Initializing with default flow name');
+    return templateToEdit && 'name' in templateToEdit ? templateToEdit.name : 'Untitled Flow';
+  });
 
   // Initialize pages from template or create mandatory pages with landing page
   const initializePages = (): PageData[] => {
     // Define which page types are mandatory
     const mandatoryPageTypes = ['store_selection', 'account_creation', 'authentication', 'thank_you'];
     
-    // Handle flow_config format for user templates (synchronous)
+    // Handle flow_config format for campaign flows (synchronous)
     if (templateToEdit?.flow_config?.pages) {
+      console.log('🔍 FlowEditor: Initializing pages from campaign flow:', {
+        flowId: templateToEdit.id,
+        campaignId: templateToEdit.campaign_id,
+        pagesCount: templateToEdit.flow_config.pages.length,
+        isTemplate: templateToEdit.is_template
+      });
       return templateToEdit.flow_config.pages.map((page: any, index: number) => ({
         ...page,
         sections: page.sections || [],

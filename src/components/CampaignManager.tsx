@@ -43,12 +43,27 @@ const CampaignFlowsView: React.FC<{ campaign: Campaign; onBack: () => void }> = 
     let active = true;
     const load = async () => {
       try {
+        console.log('🔍 CampaignFlowsView: Loading flow for campaign:', campaign.id);
+        
+        // Always load flow by campaign_id, never by name to avoid template confusion
         const { data: flowRow, error: flowErr } = await supabase
           .from('flows')
           .select('*')
           .eq('campaign_id', campaign.id)
+          .is('is_template', false) // Explicitly ensure we get campaign flows only
           .maybeSingle();
+          
         if (flowErr) throw flowErr;
+        
+        console.log('🔍 CampaignFlowsView: Found flow:', {
+          flowId: flowRow?.id,
+          flowName: flowRow?.name,
+          campaignId: flowRow?.campaign_id,
+          isTemplate: flowRow?.is_template,
+          hasFlowConfig: !!flowRow?.flow_config,
+          hasPublishedSnapshot: !!flowRow?.published_snapshot
+        });
+        
         if (active) setFlow(flowRow);
 
         const { data: brand, error: brandErr } = await supabase
@@ -58,7 +73,7 @@ const CampaignFlowsView: React.FC<{ campaign: Campaign; onBack: () => void }> = 
           .maybeSingle();
         if (!brandErr && active) setBrandData(brand);
       } catch (e: any) {
-        console.error('Error loading campaign flow:', e);
+        console.error('🔍 Error loading campaign flow:', e);
         toast({ title: 'Error', description: 'Failed to load campaign flow', variant: 'destructive' });
       } finally {
         if (active) setLoading(false);
@@ -200,17 +215,43 @@ const CampaignFlowsView: React.FC<{ campaign: Campaign; onBack: () => void }> = 
       {!flow ? (
         <Card>
           <CardContent className="py-12 text-center text-muted-foreground">
-            No flow found for this campaign.
+            <div className="space-y-2">
+              <p>No flow found for this campaign.</p>
+              <p className="text-sm">Campaign ID: {campaign.id}</p>
+              <p className="text-xs opacity-60">Looking for flows where campaign_id = {campaign.id} and is_template = false</p>
+            </div>
           </CardContent>
         </Card>
       ) : (
-        <FlowEditor
-          isOpen={editorOpen}
-          onClose={() => setEditorOpen(false)}
-          onSave={handleSave}
-          templateToEdit={flow}
-          brandData={brandData}
-        />
+        <div className="space-y-4">
+          {/* Campaign Flow Context Banner */}
+          <Card className="border-blue-200 bg-blue-50">
+            <CardContent className="py-3">
+              <div className="flex items-center justify-between text-sm">
+                <div className="space-y-1">
+                  <div className="font-medium text-blue-900">
+                    📝 Editing Campaign Flow: {flow.name}
+                  </div>
+                  <div className="text-blue-700">
+                    Flow ID: {flow.id} • Campaign: {campaign.name} • Auto-publishes on save
+                  </div>
+                </div>
+                <div className="text-xs text-blue-600 space-y-1">
+                  <div>✅ Loaded by campaign_id</div>
+                  <div>⚡ Changes go live immediately</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <FlowEditor
+            isOpen={editorOpen}
+            onClose={() => setEditorOpen(false)}
+            onSave={handleSave}
+            templateToEdit={flow}
+            brandData={brandData}
+          />
+        </div>
       )}
     </div>
   );
