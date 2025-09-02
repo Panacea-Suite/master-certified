@@ -275,13 +275,37 @@ export const useFlowManager = () => {
     try {
       logOperation('SAVE_FLOW_START', true, { flowId });
 
+      // First, get the current flow to check if it's attached to a campaign
+      const { data: currentFlow, error: fetchError } = await supabase
+        .from('flows')
+        .select('campaign_id, latest_published_version')
+        .eq('id', flowId)
+        .single();
+
+      if (fetchError) {
+        throw new Error(`Failed to fetch flow: ${fetchError.message}`);
+      }
+
+      // Prepare update data
+      const updateData: any = {
+        name: flowData.name,
+        flow_config: flowData.flow_config,
+        updated_at: new Date().toISOString()
+      };
+
+      // If flow is attached to a campaign, auto-publish by creating snapshot
+      if (currentFlow?.campaign_id) {
+        updateData.published_snapshot = {
+          ...flowData.flow_config,
+          name: flowData.name,
+          publishedAt: new Date().toISOString()
+        };
+        updateData.latest_published_version = (currentFlow.latest_published_version || 0) + 1;
+      }
+
       const { error } = await supabase
         .from('flows')
-        .update({
-          name: flowData.name,
-          flow_config: flowData.flow_config,
-          updated_at: new Date().toISOString()
-        })
+        .update(updateData)
         .eq('id', flowId);
 
       if (error) {
