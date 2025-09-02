@@ -246,23 +246,19 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
       const result = await loadFlowForCampaign(flowRow.campaign_id);
       console.log(`Flow loaded in ${result.mode} mode:`, result.flow);
 
-      // Set basic flow info
-      setFlow({ 
+      // Create flow data with proper structure
+      const flowData = { 
         id: flowRow.id, 
         name: 'Customer Flow',
         flow_config: result.flow
-      });
+      };
 
-      // Handle flow content based on loader result
-      const flowData = result.flow as any;
-      if (flowData?.pages && Array.isArray(flowData.pages)) {
-        console.log('Using pages from runtime loader');
-        setPages(flowData.pages);
-        setCurrentPageIndex(0);
-      } else {
-        console.log('No pages found, setting empty content');
-        setContent([]);
-      }
+      // Set flow config and pages as specified
+      const flowConfig = (flowData.flow_config && typeof flowData.flow_config === 'object' && !Array.isArray(flowData.flow_config)) ? flowData.flow_config as any : {};
+      const pages = Array.isArray(flowConfig.pages) ? flowConfig.pages : [];
+      setFlow(flowData);
+      setPages(pages);
+      setCurrentPageIndex(0);
 
     } catch (error) {
       console.error('Error in fetchFlowData:', error);
@@ -357,7 +353,12 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
     if (!pages || pages.length === 0) {
       return (
         <div style={{ '--device-width-px': '390px' } as React.CSSProperties}>
-          <div className="text-center p-4">No content available</div>
+          <div className="text-center p-8">
+            <div className="text-muted-foreground">
+              <div className="text-lg mb-2">No template content available</div>
+              <div className="text-sm">This flow doesn't have any pages configured yet.</div>
+            </div>
+          </div>
         </div>
       );
     }
@@ -366,7 +367,12 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
     if (!currentPageData) {
       return (
         <div style={{ '--device-width-px': '390px' } as React.CSSProperties}>
-          <div className="text-center p-4">Page not found</div>
+          <div className="text-center p-8">
+            <div className="text-muted-foreground">
+              <div className="text-lg mb-2">Page not found</div>
+              <div className="text-sm">The requested page could not be loaded.</div>
+            </div>
+          </div>
         </div>
       );
     }
