@@ -223,12 +223,30 @@ export const CustomerFlowRun: React.FC = () => {
           throw new Error(errorMsg);
         }
 
-        // Update debug state
+        // Update debug state with comprehensive information
+        const totalSections = pages.reduce((count, page) => 
+          count + (page.sections ? page.sections.length : 0), 0);
+
         setDebugState({
           flowFound: !!flowResult.flow,
           pagesLength: pages.length,
           flowMode: flowResult.mode,
-          debugDetails: flowResult.debugDetails
+          debugDetails: {
+            ...flowResult.debugDetails,
+            campaignName: campaign.name,
+            brandName: campaign.brands?.name,
+            totalSections,
+            pagesBreakdown: pages.map((page, index) => ({
+              index: index + 1,
+              name: page.name || `Page ${index + 1}`,
+              type: page.type || 'unknown',
+              sectionsCount: page.sections ? page.sections.length : 0
+            })),
+            contentSource: flowResult.mode === 'published' ? 'published_snapshot' : 'flow_config',
+            isLive: !flowResult.mode.includes('draft'),
+            debugMode: useDraft,
+            hasDesignTokens: !!campaign.locked_design_tokens
+          }
         });
 
         // Create flow data with effective pages structure  

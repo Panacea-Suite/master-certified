@@ -215,21 +215,29 @@ export async function loadFlowForCampaign(campaignId: string, debug = false, tra
     throw new Error('This flow has not been published yet. Please publish the flow in the editor to make it available to customers.');
   }
 
+  // Return comprehensive result with enhanced debug details
   return {
-    mode,
     flow: payload,
     flowId: flowRow.id,
     flowName: flowRow.name,
-    // Return debug details for diagnostic purposes
-    debugDetails: (debug || trace) ? {
-      flowId: flowRow.id,
+    mode: mode,
+    debugDetails: {
       campaignId: campaignId,
-      actualCampaignId: flowRow.campaign_id,
+      flowId: flowRow.id,
+      flowName: flowRow.name,
+      flowCampaignId: flowRow.campaign_id,
       hasPublishedSnapshot: !!flowRow.published_snapshot,
       hasFlowConfig: !!flowRow.flow_config,
       flowConfigType: typeof flowRow.flow_config,
       publishedSnapshotType: typeof flowRow.published_snapshot,
-      payloadKeys: Object.keys(payload || {})
-    } : undefined
+      payloadKeys: payload ? Object.keys(payload) : [],
+      contentSource: mode === 'published' ? 'published_snapshot' : 
+                    mode.includes('draft') ? 'flow_config' : mode,
+      latestVersion: flowRow.latest_published_version,
+      pagesInPayload: payload?.pages?.length || 0,
+      isLiveContent: mode === 'published',
+      debugMode: forceDraft,
+      loadedAt: new Date().toISOString()
+    }
   };
 }
