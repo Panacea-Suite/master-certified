@@ -8,6 +8,18 @@ import { loadFlowForCampaign } from '@/runtime/loadFlow';
 import { getHashSafeParam } from '@/lib/hashParams';
 import { DebugBox } from '@/components/DebugBox';
 
+// Normalizer function to ensure consistent JSON shape at the boundary
+function normalizeFlow(cfg: any) {
+  const pages = Array.isArray(cfg?.pages) ? cfg.pages : [];
+  return {
+    ...cfg,
+    pages: pages.map(p => ({
+      ...p,
+      sections: Array.isArray(p?.sections) ? p.sections : []
+    }))
+  };
+}
+
 export const CustomerFlowRun: React.FC = () => {
   const location = useLocation();
   
@@ -178,11 +190,11 @@ export const CustomerFlowRun: React.FC = () => {
         }
         console.log('🔍 Flow result:', flowResult);
 
+        // Normalize the flow data to ensure consistent JSON shape
+        const normalizedFlow = normalizeFlow(flowResult.flow);
+
         // Extract pages for debug info with safe type checking
-        let pages: any[] = [];
-        if (flowResult.flow && flowResult.flow.pages) {
-          pages = flowResult.flow.pages;
-        }
+        const pages = normalizedFlow.pages; // Now guaranteed to be an array with sections arrays
 
         console.log('🔍 Final pages extracted:', pages.length, 'pages');
         
@@ -249,15 +261,15 @@ export const CustomerFlowRun: React.FC = () => {
           }
         });
 
-        // Create flow data with effective pages structure  
+        // Create flow data with normalized effective pages structure  
         const flowData = {
           id: flowResult.flowId || 'flow-' + cid,
           name: flowResult.flowName || campaign.name + ' Flow',
-          flow_config: flowResult.flow, // This contains the properly parsed payload
+          flow_config: normalizedFlow, // This contains the properly parsed and normalized payload
           campaign,
           qrId: qr,
           mode: flowResult.mode,
-          effective: { pages: flowResult.flow?.pages || [] } // Pre-computed effective pages
+          effective: normalizedFlow // Pre-computed effective pages with guaranteed structure
         };
 
         console.log('🔍 Final flow data created with pages:', pages.length);
