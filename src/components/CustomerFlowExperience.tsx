@@ -472,27 +472,41 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
     return { pages: stablePages, mode };
   };
 
-  const renderEmptyPagesMessage = (mode: string) => (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle className="text-muted-foreground">No Pages Available</CardTitle>
-          <CardDescription>
-            No pages available for this flow.
-            <br />
-            <span className="text-xs font-mono bg-muted px-2 py-1 rounded mt-2 inline-block">
-              Mode: {mode}
-            </span>
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="text-center">
-          <p className="text-sm text-muted-foreground">
-            This flow needs to be configured with content in the Flow Editor.
-          </p>
-        </CardContent>
-      </Card>
-    </div>
-  );
+  const renderEmptyPagesMessage = (mode: string) => {
+    let message = '';
+    if (mode === 'published') {
+      message = 'Flow published snapshot is empty. Showing editor draft requires republish.';
+    } else if (mode === 'draft-fallback') {
+      message = 'Showing latest draft (not yet published).';
+    } else {
+      message = 'No pages available for this flow.';
+    }
+    
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <CardTitle className="text-muted-foreground">No Pages Available</CardTitle>
+            <CardDescription>
+              {message}
+              <br />
+              <span className="text-xs font-mono bg-muted px-2 py-1 rounded mt-2 inline-block">
+                Mode: {mode}
+              </span>
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="text-center">
+            <p className="text-sm text-muted-foreground">
+              {mode === 'published' || mode === 'draft-fallback' 
+                ? 'Check the Flow Editor for available content.'
+                : 'This flow needs to be configured with content in the Flow Editor.'
+              }
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  };
   const handleStoreSelection = (store: string) => {
     setUserInputs({ ...userInputs, selectedStore: store });
   };

@@ -208,8 +208,15 @@ export const CustomerFlowRun: React.FC = () => {
           console.log('🔍 CustomerFlowRun: Flow payload keys:', Object.keys(flowResult.flow || {}));
           console.log('🔍 CustomerFlowRun: Full flow payload:', flowResult.flow);
           
-          // Set specific error for empty flow
-          const errorMsg = `Flow found but contains no pages. Flow mode: ${flowResult.mode}. Available data keys: ${Object.keys(flowResult.flow || {}).join(', ')}. Please edit this flow in the Flow Editor to add content.`;
+          // Set specific error for empty flow with mode-aware message
+          let errorMsg = '';
+          if (flowResult.mode === 'published') {
+            errorMsg = 'Flow published snapshot is empty. Showing editor draft requires republish.';
+          } else if (flowResult.mode === 'draft-fallback') {
+            errorMsg = 'Showing latest draft (not yet published).';
+          } else {
+            errorMsg = `Flow found but contains no pages. Flow mode: ${flowResult.mode}. Available data keys: ${Object.keys(flowResult.flow || {}).join(', ')}. Please edit this flow in the Flow Editor to add content.`;
+          }
           throw new Error(errorMsg);
         }
 
@@ -307,7 +314,7 @@ export const CustomerFlowRun: React.FC = () => {
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              <p>No flow data available</p>
+              <p>No flow data available. Please check your campaign configuration.</p>
             </AlertDescription>
           </Alert>
         </div>
