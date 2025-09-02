@@ -620,6 +620,14 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
     return Array.isArray(sections) ? sections.filter(Boolean).sort((a: any, b: any) => (a.order || 0) - (b.order || 0)) : [];
   }, [flow?.flow_config]);
 
+  // Stabilized current page sections computation - moved from renderTemplateFlow to prevent hook violation
+  const currentPageSafeSections = useMemo(() => {
+    const currentPageData = pages[externalPageIndex ?? currentPageIndex];
+    if (!currentPageData) return [];
+    const sections = currentPageData.sections || [];
+    return Array.isArray(sections) ? sections.filter(Boolean).sort((a: any, b: any) => (a.order || 0) - (b.order || 0)) : [];
+  }, [pages, externalPageIndex, currentPageIndex]);
+
   const renderTemplateFlow = () => {
     // Trace logging when ?trace=1 - moved to top for comprehensive coverage
     const isTraceMode = new URLSearchParams(window.location.search).get('trace') === '1';
@@ -684,10 +692,8 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
       );
     }
 
-    const safeSections = useMemo(() => {
-      const sections = currentPageData.sections || [];
-      return Array.isArray(sections) ? sections.filter(Boolean).sort((a: any, b: any) => (a.order || 0) - (b.order || 0)) : [];
-    }, [currentPageData]);
+    // Use the pre-computed sections from top-level useMemo to prevent hook violation
+    const safeSections = currentPageSafeSections;
 
     if (isTraceMode) {
       console.log('🔍 [TRACE] About to render current page sections:', {
