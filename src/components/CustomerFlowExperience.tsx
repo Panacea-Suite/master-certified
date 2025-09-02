@@ -167,17 +167,19 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
   const brandColors = useMemo(() => styleTokens ? tokensToProviderFormat(styleTokens) : undefined, [styleTokens]);
   const templateId = useMemo(() => designTemplate?.id || flow?.flow_config?.design_template_id || flow?.flow_config?.templateId || 'classic', [designTemplate?.id, flow?.flow_config?.design_template_id, flow?.flow_config?.templateId]);
 
-  // Stable pages computation with useMemo - now uses effective.pages if available
+  // Stabilized pages computation with useMemo
   const pages = useMemo(() => {
     // Use effective.pages if provided (pre-computed from runtime)
     if (effective?.pages) {
-      return effective.pages.filter(Boolean);
+      const p = effective.pages;
+      return Array.isArray(p) ? p.filter(Boolean) : [];
     }
     
     // Fallback to old computation for backward compatibility
     const published = flow?.published_snapshot?.pages ?? [];
     const draft = flow?.flow_config?.pages ?? [];
-    return (published?.length ? published : draft || []).filter(Boolean);
+    const fallbackPages = published?.length ? published : draft || [];
+    return Array.isArray(fallbackPages) ? fallbackPages.filter(Boolean) : [];
   }, [effective?.pages, flow?.published_snapshot?.pages, flow?.flow_config?.pages]);
 
   const stages = [
@@ -671,7 +673,10 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
       );
     }
 
-    const safeSections = useMemo(() => (currentPageData.sections || []).filter(Boolean).sort((a: any, b: any) => a.order - b.order), [currentPageData]);
+    const safeSections = useMemo(() => {
+      const sections = currentPageData.sections || [];
+      return Array.isArray(sections) ? sections.filter(Boolean).sort((a: any, b: any) => (a.order || 0) - (b.order || 0)) : [];
+    }, [currentPageData]);
 
     if (isTraceMode) {
       console.log('🔍 [TRACE] About to render current page sections:', {
@@ -1052,7 +1057,11 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
         // Check if this is a section-based flow
         const flowConfig = flow?.flow_config as any;
         if (flowConfig?.sections) {
-          const sections = flowConfig.sections;
+          const safeSections = useMemo(() => {
+            const sections = flowConfig.sections || [];
+            return Array.isArray(sections) ? sections.filter(Boolean).sort((a: any, b: any) => (a.order || 0) - (b.order || 0)) : [];
+          }, [flowConfig?.sections]);
+          
           const backgroundColor = flowConfig?.theme?.backgroundColor || '#ffffff';
           const globalHeader = flowConfig?.globalHeader || {
             showHeader: true,
@@ -1098,7 +1107,7 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
               
               <div className="max-w-sm mx-auto px-4 py-6">
                 <div className="space-y-4">
-                  {sections.filter(Boolean).map((section: any, idx: number) => {
+                  {safeSections.map((section: any, idx: number) => {
                     // Trace logging when ?trace=1 - enhanced for section-based flow
                     const isTraceMode = new URLSearchParams(window.location.search).get('trace') === '1';
                     if (isTraceMode) {
@@ -1108,8 +1117,8 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
                           timestamp: new Date().toISOString(),
                           pagesLength: 0, // section-based flow has no pages
                           currentPageIndex: 0,
-                          sectionsLength: sections.length,
-                          sectionsAfterFilter: sections.filter(Boolean).map(s => ({
+                          sectionsLength: safeSections.length,
+                          sectionsAfterFilter: safeSections.map(s => ({
                             type: s.type,
                             id: s.id,
                             order: s.order
