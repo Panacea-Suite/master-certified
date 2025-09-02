@@ -12,8 +12,11 @@ export const CustomerFlowRun: React.FC = () => {
   const { cid: routeParamCid } = useParams();
   const location = useLocation();
   
-  // Extract parameters from both search and hash with fallbacks
-  const cid = routeParamCid || getHashSafeParam('cid', location) || getHashSafeParam('campaign_id', location);
+  // Extract parameters with robust fallback strategy
+  // Priority: 1) Route path param, 2) Query param cid, 3) Query param campaign_id
+  const cid = routeParamCid || 
+              getHashSafeParam('cid', location) || 
+              getHashSafeParam('campaign_id', location);
   const qr = getHashSafeParam('qr', location);
   const ct = getHashSafeParam('ct', location);
   const debugFlow = getHashSafeParam('debugFlow', location) === '1';
@@ -24,15 +27,32 @@ export const CustomerFlowRun: React.FC = () => {
   const [campaignData, setCampaignData] = useState<any>(null);
   const [lastRequest, setLastRequest] = useState<any>(null);
   const [lastError, setLastError] = useState<any>(null);
+  
+  // Debug state for the debug panel
+  const [debugState, setDebugState] = useState({
+    flowFound: false,
+    pagesLength: 0,
+    flowMode: 'unknown'
+  });
 
   useEffect(() => {
     const loadFlowData = async () => {
       try {
         // Debug logging before any fetch
-        console.log('🔍 CustomerFlowRun Debug:', { cid, qr, ct, location });
+        console.log('🔍 CustomerFlowRun Debug:', { 
+          routeParamCid, 
+          cid, 
+          qr, 
+          ct, 
+          location: {
+            pathname: location.pathname,
+            search: location.search,
+            hash: location.hash
+          }
+        });
         
         if (!cid) {
-          throw new Error('Missing campaign ID (cid) in URL parameters');
+          throw new Error('Missing campaign ID (cid) in URL parameters. Please check the URL format.');
         }
 
         // Validate the customer access token if provided
@@ -93,6 +113,35 @@ export const CustomerFlowRun: React.FC = () => {
         const flowResult = await loadFlowForCampaign(cid);
         console.log('🔍 Flow result:', flowResult);
 
+        // Extract pages for debug info with safe type checking
+        let pages: any[] = [];
+        if (flowResult.flow) {
+          // Check if it's an object with pages property
+          if (typeof flowResult.flow === 'object' && flowResult.flow !== null && 'pages' in flowResult.flow) {
+            const flowObj = flowResult.flow as { pages?: any[] };
+            pages = flowObj.pages || [];
+          } 
+          // Check if it's directly an array (flow_content format)
+          else if (Array.isArray(flowResult.flow)) {
+            pages = flowResult.flow;
+          }
+          // For other object formats, try to find pages-like structure
+          else if (typeof flowResult.flow === 'object' && flowResult.flow !== null) {
+            const flowObj = flowResult.flow as Record<string, any>;
+            // Look for common page indicators
+            if (flowObj.version !== undefined && Array.isArray(flowObj.pages)) {
+              pages = flowObj.pages;
+            }
+          }
+        }
+
+        // Update debug state
+        setDebugState({
+          flowFound: !!flowResult.flow,
+          pagesLength: pages.length,
+          flowMode: flowResult.mode
+        });
+
         // Create flow data with proper structure
         const flowData = {
           id: 'flow-' + cid, // Temp ID for flow data
@@ -103,6 +152,7 @@ export const CustomerFlowRun: React.FC = () => {
           mode: flowResult.mode
         };
 
+        console.log('🔍 Final flow data created with pages:', pages.length);
         setFlowData(flowData);
 
         setLoading(false);
@@ -114,12 +164,21 @@ export const CustomerFlowRun: React.FC = () => {
         };
         setLastError(errorInfo);
         setError(errorInfo.message);
+        
+        // Update debug state even on error 
+        setDebugState(prev => ({
+          ...prev,
+          flowFound: false,
+          pagesLength: 0,
+          flowMode: 'error'
+        }));
+        
         setLoading(false);
       }
     };
 
     loadFlowData();
-  }, [cid, qr, ct]); // Update dependencies
+  }, [cid, qr, ct, routeParamCid]); // Update dependencies
 
   if (loading) {
     return (
@@ -177,6 +236,9 @@ export const CustomerFlowRun: React.FC = () => {
         location={location}
         lastRequest={lastRequest}
         lastError={lastError}
+        flowFound={debugState.flowFound}
+        pagesLength={debugState.pagesLength}
+        flowMode={debugState.flowMode}
         visible={debugFlow}
       />
     </div>
