@@ -105,9 +105,10 @@ interface CustomerFlowExperienceProps {
   externalPageIndex?: number; // For external page navigation control
   hideInternalNavigation?: boolean; // Hide internal navigation when controlled externally
   runtimeMode?: string; // Runtime mode: 'published' | 'draft' | 'draft-fallback'
+  effective?: { pages: any[] }; // Pre-computed effective pages from runtime
 }
 
-const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId, qrCode, templateData, brandData, externalPageIndex, hideInternalNavigation, runtimeMode }) => {
+const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId, qrCode, templateData, brandData, externalPageIndex, hideInternalNavigation, runtimeMode, effective }) => {
   // ALL HOOKS MUST BE CALLED UNCONDITIONALLY AT THE TOP
   const [currentStage, setCurrentStage] = useState(0);
   const [flow, setFlow] = useState<any>(null);
@@ -139,12 +140,18 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
 
-  // Stable pages computation with useMemo - moved to top
+  // Stable pages computation with useMemo - now uses effective.pages if available
   const pages = useMemo(() => {
+    // Use effective.pages if provided (pre-computed from runtime)
+    if (effective?.pages) {
+      return effective.pages.filter(Boolean);
+    }
+    
+    // Fallback to old computation for backward compatibility
     const published = flow?.published_snapshot?.pages ?? [];
     const draft = flow?.flow_config?.pages ?? [];
     return (published?.length ? published : draft || []).filter(Boolean);
-  }, [flow?.published_snapshot?.pages, flow?.flow_config?.pages]);
+  }, [effective?.pages, flow?.published_snapshot?.pages, flow?.flow_config?.pages]);
 
   const stages = [
     { type: 'landing', title: 'Welcome to Certified', icon: Shield },
@@ -1001,7 +1008,7 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
     >
       {(() => {
         // Main template flow rendering
-        if (templateData || (flow?.flow_config?.pages && pages.length > 0)) {
+        if (templateData || effective?.pages?.length > 0 || (flow?.flow_config?.pages && pages.length > 0)) {
           return renderTemplateFlow();
         }
 

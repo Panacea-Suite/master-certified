@@ -220,14 +220,15 @@ export const CustomerFlowRun: React.FC = () => {
           debugDetails: flowResult.debugDetails
         });
 
-        // Create flow data with proper structure
+        // Create flow data with effective pages structure  
         const flowData = {
           id: flowResult.flowId || 'flow-' + cid,
           name: flowResult.flowName || campaign.name + ' Flow',
           flow_config: flowResult.flow, // This contains the properly parsed payload
           campaign,
           qrId: qr,
-          mode: flowResult.mode
+          mode: flowResult.mode,
+          effective: { pages: flowResult.flow?.pages || [] } // Pre-computed effective pages
         };
 
         console.log('🔍 Final flow data created with pages:', pages.length);
@@ -321,6 +322,7 @@ export const CustomerFlowRun: React.FC = () => {
         flowId={flowData.id}
         qrCode={flowData.qrId}
         runtimeMode={flowData.mode}
+        effective={flowData.effective}
       />
       
       {/* Trace mode debug pill */}
