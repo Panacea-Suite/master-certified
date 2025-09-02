@@ -8,6 +8,7 @@ import { ViewModeProvider } from "@/hooks/useViewMode";
 import { BrandProvider } from "@/contexts/BrandContext";
 import { AdminShell } from "@/components/shells/AdminShell";
 import { CustomerShell } from "@/components/shells/CustomerShell";
+import { ErrorBoundary } from "@/components/common/ErrorBoundary";
 import { TestFlowGate } from "@/pages/TestFlowGate";
 import { CustomerFlowRun } from "@/pages/CustomerFlowRun";
 import { QrRedirect } from "@/pages/QrRedirect";
@@ -55,7 +56,7 @@ const App = () => {
                   {/* Customer-only routes - no auth required, no admin shell */}
                   <Route path="/qr/:uniqueCode" element={<QrRedirect />} />
                   <Route path="/flow/test" element={<CustomerShell><TestFlowGate /></CustomerShell>} />
-                  <Route path="/flow/run" element={<CustomerShell><CustomerFlowRun /></CustomerShell>} />
+                  <Route path="/flow/run" element={<ErrorBoundary><CustomerShell><CustomerFlowRun /></CustomerShell></ErrorBoundary>} />
                   <Route path="/not-found" element={<CustomerShell><NotFound /></CustomerShell>} />
                   
                   {/* Admin routes - require auth, use admin shell */}
