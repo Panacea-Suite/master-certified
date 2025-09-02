@@ -13,7 +13,7 @@ import { useBrandContext } from '@/contexts/BrandContext';
 import CampaignWizard from './CampaignWizard';
 import { CampaignTokenManager } from './CampaignTokenManager';
 import CampaignBatchView from './CampaignBatchView';
-import FlowManagerBackup from './FlowManager_backup';
+import { FlowEditor } from './FlowEditor';
 
 interface Campaign {
   id: string;
@@ -30,6 +30,99 @@ interface Campaign {
     name: string;
   };
 }
+
+// Focused view to manage the flow attached to a specific campaign
+const CampaignFlowsView: React.FC<{ campaign: Campaign; onBack: () => void }> = ({ campaign, onBack }) => {
+  const { toast } = useToast();
+  const [flow, setFlow] = useState<any | null>(null);
+  const [brandData, setBrandData] = useState<any | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [editorOpen, setEditorOpen] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    const load = async () => {
+      try {
+        const { data: flowRow, error: flowErr } = await supabase
+          .from('flows')
+          .select('*')
+          .eq('campaign_id', campaign.id)
+          .maybeSingle();
+        if (flowErr) throw flowErr;
+        if (active) setFlow(flowRow);
+
+        const { data: brand, error: brandErr } = await supabase
+          .from('brands')
+          .select('id, name, logo_url, brand_colors')
+          .eq('id', campaign.brand_id)
+          .maybeSingle();
+        if (!brandErr && active) setBrandData(brand);
+      } catch (e: any) {
+        console.error('Error loading campaign flow:', e);
+        toast({ title: 'Error', description: 'Failed to load campaign flow', variant: 'destructive' });
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
+    load();
+    return () => { active = false; };
+  }, [campaign.id, campaign.brand_id, toast]);
+
+  const handleSave = async (updated: any) => {
+    try {
+      if (!flow) return;
+      const { error } = await supabase
+        .from('flows')
+        .update({
+          name: updated.name,
+          flow_config: updated.flow_config,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', flow.id);
+      if (error) throw error;
+      setFlow({ ...flow, ...updated });
+      toast({ title: 'Saved', description: 'Flow updated successfully' });
+    } catch (e: any) {
+      console.error('Error saving flow:', e);
+      toast({ title: 'Error', description: e.message || 'Failed to save flow', variant: 'destructive' });
+    }
+  };
+
+  if (loading) {
+    return <div className="text-center py-8">Loading flow...</div>;
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Flow Management</h1>
+          <p className="text-muted-foreground mt-2">Campaign: {campaign.name}</p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={onBack}>Back to Campaigns</Button>
+          <Button variant="default" onClick={() => { window.location.hash = `#/flow/run/${campaign.id}?debugFlow=1`; }}>Open Customer View</Button>
+        </div>
+      </div>
+
+      {!flow ? (
+        <Card>
+          <CardContent className="py-12 text-center text-muted-foreground">
+            No flow found for this campaign.
+          </CardContent>
+        </Card>
+      ) : (
+        <FlowEditor
+          isOpen={editorOpen}
+          onClose={() => setEditorOpen(false)}
+          onSave={handleSave}
+          templateToEdit={flow}
+          brandData={brandData}
+        />
+      )}
+    </div>
+  );
+};
 
 const CampaignManager = () => {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
@@ -176,20 +269,10 @@ const CampaignManager = () => {
 
   if (selectedCampaignForFlows) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">Flow Management</h1>
-            <p className="text-muted-foreground mt-2">
-              Campaign: {selectedCampaignForFlows.name}
-            </p>
-          </div>
-          <Button variant="outline" onClick={() => setSelectedCampaignForFlows(null)}>
-            Back to Campaigns
-          </Button>
-        </div>
-        <FlowManagerBackup />
-      </div>
+      <CampaignFlowsView
+        campaign={selectedCampaignForFlows}
+        onBack={() => setSelectedCampaignForFlows(null)}
+      />
     );
   }
 
