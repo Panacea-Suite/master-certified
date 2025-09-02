@@ -22,6 +22,70 @@ const withCacheBust = (url: string, seed?: string | number): string => {
   return `${url}${separator}cb=${timestamp}`;
 };
 
+// SectionHost component - moved outside to avoid hooks inside component
+function SectionHost({ 
+  section, 
+  page, 
+  styleTokens, 
+  campaign, 
+  userInputs, 
+  setUserInputs 
+}: { 
+  section: any; 
+  page: any; 
+  styleTokens: any; 
+  campaign: any; 
+  userInputs: any; 
+  setUserInputs: any; 
+}) {
+  // Guard against missing section data
+  if (!section) {
+    return <UnknownSection type="missing-section" message="Section data is missing" />;
+  }
+  
+  if (!section.type) {
+    return <UnknownSection type="unknown" message="Section type is not defined" />;
+  }
+  
+  // Pure component rendering - no hooks called after this point
+  return (
+    <SectionRenderer
+      key={section.id}
+      section={section}
+      isPreview={true}
+      isRuntimeMode={true}
+      storeOptions={campaign?.approved_stores || []}
+      brandColors={null}
+      // Controlled store selector props for runtime binding
+      purchaseChannel={userInputs.purchaseChannel}
+      selectedStore={userInputs.selectedStore}
+      onPurchaseChannelChange={(channel) => setUserInputs(prev => ({ ...prev, purchaseChannel: channel, selectedStore: '' }))}
+      onSelectedStoreChange={(store) => setUserInputs(prev => ({ ...prev, selectedStore: store }))}
+    />
+  );
+}
+
+// UnknownSection fallback component - moved outside to avoid hooks inside component  
+function UnknownSection({ type, message }: { type: string; message?: string }) {
+  React.useEffect(() => {
+    console.warn(`🚨 CustomerFlowExperience: Unknown section encountered`, { type, message });
+  }, [type, message]);
+  
+  return (
+    <div className="p-4 border border-dashed border-orange-300 bg-orange-50/50 rounded-lg">
+      <div className="flex items-center gap-2 text-orange-700">
+        <span className="text-sm font-medium">⚠️ Unknown Section</span>
+      </div>
+      <div className="mt-2 text-xs text-orange-600">
+        <div>Type: <code className="bg-orange-100 px-1 rounded">{type}</code></div>
+        {message && (
+          <div className="mt-1 text-orange-500">{message}</div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 interface FlowContent {
   id: string;
   content_type: string;
@@ -40,6 +104,7 @@ interface CustomerFlowExperienceProps {
 }
 
 const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId, qrCode, templateData, brandData, externalPageIndex, hideInternalNavigation }) => {
+  // ALL HOOKS MUST BE CALLED UNCONDITIONALLY AT THE TOP
   const [currentStage, setCurrentStage] = useState(0);
   const [flow, setFlow] = useState<any>(null);
   const [campaign, setCampaign] = useState<any>(null);
@@ -70,6 +135,13 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
   const [authenticating, setAuthenticating] = useState(false);
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
+
+  // Stable pages computation with useMemo - moved to top
+  const stablePages = useMemo(() => {
+    const published = flow?.published_snapshot?.pages ?? [];
+    const draft = flow?.flow_config?.pages ?? [];
+    return (published.length > 0 ? published : draft).filter(Boolean);
+  }, [flow?.published_snapshot?.pages, flow?.flow_config?.pages]);
 
   const stages = [
     { type: 'landing', title: 'Welcome to Certified', icon: Shield },
@@ -431,69 +503,6 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
     );
   }
 
-  // Stable pages computation with useMemo
-  const stablePages = useMemo(() => {
-    const published = flow?.published_snapshot?.pages ?? [];
-    const draft = flow?.flow_config?.pages ?? [];
-    return (published.length > 0 ? published : draft).filter(Boolean);
-  }, [flow?.published_snapshot?.pages, flow?.flow_config?.pages]);
-
-  // SectionHost component that follows React hooks rules
-  function SectionHost({ section, page, styleTokens }: { section: any; page: any; styleTokens: any }) {
-    // Call ALL hooks unconditionally at the top - no conditional hook calls allowed
-    const { toast } = useToast();
-    const templateStyle = React.useMemo(() => styleTokens, [styleTokens]);
-    
-    // Guard against missing section data
-    if (!section) {
-      return <UnknownSection type="missing-section" message="Section data is missing" />;
-    }
-    
-    if (!section.type) {
-      return <UnknownSection type="unknown" message="Section type is not defined" />;
-    }
-    
-    // Pure component rendering - no hooks called after this point
-    return (
-      <SectionRenderer
-        key={section.id}
-        section={section}
-        isPreview={true}
-        isRuntimeMode={true}
-        storeOptions={campaign?.approved_stores || []}
-        brandColors={null}
-        // Controlled store selector props for runtime binding
-        purchaseChannel={userInputs.purchaseChannel}
-        selectedStore={userInputs.selectedStore}
-        onPurchaseChannelChange={(channel) => setUserInputs(prev => ({ ...prev, purchaseChannel: channel, selectedStore: '' }))}
-        onSelectedStoreChange={(store) => setUserInputs(prev => ({ ...prev, selectedStore: store }))}
-      />
-    );
-  }
-
-  // UnknownSection fallback component - always call hooks first
-  function UnknownSection({ type, message }: { type: string; message?: string }) {
-    // Call hooks unconditionally at the top
-    const { toast } = useToast();
-    
-    React.useEffect(() => {
-      console.warn(`🚨 CustomerFlowExperience: Unknown section encountered`, { type, message });
-    }, [type, message]);
-    
-    return (
-      <div className="p-4 border border-dashed border-orange-300 bg-orange-50/50 rounded-lg">
-        <div className="flex items-center gap-2 text-orange-700">
-          <span className="text-sm font-medium">⚠️ Unknown Section</span>
-        </div>
-        <div className="mt-2 text-xs text-orange-600">
-          <div>Type: <code className="bg-orange-100 px-1 rounded">{type}</code></div>
-          {message && (
-            <div className="mt-1 text-orange-500">{message}</div>
-          )}
-        </div>
-      </div>
-    );
-  }
 
   // Debug logging for style tokens when ?debugStyle=1
   React.useEffect(() => {
@@ -575,7 +584,10 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
                 <SectionHost 
                   section={section} 
                   page={currentPageData} 
-                  styleTokens={styleTokens} 
+                  styleTokens={styleTokens}
+                  campaign={campaign}
+                  userInputs={userInputs}
+                  setUserInputs={setUserInputs}
                   key={section.id || `s-${idx}`} 
                 />
               );
@@ -993,7 +1005,10 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
                   <SectionHost 
                     section={section} 
                     page={null} 
-                    styleTokens={styleTokens} 
+                    styleTokens={styleTokens}
+                    campaign={campaign}
+                    userInputs={userInputs}
+                    setUserInputs={setUserInputs}
                     key={section.id || `s-${idx}`} 
                   />
                 );
