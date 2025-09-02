@@ -820,7 +820,6 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
         const { data: { user } } = await supabase.auth.getUser();
         
         const newTemplate = {
-          flow_name: flowName,
           name: flowName,
           flow_config: flowConfig as any,
           is_template: true,
@@ -890,6 +889,15 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
   const handlePublish = async () => {
     if (!templateToEdit?.id) {
       toast.error('No flow to publish');
+      return;
+    }
+
+    // Only allow publishing for real campaign flows with a valid UUID id
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    const isUuid = uuidRegex.test(String(templateToEdit.id));
+    const isCampaignFlow = ('campaign_id' in templateToEdit) && !!(templateToEdit as any).campaign_id;
+    if (!isUuid || !isCampaignFlow) {
+      toast.error('Cannot publish templates. Open a campaign flow or save this as a campaign flow first.');
       return;
     }
 
