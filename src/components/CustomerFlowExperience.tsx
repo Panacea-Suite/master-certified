@@ -9,6 +9,7 @@ import { CheckCircle, XCircle, ArrowRight, ArrowLeft, Shield, FileText, Package,
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { SectionRenderer } from '@/components/shared/SectionRenderer';
 import { TemplateStyleProvider } from '@/components/TemplateStyleProvider';
+import { resolveStyleTokens, tokensToProviderFormat } from '@/utils/resolveStyleTokens';
 import { FlowHeader } from '@/components/flow-editor/FlowHeader';
 import { PanaceaFooter } from '@/components/PanaceaFooter';
 import { useSearchParams } from 'react-router-dom';
@@ -349,35 +350,14 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
     );
   };
 
-  // Compute style tokens for TemplateStyleProvider
+  // Compute style tokens using centralized resolver
   const computeStyleTokens = () => {
-    // Priority order: 1) campaign.locked_design_tokens, 2) flow designConfig, 3) defaults
-    let styleTokens = {
-      primary: '#3b82f6',
-      secondary: '#6366f1', 
-      accent: '#8b5cf6'
-    };
-    
-    // Layer in flow config design tokens
-    const flowDesignConfig = flow?.flow_config?.designConfig || flow?.published_snapshot?.designConfig;
-    if (flowDesignConfig) {
-      styleTokens = { 
-        primary: flowDesignConfig.primary || styleTokens.primary,
-        secondary: flowDesignConfig.secondary || styleTokens.secondary,
-        accent: flowDesignConfig.accent || styleTokens.accent
-      };
-    }
-    
-    // Override with campaign locked tokens (highest priority)
-    if (campaign?.locked_design_tokens) {
-      styleTokens = {
-        primary: campaign.locked_design_tokens.primary || styleTokens.primary,
-        secondary: campaign.locked_design_tokens.secondary || styleTokens.secondary,
-        accent: campaign.locked_design_tokens.accent || styleTokens.accent
-      };
-    }
-    
-    return styleTokens;
+    const tokens = resolveStyleTokens(
+      campaign,
+      flow,
+      flow?.flow_config?.templateId || 'classic'
+    );
+    return tokensToProviderFormat(tokens);
   };
 
   const renderTemplateFlow = () => {
