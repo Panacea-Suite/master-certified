@@ -67,41 +67,65 @@ export const FlowTemplateSelector: React.FC<FlowTemplateSelectorProps> = ({
   const fetchTemplates = async () => {
     try {
       setIsLoading(true);
-      
-      // Fetch system templates from templates table (published system templates)
-      const { data: systemTemplatesData, error: systemError } = await supabase
-        .from('templates')
-        .select('*')
-        .eq('kind', 'system')
-        .eq('status', 'published');
 
-      if (systemError) throw systemError;
-
-      // Convert templates table format to FlowTemplate format
-      const systemTemplates = (systemTemplatesData || []).map(template => ({
-        id: template.id,
-        name: template.name,
-        template_category: 'certification', // Default category for system templates
-        flow_config: template.content,
-        created_by: null
-      }));
-
-      // Fetch user templates (created by current user from flows table)
+      // GUARDRAIL: Different template visibility based on user role
       const { data: { user } } = await supabase.auth.getUser();
+      
+      // Get user profile to check role
+      let userRole = 'brand_admin';
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('user_id', user.id)
+          .single();
+        
+        userRole = profile?.role || 'brand_admin';
+      }
+      
+      let systemTemplates: FlowTemplate[] = [];
+      
+      // GUARDRAIL: Only master_admin can see system templates for selection
+      if (userRole === 'master_admin') {
+        console.log('🔒 Master Admin: Loading system templates for selection');
+        // Fetch system templates from templates table (published system templates)
+        const { data: systemTemplatesData, error: systemError } = await supabase
+          .from('templates')
+          .select('*')
+          .eq('kind', 'system')
+          .eq('status', 'published');
+
+        if (systemError) throw systemError;
+
+        // Convert templates table format to FlowTemplate format
+        systemTemplates = (systemTemplatesData || []).map(template => ({
+          id: template.id,
+          name: template.name,
+          template_category: 'certification', // Default category for system templates
+          flow_config: template.content,
+          created_by: null
+        }));
+      } else {
+        console.log('🔒 Brand User: System templates hidden from selection - can only use cloned brand templates');
+      }
+
+      // GUARDRAIL: Fetch only user's own brand templates (cloned from system templates)
       let customTemplates: FlowTemplate[] = [];
       
       if (user) {
+        console.log('🔒 Loading user\'s brand templates only');
         const { data: customTemplatesData, error: customError } = await supabase
           .from('flows')
           .select('*')
           .eq('is_template', true)
-          .eq('created_by', user.id);
+          .eq('created_by', user.id)
+          .eq('is_system_template', false); // Only brand templates
 
         if (customError) throw customError;
         customTemplates = customTemplatesData || [];
       }
 
-      setTemplates(systemTemplates);
+      setTemplates(systemTemplates); // Empty for brand users
       setUserTemplates(customTemplates);
     } catch (error) {
       console.error('Error fetching templates:', error);
@@ -329,40 +353,51 @@ export const FlowTemplateSelector: React.FC<FlowTemplateSelectorProps> = ({
           <DialogTitle>Choose a Flow Template</DialogTitle>
         </DialogHeader>
 
-        <Tabs defaultValue="templates" className="h-full">
+        <Tabs defaultValue="custom" className="h-full">
           <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="templates">System Templates</TabsTrigger>
+            {/* GUARDRAIL: Only show system templates tab to master_admin */}
+            {/* Note: Check user role from the templates state - if systemTemplates is empty, user is not master_admin */}
+            {templates.length > 0 && (
+              <TabsTrigger value="templates">System Templates</TabsTrigger>
+            )}
             <TabsTrigger value="custom">My Templates</TabsTrigger>
             <TabsTrigger value="create">Create New</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="templates" className="overflow-y-auto max-h-[60vh]">
-            <div className="space-y-4">
-              {renderCategoryFilter()}
-              {isLoading ? (
-                <div className="flex items-center justify-center h-32">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Pre-built templates */}
-                  {filteredPrebuiltTemplates.map(template => 
-                    renderTemplateCard(template, true)
-                  )}
-                  {/* Database templates */}
-                  {templates.map(template => renderTemplateCard(template, false))}
-                </div>
-              )}
-            </div>
-          </TabsContent>
+          {/* GUARDRAIL: System templates tab only visible to master_admin */}
+          {templates.length > 0 && (
+            <TabsContent value="templates" className="overflow-y-auto max-h-[60vh]">
+              <div className="space-y-4">
+                {renderCategoryFilter()}
+                {isLoading ? (
+                  <div className="flex items-center justify-center h-32">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Pre-built templates */}
+                    {filteredPrebuiltTemplates.map(template => 
+                      renderTemplateCard(template, true)
+                    )}
+                    {/* Database templates */}
+                    {templates.map(template => renderTemplateCard(template, false))}
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+          )}
 
           <TabsContent value="custom" className="overflow-y-auto max-h-[60vh]">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-1">
               {userTemplates.length === 0 ? (
                 <div className="col-span-2 text-center py-8 text-muted-foreground">
                   <Layout className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                  <p>No custom templates yet</p>
-                  <p className="text-sm">Create your first template by customizing a system template</p>
+                  <p>No brand templates yet</p>
+                  <p className="text-sm">
+                    {templates.length === 0 
+                      ? 'Ask your administrator to clone system templates for your brand'
+                      : 'Create your first template by customizing a system template'}
+                  </p>
                 </div>
               ) : (
                 userTemplates.map(template => renderTemplateCard(template, false))

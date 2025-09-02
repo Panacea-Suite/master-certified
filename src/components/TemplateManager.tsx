@@ -59,51 +59,61 @@ const TemplateManager: React.FC = () => {
     try {
       setLoading(true);
       
-      // Load published system templates from the new templates table
-      const { data: publishedSystemTemplates } = await supabase
-        .from('templates')
-        .select('*')
-        .eq('kind', 'system')
-        .eq('status', 'published');
+      // GUARDRAIL: Brands should never see system templates directly
+      // Only master_admin can see system templates
+      let systemTemps: SystemTemplate[] = [];
+      
+      if (profile?.role === 'master_admin') {
+        console.log('🔒 Master Admin: Loading published system templates');
+        // Load published system templates from the new templates table (ADMIN ONLY)
+        const { data: publishedSystemTemplates } = await supabase
+          .from('templates')
+          .select('*')
+          .eq('kind', 'system')
+          .eq('status', 'published');
 
-      const systemTemps = (publishedSystemTemplates || []).map(template => {
-        // Parse the content JSON safely
-        let content: any = {};
-        try {
-          content = typeof template.content === 'string' 
-            ? JSON.parse(template.content) 
-            : template.content || {};
-        } catch (error) {
-          console.error('Error parsing template content:', error);
-          content = {};
-        }
+        systemTemps = (publishedSystemTemplates || []).map(template => {
+          // Parse the content JSON safely
+          let content: any = {};
+          try {
+            content = typeof template.content === 'string' 
+              ? JSON.parse(template.content) 
+              : template.content || {};
+          } catch (error) {
+            console.error('Error parsing template content:', error);
+            content = {};
+          }
 
-        return {
-          id: template.id,
-          name: template.name,
-          description: template.description || 'System template',
-          category: 'certification', // Default category for now
-          pages: content.pages || [],
-          designConfig: content.designConfig || {
-            backgroundStyle: 'solid' as const,
-            colorScheme: 'primary' as const,
-            borderStyle: 'rounded' as const,
-            dividerStyle: 'line' as const,
-            cardStyle: 'elevated' as const,
-            spacing: 'comfortable' as const
-          },
-          tags: []
-        };
-      });
+          return {
+            id: template.id,
+            name: template.name,
+            description: template.description || 'System template',
+            category: 'certification', // Default category for now
+            pages: content.pages || [],
+            designConfig: content.designConfig || {
+              backgroundStyle: 'solid' as const,
+              colorScheme: 'primary' as const,
+              borderStyle: 'rounded' as const,
+              dividerStyle: 'line' as const,
+              cardStyle: 'elevated' as const,
+              spacing: 'comfortable' as const
+            },
+            tags: []
+          };
+        });
+      } else {
+        console.log('🔒 Brand User: System templates hidden for security');
+      }
 
-      // Load user templates
+      // GUARDRAIL: Load only user's own brand templates (cloned from system templates)
+      console.log('🔒 Loading user brand templates only');
       const { data: userTemps } = await supabase
         .from('flows')
         .select('*')
         .eq('is_template', true)
-        .eq('is_system_template', false);
+        .eq('is_system_template', false); // Only user/brand templates, not system templates
 
-      setSystemTemplates(systemTemps);
+      setSystemTemplates(systemTemps); // Empty for brands
       setUserTemplates(userTemps || []);
     } catch (error) {
       console.error('Error loading templates:', error);
@@ -464,6 +474,9 @@ const TemplateManager: React.FC = () => {
               <Badge variant="secondary">System</Badge>
             )}
             {isUserTemplate && (
+              <Badge variant="outline">Brand Template</Badge>
+            )}
+            {isUserTemplate && (
               <Button
                 variant="ghost"
                 size="sm"
@@ -497,7 +510,7 @@ const TemplateManager: React.FC = () => {
             className="flex-1 min-w-[120px] px-3 py-2"
           >
             <Copy className="h-4 w-4 mr-2" />
-            Use Template
+            {!isUserTemplate ? 'Clone & Use' : 'Use Template'}
           </Button>
           
           <Button
@@ -510,18 +523,19 @@ const TemplateManager: React.FC = () => {
             {('pages' in template) ? 'Clone & Edit' : 'Edit Template'}
           </Button>
 
-            {profile?.role === 'master_admin' && !isUserTemplate && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleTestAsUser(template)}
-                disabled={creatingTestLink}
-                className="opacity-0 group-hover:opacity-100 transition-opacity"
-              >
-                <TestTube2 className="h-4 w-4 mr-1" />
-                {creatingTestLink ? 'Creating...' : 'Test as User'}
-              </Button>
-            )}
+          {/* GUARDRAIL: Test button only for master_admin and system templates */}
+          {profile?.role === 'master_admin' && !isUserTemplate && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleTestAsUser(template)}
+              disabled={creatingTestLink}
+              className="opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              <TestTube2 className="h-4 w-4 mr-1" />
+              {creatingTestLink ? 'Creating...' : 'Test as User'}
+            </Button>
+          )}
         </div>
       </CardContent>
     </Card>
@@ -543,7 +557,11 @@ const TemplateManager: React.FC = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Template Manager</h1>
-          <p className="text-muted-foreground">Create, edit, and manage your flow templates</p>
+          <p className="text-muted-foreground">
+            {profile?.role === 'master_admin' 
+              ? 'Create, edit, and manage system and user templates'
+              : 'Manage your brand templates (cloned from system templates)'}
+          </p>
         </div>
         
         <Button onClick={handleCreateFromScratch} className="flex items-center gap-2">
@@ -579,36 +597,83 @@ const TemplateManager: React.FC = () => {
         </div>
       </div>
 
-      <Tabs defaultValue="system" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="system">System Templates</TabsTrigger>
-          <TabsTrigger value="my-templates">My Templates</TabsTrigger>
+      <Tabs defaultValue="user" className="w-full">
+        <TabsList>
+          {/* GUARDRAIL: Only show system templates tab to master_admin */}
+          {profile?.role === 'master_admin' && (
+            <TabsTrigger value="system">
+              System Templates ({filteredSystemTemplates.length})
+            </TabsTrigger>
+          )}
+          <TabsTrigger value="user">
+            My Templates ({filteredUserTemplates.length})
+          </TabsTrigger>
         </TabsList>
-        
-        <TabsContent value="system" className="mt-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredSystemTemplates.length > 0 ? (
-              filteredSystemTemplates.map(template => renderTemplateCard(template))
+
+        {/* GUARDRAIL: System templates only visible to master_admin */}
+        {profile?.role === 'master_admin' && (
+          <TabsContent value="system" className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-semibold">System Templates</h2>
+                <p className="text-sm text-muted-foreground">Published templates available to all brands</p>
+              </div>
+            </div>
+
+            {filteredSystemTemplates.length === 0 ? (
+              <Card>
+                <CardContent className="flex flex-col items-center justify-center py-16">
+                  <div className="text-center">
+                    <h3 className="text-lg font-semibold mb-2">No System Templates</h3>
+                    <p className="text-muted-foreground mb-4">No published system templates available</p>
+                  </div>
+                </CardContent>
+              </Card>
             ) : (
-              <div className="col-span-full text-center py-12">
-                <p className="text-muted-foreground">No system templates found</p>
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {filteredSystemTemplates.map((template) => renderTemplateCard(template, false))}
               </div>
             )}
+          </TabsContent>
+        )}
+
+        <TabsContent value="user" className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-semibold">
+                {profile?.role === 'master_admin' ? 'User Templates' : 'My Templates'}
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                {profile?.role === 'master_admin' 
+                  ? 'Templates created by users and brands' 
+                  : 'Templates you\'ve created or cloned from system templates'}
+              </p>
+            </div>
           </div>
-        </TabsContent>
-        
-        <TabsContent value="my-templates" className="mt-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredUserTemplates.length > 0 ? (
-              filteredUserTemplates.map(template => renderTemplateCard(template, true))
-            ) : (
-              <div className="col-span-full text-center py-12">
-                <p className="text-muted-foreground">
-                  No custom templates yet. Create your first template by clicking "Create from Scratch" or editing an existing template.
-                </p>
-              </div>
-            )}
-          </div>
+
+          {filteredUserTemplates.length === 0 ? (
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center py-16">
+                <div className="text-center">
+                  <h3 className="text-lg font-semibold mb-2">No Templates Yet</h3>
+                  <p className="text-muted-foreground mb-4">
+                    {profile?.role === 'master_admin' 
+                      ? 'No user templates have been created yet'
+                      : 'You haven\'t created any templates yet. Clone a system template to get started.'}
+                  </p>
+                  {profile?.role !== 'master_admin' && (
+                    <p className="text-sm text-muted-foreground">
+                      💡 Ask your administrator for access to system templates to clone
+                    </p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {filteredUserTemplates.map((template) => renderTemplateCard(template, true))}
+            </div>
+          )}
         </TabsContent>
       </Tabs>
 

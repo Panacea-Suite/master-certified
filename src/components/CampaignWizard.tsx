@@ -114,7 +114,21 @@ const CampaignWizard = ({ currentBrand, onComplete, onCancel }: CampaignWizardPr
   };
 
   const handleTemplateSelect = (template: any) => {
-    console.log('Template selected:', template);
+    console.log('🔒 GUARDRAIL: Template selected for campaign use:', template);
+    
+    // GUARDRAIL: Ensure campaigns only use properly cloned templates
+    // System templates should be cloned before use in campaigns
+    if (template.kind === 'system' || template.is_system_template) {
+      console.log('🔒 GUARDRAIL: System template detected - enforcing clone requirement');
+      toast({
+        title: "Clone Required",
+        description: "System templates must be cloned to brand templates before use in campaigns. Please contact your administrator.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Only allow use of properly cloned brand templates
     setWizardData(prev => ({
       ...prev,
       flow: {
