@@ -101,9 +101,18 @@ Deno.serve(async (req) => {
 
   try {
     // Initialize Supabase client
-    const supabaseUrl = Deno.env.get('EDGE_SUPABASE_URL')!
-    const supabaseKey = Deno.env.get('EDGE_SUPABASE_ANON_KEY')!
+    const supabaseUrl = Deno.env.get('EDGE_SUPABASE_URL') ?? Deno.env.get('SUPABASE_URL')
+    const supabaseKey = Deno.env.get('EDGE_SUPABASE_ANON_KEY') ?? Deno.env.get('SUPABASE_ANON_KEY')
     const dbBranch = Deno.env.get('EDGE_DB_BRANCH')
+    
+    if (!supabaseUrl || !supabaseKey) {
+      console.error('Missing Supabase environment variables')
+      return new Response('Configuration error', { 
+        status: 500, 
+        headers: corsHeaders 
+      })
+    }
+    
     const supabase = createClient(supabaseUrl, supabaseKey, {
       global: {
         headers: dbBranch ? { "x-supabase-branch": dbBranch } : {},
@@ -160,7 +169,7 @@ Deno.serve(async (req) => {
     
     if (campaign) {
       // Create customer flow URL: https://<app-origin>/#/flow/run?cid=<campaign_id>&qr=<qr_id>&ct=<customer_access_token>
-      const appOrigin = Deno.env.get('EDGE_APP_ORIGIN')! // Use your actual app origin
+      const appOrigin = Deno.env.get('EDGE_APP_ORIGIN') ?? 'https://7d6ac784-8fa0-4a08-b762-40e95bd7844c.sandbox.lovable.dev'
       const flowUrl = new URL(`${appOrigin}/#/flow/run`)
       
       // Add required parameters
