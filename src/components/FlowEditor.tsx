@@ -648,7 +648,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
     }
     setIsSaving(true);
     try {
-      console.log('Starting to save flow...');
+      console.log('🔍 FlowEditor: Starting to save flow...');
 
       // Create flow configuration with multi-page structure
       const flowConfig = {
@@ -671,19 +671,78 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
         }
       };
 
+      // Create the flow snapshot for immediate publishing
+      const flowSnapshot = {
+        pages: pages.map(page => ({
+          ...page,
+          sections: page.sections.sort((a, b) => a.order - b.order)
+        })),
+        globalHeader,
+        footerConfig,
+        design_template_id: selectedTemplateId,
+        theme: {
+          primaryColor: '#3b82f6',
+          backgroundColor: pageSettings.backgroundColor,
+          fontFamily: 'Inter'
+        },
+        settings: templateToEdit?.flow_config?.settings || {
+          showProgress: true,
+          allowBack: true,
+          autoSave: true
+        },
+        name: flowName,
+        publishedAt: new Date().toISOString()
+      };
+
       if (templateToEdit && 'campaign_id' in templateToEdit && templateToEdit.campaign_id) {
-        // Updating existing flow
-        console.log('Updating existing flow:', templateToEdit.id);
+        // Updating existing flow - automatically publish
+        console.log('🔍 FlowEditor: Updating existing flow:', templateToEdit.id);
+        
         const { error } = await supabase
           .from('flows')
           .update({
             name: flowName,
-            flow_config: flowConfig as any
+            flow_config: flowConfig as any,
+            published_snapshot: flowSnapshot as any,
+            latest_published_version: (templateToEdit.latest_published_version || 0) + 1
           })
           .eq('id', templateToEdit.id);
 
         if (error) throw error;
-        toast.success('Flow updated successfully!');
+
+        // Create/update flow_content records for each page
+        if (pages.length > 0) {
+          console.log('🔍 FlowEditor: Creating flow_content records for', pages.length, 'pages');
+          
+          // Delete existing flow_content records
+          await supabase
+            .from('flow_content')
+            .delete()
+            .eq('flow_id', templateToEdit.id);
+
+          // Insert new flow_content records
+          const contentRecords = pages.map((page, index) => ({
+            flow_id: templateToEdit.id,
+            title: page.name || `Page ${index + 1}`,
+            content_type: 'page',
+            content: page as any, // Cast to Json type
+            order_index: page.order || index
+          }));
+
+          const { error: contentError } = await supabase
+            .from('flow_content')
+            .insert(contentRecords);
+          
+          if (contentError) {
+            console.error('🔍 FlowEditor: Error creating flow_content:', contentError);
+            // Don't throw - flow_config is saved, this is just backup
+          } else {
+            console.log('🔍 FlowEditor: Created', contentRecords.length, 'flow_content records');
+          }
+        }
+
+        console.log('🔍 FlowEditor: Flow saved and published successfully');
+        toast.success('Flow saved and published! Changes are now live.');
         onClose();
       } else {
         // Creating new template - save to database and return data
@@ -708,13 +767,14 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
 
         if (error) throw error;
 
+        console.log('🔍 FlowEditor: Template saved successfully');
         toast.success('Flow saved as template!');
         
         // Return the saved template data to the parent
         onSave(savedTemplate);
       }
     } catch (error) {
-      console.error('Error saving flow:', error);
+      console.error('🔍 FlowEditor: Error saving flow:', error);
       toast.error('Failed to save flow');
     } finally {
       setIsSaving(false);

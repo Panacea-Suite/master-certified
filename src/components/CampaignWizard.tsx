@@ -171,7 +171,7 @@ const CampaignWizard = ({ currentBrand, onComplete, onCancel }: CampaignWizardPr
 
       if (batchError) throw batchError;
 
-      // Step 3: Create Flow using template data
+      // Step 3: Create Flow using template data and immediately publish it
       const flowName = wizardData.flow.name || `${wizardData.campaign.name} - Flow`;
       const flowConfig = wizardData.flow.templateData || {
         pages: [
@@ -192,18 +192,50 @@ const CampaignWizard = ({ currentBrand, onComplete, onCancel }: CampaignWizardPr
         }
       };
 
+      // Create published snapshot with additional metadata
+      const publishedSnapshot = {
+        ...flowConfig,
+        name: flowName,
+        publishedAt: new Date().toISOString(),
+        version: 1
+      };
+
+      console.log('🔍 CampaignWizard: Creating flow with published_snapshot');
       const { data: flowData, error: flowError } = await supabase
         .from('flows')
         .insert([{
           name: flowName,
           campaign_id: campaignData.id,
           base_url: `${window.location.origin}/flow/${campaignData.id}`,
-          flow_config: flowConfig
+          flow_config: flowConfig,
+          published_snapshot: publishedSnapshot,
+          latest_published_version: 1
         }])
         .select()
         .single();
 
       if (flowError) throw flowError;
+
+      // Also create flow_content records for backup/draft mode
+      if (flowConfig.pages && flowConfig.pages.length > 0) {
+        console.log('🔍 CampaignWizard: Creating flow_content backup records');
+        const contentRecords = flowConfig.pages.map((page: any, index: number) => ({
+          flow_id: flowData.id,
+          title: page.name || `Page ${index + 1}`,
+          content_type: 'page',
+          content: page as any,
+          order_index: page.order || index
+        }));
+
+        const { error: contentError } = await supabase
+          .from('flow_content')
+          .insert(contentRecords);
+        
+        if (contentError) {
+          console.warn('🔍 CampaignWizard: Failed to create flow_content backup:', contentError);
+          // Don't throw - main flow is created
+        }
+      }
 
       toast({
         title: "Success!",

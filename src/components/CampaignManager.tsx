@@ -71,19 +71,78 @@ const CampaignFlowsView: React.FC<{ campaign: Campaign; onBack: () => void }> = 
   const handleSave = async (updated: any) => {
     try {
       if (!flow) return;
-      const { error } = await supabase
+      
+      console.log('🔍 Saving flow for campaign:', campaign.id, 'Flow ID:', flow.id);
+      
+      // Create the flow snapshot for immediate publishing
+      const flowSnapshot = {
+        pages: updated.flow_config?.pages || [],
+        globalHeader: updated.flow_config?.globalHeader || {},
+        footerConfig: updated.flow_config?.footerConfig || {},
+        design_template_id: updated.flow_config?.design_template_id,
+        theme: updated.flow_config?.theme || {},
+        settings: updated.flow_config?.settings || {},
+        name: updated.name,
+        publishedAt: new Date().toISOString()
+      };
+
+      // Save flow_config and automatically set published_snapshot
+      const { error: flowError } = await supabase
         .from('flows')
         .update({
           name: updated.name,
           flow_config: updated.flow_config,
+          published_snapshot: flowSnapshot,
+          latest_published_version: (flow.latest_published_version || 0) + 1,
           updated_at: new Date().toISOString()
         })
         .eq('id', flow.id);
-      if (error) throw error;
-      setFlow({ ...flow, ...updated });
-      toast({ title: 'Saved', description: 'Flow updated successfully' });
+      
+      if (flowError) throw flowError;
+
+      // Create/update flow_content records for each page
+      if (updated.flow_config?.pages) {
+        console.log('🔍 Creating flow_content records for', updated.flow_config.pages.length, 'pages');
+        
+        // Delete existing flow_content records
+        await supabase
+          .from('flow_content')
+          .delete()
+          .eq('flow_id', flow.id);
+
+        // Insert new flow_content records
+        const contentRecords = updated.flow_config.pages.map((page: any, index: number) => ({
+          flow_id: flow.id,
+          title: page.name || `Page ${index + 1}`,
+          content_type: 'page',
+          content: page as any, // Cast to Json type
+          order_index: page.order || index
+        }));
+
+        const { error: contentError } = await supabase
+          .from('flow_content')
+          .insert(contentRecords);
+        
+        if (contentError) {
+          console.error('🔍 Error creating flow_content:', contentError);
+          // Don't throw - flow_config is saved, this is just backup
+        } else {
+          console.log('🔍 Created', contentRecords.length, 'flow_content records');
+        }
+      }
+
+      const updatedFlow = { 
+        ...flow, 
+        ...updated, 
+        published_snapshot: flowSnapshot,
+        latest_published_version: (flow.latest_published_version || 0) + 1
+      };
+      setFlow(updatedFlow);
+      
+      console.log('🔍 Flow saved successfully with published_snapshot');
+      toast({ title: 'Saved & Published', description: 'Flow is now live for customers' });
     } catch (e: any) {
-      console.error('Error saving flow:', e);
+      console.error('🔍 Error saving flow:', e);
       toast({ title: 'Error', description: e.message || 'Failed to save flow', variant: 'destructive' });
     }
   };
