@@ -476,6 +476,23 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
       const result = await loadFlowForCampaign(flowRow.campaign_id);
       console.log(`Flow loaded in ${result.mode} mode:`, result.flow);
 
+      // Fetch campaign to get approved_stores for runtime auth and store selector
+      try {
+        const { data: campaignRow } = await supabase
+          .from('campaigns')
+          .select('id, name, brand_id, approved_stores, final_redirect_url, locked_design_tokens')
+          .eq('id', flowRow.campaign_id)
+          .maybeSingle();
+        if (campaignRow) {
+          setCampaign(campaignRow);
+          console.log('🔍 Loaded campaign for runtime:', campaignRow);
+        } else {
+          console.warn('⚠️ No campaign row found for id', flowRow.campaign_id);
+        }
+      } catch (e) {
+        console.warn('⚠️ Failed to fetch campaign row:', e);
+      }
+
       // Create flow data with proper structure
       const flowData = { 
         id: flowRow.id, 
