@@ -169,6 +169,11 @@ export const StoreSelector: SectionComponent = ({
                 disabled={!currentSelectedStore}
                 aria-disabled={!currentSelectedStore}
                 aria-label="Submit selected store"
+                style={{
+                  backgroundColor: !currentSelectedStore ? undefined : (config.borderColor || brandColors?.primary || '#3b82f6'),
+                  borderColor: config.borderColor || brandColors?.primary || '#3b82f6',
+                  color: !currentSelectedStore ? undefined : 'white'
+                }}
               >
                 Submit
               </Button>
