@@ -151,13 +151,28 @@ export const StoreSelector: SectionComponent = ({
               <SelectTrigger>
                 <SelectValue placeholder="Choose your store" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="z-50 bg-background">
                 {availableStores.map((store: string) => (
                   <SelectItem key={store} value={store}>{store}</SelectItem>
                 ))}
                 <SelectItem value="other">Other Store</SelectItem>
               </SelectContent>
             </Select>
+            <div className="pt-2">
+              <Button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (currentSelectedStore && section.config?.targetPageId && onNavigateToPage) {
+                    onNavigateToPage(section.config.targetPageId);
+                  }
+                }}
+                disabled={!currentSelectedStore}
+                aria-disabled={!currentSelectedStore}
+                aria-label="Submit selected store"
+              >
+                Submit
+              </Button>
+            </div>
           </div>
         </div>
       )}
