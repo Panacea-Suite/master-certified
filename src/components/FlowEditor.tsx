@@ -122,14 +122,93 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
         isTemplate: templateToEdit.is_template,
         note: 'Loading from flow_config (editable draft)'
       });
-      return templateToEdit.flow_config.pages.map((page: any, index: number) => ({
-        ...page,
-        sections: page.sections || [],
-        settings: page.settings || {},
-        order: index,
-        // Ensure mandatory pages always have isMandatory: true, regardless of saved state
-        isMandatory: mandatoryPageTypes.includes(page.type) ? true : (page.isMandatory || false)
-      }));
+      const draftPagesRaw = templateToEdit.flow_config.pages as any[];
+      // Map and normalize pages from draft
+      let mapped: PageData[] = draftPagesRaw.map((page: any, index: number) => {
+        const rawSections = page.sections || [];
+        const sections = rawSections.map((s: any, sectionIndex: number) => ({
+          ...s,
+          order: s.order ?? sectionIndex
+        }));
+        const hasLoginStep = rawSections.some((s: any) => s.type === 'login_step');
+        const hasAuthSection = rawSections.some((s: any) => s.type === 'authentication');
+        let normalizedType: PageData['type'] = page.type as PageData['type'];
+        if (hasLoginStep) {
+          normalizedType = 'account_creation';
+        } else if ((page.type === 'product_authentication' as any) || hasAuthSection) {
+          normalizedType = 'authentication';
+        }
+        return {
+          ...page,
+          type: normalizedType,
+          sections,
+          settings: page.settings || {},
+          order: index,
+          // Ensure mandatory pages always have isMandatory: true, regardless of saved state
+          isMandatory: mandatoryPageTypes.includes(normalizedType) ? true : (page.isMandatory || false)
+        } as PageData;
+      });
+
+      // Ensure a dedicated Authentication page exists between Login and Thank You
+      const hasAuthPage = mapped.some(p => p.type === 'authentication');
+      if (!hasAuthPage) {
+        const loginIndex = mapped.findIndex(p => p.type === 'account_creation' || p.name === 'User Login');
+        const thankYouIndex = mapped.findIndex(p => p.type === 'thank_you' || /thank/i.test(p.name || ''));
+        const insertIndex = loginIndex >= 0 ? (thankYouIndex > loginIndex ? loginIndex + 1 : loginIndex + 1) : (thankYouIndex >= 0 ? thankYouIndex : mapped.length);
+        const newAuthPage: PageData = {
+          id: 'product-authentication',
+          type: 'authentication',
+          name: 'Product Authentication',
+          sections: [
+            {
+              id: 'auth-verification',
+              type: 'authentication',
+              order: 0,
+              config: {
+                title: 'Product Authentication',
+                subtitle: 'Verifying product authenticity',
+                padding: 4
+              }
+            }
+          ],
+          settings: {},
+          isMandatory: true,
+          order: insertIndex
+        };
+        mapped = [
+          ...mapped.slice(0, insertIndex),
+          newAuthPage,
+          ...mapped.slice(insertIndex)
+        ];
+      }
+
+      // Ensure any Authentication page has an authentication section
+      mapped = mapped.map((page) => {
+        if (page.type === 'authentication' && !(page.sections || []).some((s: any) => s.type === 'authentication')) {
+          return {
+            ...page,
+            sections: [
+              ...(page.sections || []),
+              {
+                id: 'auth-verification',
+                type: 'authentication',
+                order: (page.sections?.length || 0),
+                config: {
+                  title: 'Product Authentication',
+                  subtitle: 'Verifying product authenticity',
+                  padding: 4
+                }
+              }
+            ]
+          } as PageData;
+        }
+        return page;
+      });
+
+      // Recompute sequential order
+      mapped = mapped.map((p, idx) => ({ ...p, order: idx }));
+
+      return mapped;
     }
 
     // For system templates, we'll process them in useEffect after component mounts
@@ -420,6 +499,9 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                 }
                 return page;
               });
+
+              // Normalize deprecated 'product_authentication' page type to 'authentication'
+              result = result.map((p: any) => p.type === 'product_authentication' ? { ...p, type: 'authentication' } : p);
 
               // Ensure a dedicated Product Authentication page exists between Login and Thank You
               const hasVerificationPage = result.some((p: any) => p.type === 'authentication' && p.sections.some((s: any) => s.type === 'authentication'));
