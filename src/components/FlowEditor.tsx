@@ -487,6 +487,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
     components: false,
     sections: false
   });
+  const [isDragging, setIsDragging] = useState(false);
   const toggleSection = (sectionKey: string) => {
     setCollapsedSections(prev => ({
       ...prev,
