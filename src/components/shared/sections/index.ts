@@ -11,3 +11,4 @@ export { LoginStepSection } from './LoginStepSection';
 export { FooterSection } from './FooterSection';
 export { ProductShowcaseSection } from './ProductShowcaseSection';
 export { ColumnSection } from './ColumnSection';
+export { AuthenticationSection } from './AuthenticationSection';

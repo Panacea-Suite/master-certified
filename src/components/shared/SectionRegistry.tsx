@@ -46,6 +46,10 @@ export interface SectionRendererProps {
   onTrackEvent?: (eventName: string, metadata?: any) => void;
   // CTA navigation
   onNavigateToPage?: (pageId: string) => void;
+  // Page background
+  pageBackgroundColor?: string;
+  // Authentication props
+  approvedStores?: string[];
 }
 
 export type SectionComponent = React.FC<SectionRendererProps>;

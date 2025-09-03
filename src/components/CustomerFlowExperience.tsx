@@ -91,6 +91,7 @@ function SectionHost({
             onSelectedStoreChange={(store) => setUserInputs(prev => ({ ...prev, selectedStore: store }))}
             pageBackgroundColor={pageBackgroundColor}
             onNavigateToPage={onNavigateToPage}
+            approvedStores={campaign?.approved_stores || []}
           />
       );
     
