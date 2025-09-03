@@ -698,7 +698,13 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
     }
 
     return (
-      <div className="flex flex-col min-h-screen bg-background" style={{ '--device-width-px': '390px' } as React.CSSProperties}>
+      <div 
+        className="flex flex-col min-h-screen" 
+        style={{ 
+          '--device-width-px': '390px',
+          backgroundColor: flow?.flow_config?.theme?.backgroundColor || '#ffffff'
+        } as React.CSSProperties}
+      >
         {/* Header */}
         {flow?.flow_config?.globalHeader?.showHeader && (
           <FlowHeader 
@@ -747,7 +753,12 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
 
         {/* Navigation */}
         {!hideInternalNavigation && (
-          <div className="bg-background border-t" style={{ maxWidth: 'var(--device-width-px, 390px)', margin: '0 auto', width: '100%' }}>
+          <div className="border-t" style={{ 
+            maxWidth: 'var(--device-width-px, 390px)', 
+            margin: '0 auto', 
+            width: '100%',
+            backgroundColor: flow?.flow_config?.theme?.backgroundColor || '#ffffff'
+          }}>
             <div className="p-4 flex justify-between">
               <Button
                 variant="outline"
@@ -1165,8 +1176,12 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
 
         // Legacy flow rendering
         return (
-          <div className="min-h-screen bg-background flex flex-col"
-            style={{ '--device-width-px': '390px' } as React.CSSProperties}
+          <div 
+            className="min-h-screen flex flex-col"
+            style={{ 
+              '--device-width-px': '390px',
+              backgroundColor: flow?.flow_config?.theme?.backgroundColor || '#ffffff'
+            } as React.CSSProperties}
           >
             {/* Legacy flow rendering */}
             {renderStageContent() && (
