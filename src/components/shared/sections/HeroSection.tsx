@@ -4,7 +4,7 @@ import { useTemplateStyle } from '@/components/TemplateStyleProvider';
 
 export const HeroSection: SectionComponent = ({ section }) => {
   const { getTemplateClasses } = useTemplateStyle();
-  const paddingClass = `p-${section.config?.padding ?? 4}`;
+  const paddingValue = `${(section.config?.padding ?? 4) * 0.25}rem`;
   
   const getSectionClassName = () => {
     let classes = getTemplateClasses('section');
@@ -12,7 +12,10 @@ export const HeroSection: SectionComponent = ({ section }) => {
   };
   
   return (
-    <div className={`${getSectionClassName()} ${paddingClass} ${section.config?.align === 'center' ? 'text-center' : ''}`}>
+    <div 
+      className={`${getSectionClassName()} ${section.config?.align === 'center' ? 'text-center' : ''}`}
+      style={{ padding: paddingValue }}
+    >
       {section.config?.title && (
         <h1 className="text-2xl font-bold text-foreground mb-2">
           {section.config.title}

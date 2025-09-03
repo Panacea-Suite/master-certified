@@ -4,10 +4,10 @@ import { PanaceaFooter } from '@/components/PanaceaFooter';
 
 export const FooterSection: SectionComponent = ({ section }) => {
   const { config } = section;
-  const paddingClass = `p-${section.config?.padding ?? 4}`;
+  const paddingValue = `${(section.config?.padding ?? 4) * 0.25}rem`;
   
   return (
-    <div className={paddingClass}>
+    <div style={{ padding: paddingValue }}>
       <PanaceaFooter 
         backgroundColor={config.backgroundColor === 'transparent' ? undefined : config.backgroundColor} 
         logoSize={config.logoSize || 120}

@@ -4,7 +4,7 @@ import { useTemplateStyle } from '@/components/TemplateStyleProvider';
 
 export const HeaderSection: SectionComponent = ({ section }) => {
   const { getTemplateClasses } = useTemplateStyle();
-  const paddingClass = `p-${section.config?.padding ?? 4}`;
+  const paddingValue = `${(section.config?.padding ?? 4) * 0.25}rem`;
   
   const getSectionClassName = () => {
     let classes = getTemplateClasses('header');
@@ -12,7 +12,10 @@ export const HeaderSection: SectionComponent = ({ section }) => {
   };
   
   return (
-    <div className={`${getSectionClassName()} ${paddingClass}`}>
+    <div 
+      className={getSectionClassName()}
+      style={{ padding: paddingValue }}
+    >
       {section.config?.logo && (
         <div className="flex justify-center">
           <div className="w-16 h-16 bg-background/20 rounded-lg flex items-center justify-center">

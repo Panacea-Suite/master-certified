@@ -5,7 +5,7 @@ import { useTemplateStyle } from '@/components/TemplateStyleProvider';
 
 export const FeaturesSection: SectionComponent = ({ section }) => {
   const { getTemplateClasses } = useTemplateStyle();
-  const paddingClass = `p-${section.config?.padding ?? 4}`;
+  const paddingValue = `${(section.config?.padding ?? 4) * 0.25}rem`;
   
   const getSectionClassName = () => {
     let classes = section.config?.dropShadow ? getTemplateClasses('card') : getTemplateClasses('card').replace(/shadow-\w+/g, '');
@@ -20,7 +20,10 @@ export const FeaturesSection: SectionComponent = ({ section }) => {
   };
   
   return (
-    <div className={`features-section ${getSectionClassName()} ${paddingClass}`}>
+    <div 
+      className={`features-section ${getSectionClassName()}`}
+      style={{ padding: paddingValue }}
+    >
       <div className="space-y-3">
         {section.config?.items?.map((item: string, index: number) => (
           <div key={index} className="flex items-center gap-3">

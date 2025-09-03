@@ -50,7 +50,7 @@ export const StoreSelector: SectionComponent = ({
 
   return (
     <div 
-      className={`store-selector-section space-y-4 ${paddingClass}`}
+      className="store-selector-section space-y-4"
       style={{ 
         color: config.textColor || 'inherit',
         backgroundColor: config.backgroundColor || 'transparent'

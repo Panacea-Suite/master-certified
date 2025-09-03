@@ -6,7 +6,7 @@ import { useTemplateStyle } from '@/components/TemplateStyleProvider';
 export const ProductShowcaseSection: SectionComponent = ({ section }) => {
   const { getTemplateClasses } = useTemplateStyle();
   const { config } = section;
-  const paddingClass = `p-${section.config?.padding ?? 4}`;
+  const paddingValue = `${(section.config?.padding ?? 4) * 0.25}rem`;
   
   const getSectionClassName = () => {
     let classes = config?.dropShadow ? getTemplateClasses('card') : getTemplateClasses('card').replace(/shadow-\w+/g, '');
@@ -21,7 +21,10 @@ export const ProductShowcaseSection: SectionComponent = ({ section }) => {
   };
   
   return (
-    <div className={`product-showcase-section ${getSectionClassName()} ${paddingClass}`}>
+    <div 
+      className={`product-showcase-section ${getSectionClassName()}`}
+      style={{ padding: paddingValue }}
+    >
       <div className={`p-6 rounded-lg ${config?.backgroundColor === 'primary' ? 'bg-primary/10' : 'bg-muted'}`}>
         <div className="flex justify-center">
           <div className="w-32 h-32 bg-muted border-2 border-dashed border-muted-foreground/30 rounded-lg flex items-center justify-center">

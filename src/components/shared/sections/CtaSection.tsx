@@ -4,7 +4,7 @@ import { useTemplateStyle } from '@/components/TemplateStyleProvider';
 
 export const CtaSection: SectionComponent = ({ section, onNavigateToPage }) => {
   const { getTemplateClasses } = useTemplateStyle();
-  const paddingClass = `p-${section.config?.padding ?? 4}`;
+  const paddingValue = `${(section.config?.padding ?? 4) * 0.25}rem`;
   
   const getSectionClassName = () => {
     let classes = section.config?.dropShadow ? getTemplateClasses('card') : getTemplateClasses('card').replace(/shadow-\w+/g, '');
@@ -25,7 +25,10 @@ export const CtaSection: SectionComponent = ({ section, onNavigateToPage }) => {
   };
   
   return (
-    <div className={`cta-section ${getSectionClassName()} ${paddingClass} flex justify-center`}>
+    <div 
+      className={`cta-section ${getSectionClassName()} flex justify-center`}
+      style={{ padding: paddingValue }}
+    >
       <button 
         className={`px-6 py-3 rounded-lg font-medium transition-colors ${
           section.config?.size === 'lg' ? 'text-lg px-8 py-4' : 
