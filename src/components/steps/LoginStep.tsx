@@ -22,6 +22,7 @@ interface LoginStepProps {
   }) => void;
   onAuthError?: (error: Error) => void;
   onTrackEvent?: (eventName: string, metadata?: any) => void;
+  onSkip?: () => void;
 }
 
 export const LoginStep: React.FC<LoginStepProps> = ({
@@ -32,7 +33,8 @@ export const LoginStep: React.FC<LoginStepProps> = ({
   brandName = "this brand",
   onAuthSuccess,
   onAuthError,
-  onTrackEvent
+  onTrackEvent,
+  onSkip
 }) => {
   const [loading, setLoading] = useState<'google' | 'apple' | 'email' | null>(null);
   const [optIn, setOptIn] = useState(false);
@@ -345,6 +347,20 @@ export const LoginStep: React.FC<LoginStepProps> = ({
           </a>
           .
         </p>
+
+        {/* Skip Button */}
+        {onSkip && (
+          <div className="text-center pt-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onSkip}
+              className="text-xs text-muted-foreground hover:text-foreground"
+            >
+              Skip
+            </Button>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

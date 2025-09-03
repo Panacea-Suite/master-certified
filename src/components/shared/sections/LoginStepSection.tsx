@@ -8,7 +8,8 @@ export const LoginStepSection: SectionComponent = ({
   isPreview = false,
   onAuthSuccess,
   onAuthError,
-  onTrackEvent
+  onTrackEvent,
+  onNavigateToPage
 }) => {
   const { getTemplateClasses } = useTemplateStyle();
   const { config } = section;
@@ -56,6 +57,7 @@ export const LoginStepSection: SectionComponent = ({
         onAuthSuccess={onAuthSuccess}
         onAuthError={onAuthError}
         onTrackEvent={onTrackEvent}
+        onSkip={() => onNavigateToPage?.('next')}
       />
     </div>
   );
