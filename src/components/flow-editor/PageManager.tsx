@@ -8,7 +8,9 @@ import {
   UserPlus, 
   Shield, 
   FileText, 
-  CheckCircle 
+  CheckCircle,
+  Loader2,
+  XCircle
 } from 'lucide-react';
 
 export interface PageData {
@@ -19,6 +21,8 @@ export interface PageData {
   settings: any;
   isMandatory?: boolean;
   order: number;
+  isSubPage?: boolean;
+  parentPageId?: string;
 }
 
 interface PageManagerProps {
@@ -134,52 +138,93 @@ export const PageManager: React.FC<PageManagerProps> = ({
           const pageTypeInfo = getPageTypeInfo(page.type);
           const Icon = pageTypeInfo.icon;
           
+          // Check if this page has authentication sections
+          const hasAuthSections = page.type === 'authentication' || (page.sections || []).some((s: any) => s.type === 'authentication');
+          
           return (
-            <Card
-              key={page.id}
-              className={`cursor-pointer transition-colors ${
-                page.id === currentPageId ? 'ring-2 ring-primary bg-primary/5' : 'hover:bg-muted/50'
-              } ${page.isMandatory ? 'border-orange-200 bg-orange-50/50' : ''}`}
-              onClick={() => onSelectPage(page.id)}
-            >
-              <CardContent className="p-3">
-                <div className="flex items-center gap-2">
-                  <GripVertical className="h-4 w-4 text-muted-foreground cursor-grab" />
-                  <Icon className="h-4 w-4 text-primary flex-shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <div className="font-medium text-sm">{page.name}</div>
-                      {(page.type === 'authentication' || (page.sections || []).some((s: any) => s.type === 'authentication')) && (
-                        <span className="text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded">
-                          Auth
-                        </span>
-                      )}
-                      {page.isMandatory && (
-                        <span className="text-xs bg-orange-100 text-orange-800 px-1.5 py-0.5 rounded">
-                          Required
-                        </span>
-                      )}
+            <div key={page.id}>
+              <Card
+                className={`cursor-pointer transition-colors ${
+                  page.id === currentPageId ? 'ring-2 ring-primary bg-primary/5' : 'hover:bg-muted/50'
+                } ${page.isMandatory ? 'border-orange-200 bg-orange-50/50' : ''}`}
+                onClick={() => onSelectPage(page.id)}
+              >
+                <CardContent className="p-3">
+                  <div className="flex items-center gap-2">
+                    <GripVertical className="h-4 w-4 text-muted-foreground cursor-grab" />
+                    <Icon className="h-4 w-4 text-primary flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <div className="font-medium text-sm">{page.name}</div>
+                        {hasAuthSections && (
+                          <span className="text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded">
+                            Auth
+                          </span>
+                        )}
+                        {page.isMandatory && (
+                          <span className="text-xs bg-orange-100 text-orange-800 px-1.5 py-0.5 rounded">
+                            Required
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {hasAuthSections ? 'Authentication Flow' : `${page.sections.length} sections`}
+                      </div>
                     </div>
-                    <div className="text-xs text-muted-foreground">
-                      {page.sections.length} sections
-                    </div>
+                    {!page.isMandatory && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDeletePage(page.id);
+                        }}
+                        className="text-destructive hover:text-destructive h-6 w-6 p-0"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    )}
                   </div>
-                  {!page.isMandatory && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onDeletePage(page.id);
-                      }}
-                      className="text-destructive hover:text-destructive h-6 w-6 p-0"
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
-                  )}
+                </CardContent>
+              </Card>
+              
+              {/* Show authentication sub-pages when this page is selected and has auth sections */}
+              {hasAuthSections && page.id === currentPageId && (
+                <div className="ml-6 mt-2 space-y-1">
+                  {[
+                    { id: 'idle', name: 'Start Authentication', icon: Shield },
+                    { id: 'checking', name: 'Verifying...', icon: Loader2 },
+                    { id: 'authentic', name: 'Product Verified', icon: CheckCircle },
+                    { id: 'not-authentic', name: 'Verification Failed', icon: XCircle }
+                  ].map((subPage) => {
+                    const SubIcon = subPage.icon;
+                    const subPageId = `${page.id}-${subPage.id}`;
+                    return (
+                      <Card
+                        key={subPageId}
+                        className={`cursor-pointer transition-colors border-l-2 border-l-primary/20 ${
+                          currentPageId === subPageId ? 'ring-2 ring-primary bg-primary/5' : 'hover:bg-muted/30'
+                        }`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onSelectPage(subPageId);
+                        }}
+                      >
+                        <CardContent className="p-2 pl-4">
+                          <div className="flex items-center gap-2">
+                            <SubIcon className="h-3 w-3 text-primary flex-shrink-0" />
+                            <div className="flex-1 min-w-0">
+                              <div className="font-medium text-xs">{subPage.name}</div>
+                              <div className="text-xs text-muted-foreground">Auth State</div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
                 </div>
-              </CardContent>
-            </Card>
+              )}
+            </div>
           );
         })}
       </div>

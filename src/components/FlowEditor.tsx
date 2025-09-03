@@ -12,7 +12,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Slider } from '@/components/ui/slider';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ImageEditor } from '@/components/ImageEditor';
-import { AuthenticationSubPageManager } from './flow-editor/AuthenticationSubPageManager';
 import { PageManager } from './flow-editor/PageManager';
 import { ComponentPalette } from './flow-editor/ComponentPalette';
 import { MobilePreview } from './flow-editor/MobilePreview';
@@ -1408,44 +1407,6 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
               <Separator />
 
               {/* Authentication Sub-Pages */}
-              {currentPage && (
-                currentPage.type === 'product_authentication' ||
-                currentPage.sections?.some(s => s.type === 'authentication') ||
-                /product\s*authentication|verification/i.test(currentPage.name || '')
-              ) && (
-                <Collapsible open={!collapsedSections.authSubPages} onOpenChange={() => toggleSection('authSubPages')}>
-                  <CollapsibleTrigger asChild>
-                    <Button variant="ghost" className="w-full justify-between text-sm font-medium p-2 h-auto hover:bg-accent">
-                      <span>Authentication Sub-Pages</span>
-                      {collapsedSections.authSubPages ? <ChevronRight className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                    </Button>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent className="pt-2">
-                    <AuthenticationSubPageManager
-                      authConfig={currentPage.settings?.authConfig}
-                      onUpdateAuthConfig={(config) => {
-                        const updatedPages = pages.map(p => 
-                          p.id === currentPage.id 
-                            ? { 
-                                ...p, 
-                                settings: { 
-                                  ...p.settings, 
-                                  authConfig: config 
-                                } 
-                              }
-                            : p
-                        );
-                        setPages(updatedPages);
-                      }}
-                      brandColors={brandData?.brand_colors ? {
-                        primary: brandData.brand_colors.primary,
-                        secondary: brandData.brand_colors.secondary,
-                        accent: brandData.brand_colors.accent
-                      } : null}
-                    />
-                  </CollapsibleContent>
-                </Collapsible>
-              )}
 
               {currentPage && (
                 currentPage.type === 'product_authentication' ||
