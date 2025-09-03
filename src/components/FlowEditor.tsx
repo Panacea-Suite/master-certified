@@ -687,10 +687,12 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
   };
   
   const getCurrentAuthState = () => {
+    console.log('🔍 getCurrentAuthState - currentPageId:', currentPageId);
     if (currentPageId.includes('-idle')) return 'idle';
     if (currentPageId.includes('-checking')) return 'checking';
     if (currentPageId.includes('-authentic')) return 'authentic';
     if (currentPageId.includes('-not-authentic')) return 'not-authentic';
+    console.log('🔍 No auth state match, returning idle');
     return 'idle'; // default state
   };
   const updateCurrentPageSections = (newSections: SectionData[]) => {

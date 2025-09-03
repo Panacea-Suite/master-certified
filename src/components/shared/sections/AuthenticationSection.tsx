@@ -29,6 +29,8 @@ export const AuthenticationSection: React.FC<AuthenticationSectionProps> = ({
 
   // Use forced authState in preview mode, otherwise use internal state
   const currentAuthStatus = authState || authStatus;
+  
+  console.log('🔍 AuthenticationSection - authState prop:', authState, 'internal authStatus:', authStatus, 'final currentAuthStatus:', currentAuthStatus);
 
   // Get sub-page configurations
   const getSubPageConfig = (type: 'idle' | 'checking' | 'authentic' | 'not-authentic') => {
