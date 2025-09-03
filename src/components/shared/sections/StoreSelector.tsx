@@ -66,6 +66,7 @@ export const StoreSelector: SectionComponent = ({
     <div 
       className="store-selector-section space-y-4"
       style={{ 
+        ...getPaddingStyle(),
         color: config.textColor || 'inherit',
         backgroundColor: config.backgroundColor || 'transparent'
       }}
