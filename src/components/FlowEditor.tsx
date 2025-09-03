@@ -1365,9 +1365,44 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                   >
                     {/* Runtime preview content using SectionRenderer */}
                       <div 
-                        className="h-full flex flex-col"
+                        className="h-full flex flex-col relative"
                         style={{ backgroundColor: pageSettings.backgroundColor }}
+                        onDragOver={(e) => {
+                          e.preventDefault();
+                          e.dataTransfer.dropEffect = "copy";
+                          if (!isDragging) {
+                            setIsDragging(true);
+                          }
+                        }}
+                        onDragLeave={(e) => {
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          const isLeavingDropZone = (
+                            e.clientX < rect.left ||
+                            e.clientX > rect.right ||
+                            e.clientY < rect.top ||
+                            e.clientY > rect.bottom
+                          );
+                          if (isLeavingDropZone) {
+                            setIsDragging(false);
+                          }
+                        }}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          const sectionType = e.dataTransfer.getData('text/plain');
+                          if (sectionType) {
+                            handleAddSection(sectionType);
+                          }
+                          setIsDragging(false);
+                        }}
                       >
+                        {/* Drop zone overlay */}
+                        {isDragging && (
+                          <div className="absolute inset-0 pointer-events-none transition-all duration-200 bg-blue-50/50 border-2 border-dashed border-blue-300 rounded-lg flex items-center justify-center z-10">
+                            <div className="bg-white px-4 py-2 rounded-lg shadow-sm text-sm text-blue-600 font-medium">
+                              Drop section here
+                            </div>
+                          </div>
+                        )}
                         {/* Use FlowHeader for consistency with editor and runtime */}
                         <FlowHeader 
                           globalHeader={{
@@ -1423,7 +1458,8 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                 <ComponentEditor 
                   section={selectedSection} 
                   onUpdate={config => handleUpdateSection(selectedSection.id, config)} 
-                  brandColors={brandData?.brand_colors} 
+                  brandColors={brandData?.brand_colors}
+                  pages={pages?.length ? pages.map(page => ({ id: page.id, name: page.name })) : []}
                 />
               ) : (
                 <div className="text-center py-8 text-muted-foreground">

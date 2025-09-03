@@ -65,7 +65,8 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
   }, [section.id, section.type, config.imageUrl]);
 
   const updateConfig = (key: string, value: any) => {
-    onUpdate({ [key]: value });
+    console.log('ComponentEditor updateConfig:', { key, value, sectionType: section.type, currentConfig: config });
+    onUpdate({ ...config, [key]: value });
   };
 
   const formatText = (format: string) => {
