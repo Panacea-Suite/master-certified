@@ -24,13 +24,15 @@ export const AuthenticationSection: React.FC<AuthenticationSectionProps> = ({
   const [authStatus, setAuthStatus] = useState<'idle' | 'checking' | 'authentic' | 'not-authentic'>('idle');
   const [showPopup, setShowPopup] = useState(false);
 
-  // Auto-start authentication when component loads
+  // Listen for login success to trigger authentication
   useEffect(() => {
-    if (!isPreview && selectedStore && authStatus === 'idle') {
-      setTimeout(() => {
+    const handler = () => {
+      if (!isPreview && selectedStore && authStatus === 'idle') {
         handleAuthentication();
-      }, 500);
-    }
+      }
+    };
+    window.addEventListener('flow-auth-success', handler);
+    return () => window.removeEventListener('flow-auth-success', handler);
   }, [selectedStore, authStatus, isPreview]);
 
   const handleAuthentication = () => {
