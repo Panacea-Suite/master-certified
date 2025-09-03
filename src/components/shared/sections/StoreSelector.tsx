@@ -162,8 +162,8 @@ export const StoreSelector: SectionComponent = ({
               <Button
                 onClick={(e) => {
                   e.stopPropagation();
-                  if (currentSelectedStore && section.config?.targetPageId && onNavigateToPage) {
-                    onNavigateToPage(section.config.targetPageId);
+                  if (currentSelectedStore && onNavigateToPage) {
+                    onNavigateToPage('next');
                   }
                 }}
                 disabled={!currentSelectedStore}

@@ -1429,7 +1429,12 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                                 storeOptions={[]}
                                 brandColors={brandData?.brand_colors}
                                 onNavigateToPage={(pageId) => {
-                                  setCurrentPageId(pageId);
+                                  if (pageId === 'next') {
+                                    // In preview mode, just show which page would be next
+                                    console.log('Would navigate to next page');
+                                  } else {
+                                    setCurrentPageId(pageId);
+                                  }
                                 }}
                               />
                               </div>

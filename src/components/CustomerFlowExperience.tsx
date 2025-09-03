@@ -766,9 +766,19 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
                   pageBackgroundColor={flow?.flow_config?.theme?.backgroundColor || flow?.flow_config?.designConfig?.backgroundColor || '#ffffff'}
                   onNavigateToPage={(pageId) => {
                     const pages = flow?.flow_config?.pages || [];
-                    const targetPageIndex = pages.findIndex((p: any) => p.id === pageId);
-                    if (targetPageIndex >= 0) {
-                      setCurrentPageIndex(targetPageIndex);
+                    
+                    if (pageId === 'next') {
+                      // Navigate to next page in sequence
+                      const nextIndex = currentPageIndex + 1;
+                      if (nextIndex < pages.length) {
+                        setCurrentPageIndex(nextIndex);
+                      }
+                    } else {
+                      // Navigate to specific page by ID
+                      const targetPageIndex = pages.findIndex((p: any) => p.id === pageId);
+                      if (targetPageIndex >= 0) {
+                        setCurrentPageIndex(targetPageIndex);
+                      }
                     }
                   }}
                   key={section.id || `s-${idx}`} 
@@ -1176,9 +1186,19 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
                         pageBackgroundColor={backgroundColor}
                         onNavigateToPage={(pageId) => {
                           const pages = flow?.flow_config?.pages || [];
-                          const targetPageIndex = pages.findIndex((p: any) => p.id === pageId);
-                          if (targetPageIndex >= 0) {
-                            setCurrentPageIndex(targetPageIndex);
+                          
+                          if (pageId === 'next') {
+                            // Navigate to next page in sequence
+                            const nextIndex = currentPageIndex + 1;
+                            if (nextIndex < pages.length) {
+                              setCurrentPageIndex(nextIndex);
+                            }
+                          } else {
+                            // Navigate to specific page by ID
+                            const targetPageIndex = pages.findIndex((p: any) => p.id === pageId);
+                            if (targetPageIndex >= 0) {
+                              setCurrentPageIndex(targetPageIndex);
+                            }
                           }
                         }}
                         key={section.id || `s-${idx}`} 
