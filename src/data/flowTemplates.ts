@@ -20,7 +20,7 @@ export interface FlowTemplateData {
 export interface FlowPage {
   id: string;
   name: string;
-  type: 'welcome' | 'store_selection' | 'authentication' | 'purchase_details' | 'thank_you';
+  type: 'welcome' | 'store_selection' | 'authentication' | 'product_authentication' | 'purchase_details' | 'thank_you';
   sections: FlowSection[];
 }
 
@@ -208,7 +208,7 @@ const CERTIFICATION_FLOW_PAGES: FlowPage[] = [
   {
     id: 'product-authentication',
     name: 'Product Authentication',
-    type: 'authentication',
+    type: 'product_authentication',
     sections: [
       {
         id: 'auth-verification-title',
