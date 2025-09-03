@@ -16,6 +16,7 @@ import { PageManager } from './flow-editor/PageManager';
 import { ComponentPalette } from './flow-editor/ComponentPalette';
 import { MobilePreview } from './flow-editor/MobilePreview';
 import { ComponentEditor } from './flow-editor/ComponentEditor';
+import { AuthenticationSubPageManager } from './flow-editor/AuthenticationSubPageManager';
 import { PageSection } from './flow-editor/PageSection';
 import { FlowHeader } from './flow-editor/FlowHeader';
 import { FlowStyleShell, useEditorTokens } from '@/components/FlowStyleShell';
@@ -1648,12 +1649,39 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
           <div className="w-80 shrink-0 border-l bg-muted/30 flex flex-col overflow-hidden">
             <ScrollArea className="flex-1 p-4">
               {selectedSection ? (
-                <ComponentEditor 
-                  section={selectedSection} 
-                  onUpdate={config => handleUpdateSection(selectedSection.id, config)} 
-                  brandColors={brandData?.brand_colors}
-                  pages={pages?.length ? pages.map(page => ({ id: page.id, name: page.name })) : []}
-                />
+                <div className="space-y-4">
+                  <ComponentEditor 
+                    section={selectedSection} 
+                    onUpdate={config => handleUpdateSection(selectedSection.id, config)} 
+                    brandColors={brandData?.brand_colors}
+                    pages={pages?.length ? pages.map(page => ({ id: page.id, name: page.name })) : []}
+                  />
+                  
+                  {/* Show AuthenticationSubPageManager for authentication sections */}
+                  {selectedSection.type === 'authentication' && (
+                    <AuthenticationSubPageManager
+                      authConfig={currentPage?.settings?.authConfig}
+                      onUpdateAuthConfig={(authConfig) => {
+                        const currentPage = getCurrentPage();
+                        if (!currentPage) return;
+                        
+                        const updatedPage = {
+                          ...currentPage,
+                          settings: {
+                            ...currentPage.settings,
+                            authConfig
+                          }
+                        };
+                        
+                        const updatedPages = pages.map(p => 
+                          p.id === currentPage.id ? updatedPage : p
+                        );
+                        setPages(updatedPages);
+                      }}
+                      brandColors={brandData?.brand_colors}
+                    />
+                  )}
+                </div>
               ) : (
                 <div className="text-center py-8 text-muted-foreground">
                   <div className="space-y-2">
