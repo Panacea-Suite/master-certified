@@ -56,12 +56,42 @@ export const StoreSelector: SectionComponent = ({
     }
   };
 
-  // Use actual store options if provided, otherwise fall back to config
-  const availableStores = storeOptions.length > 0 
-    ? storeOptions.filter((option: string) => option && option.trim()) 
-    : (config.storeOptions 
-        ? config.storeOptions.split('\n').filter((option: string) => option && option.trim()) 
-        : ['Downtown Location', 'Mall Branch', 'Airport Store']);
+  // Merge approved stores (from storeOptions prop) with Flow Builder store options
+  const getAvailableStores = () => {
+    // Get approved stores from campaign (passed via storeOptions prop)
+    const approvedStores = storeOptions.length > 0 
+      ? storeOptions.filter((option: string) => option && option.trim()) 
+      : [];
+    
+    // Get Flow Builder store options from config
+    const flowBuilderStores = config.storeOptions 
+      ? config.storeOptions.split('\n').filter((option: string) => option && option.trim()) 
+      : [];
+    
+    // Merge and deduplicate: approved stores first, then Flow Builder stores (case-insensitive dedup)
+    const mergedStores = [...approvedStores];
+    const lowerCaseApprovedStores = approvedStores.map(s => s.toLowerCase());
+    
+    flowBuilderStores.forEach(store => {
+      if (!lowerCaseApprovedStores.includes(store.toLowerCase())) {
+        mergedStores.push(store);
+      }
+    });
+    
+    // Fallback to default stores if nothing is configured
+    return mergedStores.length > 0 
+      ? mergedStores 
+      : ['Downtown Location', 'Mall Branch', 'Airport Store'];
+  };
+
+  const availableStores = getAvailableStores();
+
+  // Debug logging
+  console.log('🔍 StoreSelector: Store options merged:', {
+    approvedStores: storeOptions,
+    flowBuilderStores: config.storeOptions?.split('\n').filter((option: string) => option && option.trim()),
+    finalStores: availableStores
+  });
 
   return (
     <div 
@@ -155,7 +185,6 @@ export const StoreSelector: SectionComponent = ({
                 {availableStores.map((store: string) => (
                   <SelectItem key={store} value={store}>{store}</SelectItem>
                 ))}
-                <SelectItem value="other">Other Store</SelectItem>
               </SelectContent>
             </Select>
             <div className="pt-2">
