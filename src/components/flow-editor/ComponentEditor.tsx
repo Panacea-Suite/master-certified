@@ -35,6 +35,7 @@ interface ComponentEditorProps {
 export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpdate, brandColors, pages = [] }) => {
   const [showImageEditor, setShowImageEditor] = useState(false);
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
+  const [aspectRatioLocked, setAspectRatioLocked] = useState(false);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
   const { config } = section;
 
@@ -248,8 +249,6 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
   );
 
   const renderImageEditor = () => {
-    const [aspectRatioLocked, setAspectRatioLocked] = React.useState(false);
-    
     const handleDimensionChange = (dimension: 'width' | 'height', value: string) => {
       const numValue = parseFloat(value) || 0;
       
