@@ -80,9 +80,14 @@ export const AuthenticationSection: React.FC<AuthenticationSectionProps> = ({
 
 
   const getStatusIcon = () => {
+    const currentConfig = getSubPageConfig(currentAuthStatus);
+    
     switch (currentAuthStatus) {
       case 'checking':
-        return <Loader2 className="w-16 h-16 text-primary animate-spin" />;
+        return <Loader2 
+          className="w-16 h-16 animate-spin" 
+          style={{ color: currentConfig.progressColor || '#3b82f6' }}
+        />;
       case 'authentic':
         return <CheckCircle className="w-16 h-16 text-green-500 animate-pulse" />;
       case 'not-authentic':
@@ -159,7 +164,13 @@ export const AuthenticationSection: React.FC<AuthenticationSectionProps> = ({
           {currentAuthStatus === 'checking' && (
             <div className="space-y-4 animate-fade-in">
               <div className="w-full bg-muted rounded-full h-2">
-                <div className="bg-primary h-2 rounded-full animate-pulse" style={{ width: '75%' }}></div>
+                <div 
+                  className="h-2 rounded-full animate-pulse" 
+                  style={{ 
+                    width: '75%',
+                    backgroundColor: currentConfig.progressColor || '#3b82f6'
+                  }}
+                ></div>
               </div>
               <div className="text-center text-sm text-muted-foreground space-y-1 animate-fade-in">
                 <p className="animate-fade-in">✓ Checking store alignment</p>
