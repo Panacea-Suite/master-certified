@@ -778,33 +778,6 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
           )}
         </div>
 
-        {/* Navigation */}
-        {!hideInternalNavigation && (
-          <div className="border-t" style={{ 
-            maxWidth: 'var(--device-width-px, 390px)', 
-            margin: '0 auto', 
-            width: '100%',
-            backgroundColor: flow?.flow_config?.theme?.backgroundColor || flow?.flow_config?.designConfig?.backgroundColor || '#ffffff'
-          }}>
-            <div className="p-4 flex justify-between">
-              <Button
-                variant="outline"
-                onClick={() => setCurrentPageIndex(Math.max(0, currentPageIndex - 1))}
-                disabled={currentPageIndex === 0}
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Previous
-              </Button>
-              <Button
-                onClick={() => setCurrentPageIndex(Math.min(pages.length - 1, currentPageIndex + 1))}
-                disabled={currentPageIndex === pages.length - 1}
-              >
-                Next
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-            </div>
-          </div>
-        )}
       </div>
     );
   };
