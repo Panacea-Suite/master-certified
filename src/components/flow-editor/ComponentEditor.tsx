@@ -1105,13 +1105,10 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
                      id="paddingTop"
                      type="number"
                      value={config.paddingTop ?? config.padding ?? 1}
-                     onChange={(e) => {
+onChange={(e) => {
                        const value = Math.max(0, parseFloat(e.target.value) || 0);
                        if (paddingLocked) {
-                         updateConfig('paddingTop', value);
-                         updateConfig('paddingRight', value);
-                         updateConfig('paddingBottom', value);
-                         updateConfig('paddingLeft', value);
+                         onUpdate({ ...config, paddingTop: value, paddingRight: value, paddingBottom: value, paddingLeft: value, padding: value });
                        } else {
                          updateConfig('paddingTop', value);
                        }
@@ -1128,13 +1125,10 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
                      id="paddingRight"
                      type="number"
                      value={config.paddingRight ?? config.padding ?? 1}
-                     onChange={(e) => {
+onChange={(e) => {
                        const value = Math.max(0, parseFloat(e.target.value) || 0);
                        if (paddingLocked) {
-                         updateConfig('paddingTop', value);
-                         updateConfig('paddingRight', value);
-                         updateConfig('paddingBottom', value);
-                         updateConfig('paddingLeft', value);
+                         onUpdate({ ...config, paddingTop: value, paddingRight: value, paddingBottom: value, paddingLeft: value, padding: value });
                        } else {
                          updateConfig('paddingRight', value);
                        }
@@ -1151,13 +1145,10 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
                      id="paddingBottom"
                      type="number"
                      value={config.paddingBottom ?? config.padding ?? 1}
-                     onChange={(e) => {
+onChange={(e) => {
                        const value = Math.max(0, parseFloat(e.target.value) || 0);
                        if (paddingLocked) {
-                         updateConfig('paddingTop', value);
-                         updateConfig('paddingRight', value);
-                         updateConfig('paddingBottom', value);
-                         updateConfig('paddingLeft', value);
+                         onUpdate({ ...config, paddingTop: value, paddingRight: value, paddingBottom: value, paddingLeft: value, padding: value });
                        } else {
                          updateConfig('paddingBottom', value);
                        }
@@ -1174,13 +1165,10 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
                      id="paddingLeft"
                      type="number"
                      value={config.paddingLeft ?? config.padding ?? 1}
-                     onChange={(e) => {
+onChange={(e) => {
                        const value = Math.max(0, parseFloat(e.target.value) || 0);
                        if (paddingLocked) {
-                         updateConfig('paddingTop', value);
-                         updateConfig('paddingRight', value);
-                         updateConfig('paddingBottom', value);
-                         updateConfig('paddingLeft', value);
+                         onUpdate({ ...config, paddingTop: value, paddingRight: value, paddingBottom: value, paddingLeft: value, padding: value });
                        } else {
                          updateConfig('paddingLeft', value);
                        }
