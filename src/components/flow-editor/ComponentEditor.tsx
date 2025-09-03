@@ -36,6 +36,7 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
   const [showImageEditor, setShowImageEditor] = useState(false);
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
   const [aspectRatioLocked, setAspectRatioLocked] = useState(false);
+  const [paddingLocked, setPaddingLocked] = useState(false);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
   const { config } = section;
 
