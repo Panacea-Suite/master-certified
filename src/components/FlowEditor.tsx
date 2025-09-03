@@ -681,9 +681,13 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
     if (currentPageId.includes('-idle') || currentPageId.includes('-checking') || 
         currentPageId.includes('-authentic') || currentPageId.includes('-not-authentic')) {
       const parentPageId = currentPageId.split('-').slice(0, -1).join('-');
-      return pages.find(p => p.id === parentPageId);
+      const parentPage = pages.find(p => p.id === parentPageId);
+      console.log('🔍 getCurrentPage - sub-page detected:', currentPageId, 'parentPageId:', parentPageId, 'parentPage found:', !!parentPage, 'sections count:', parentPage?.sections?.length || 0);
+      return parentPage;
     }
-    return pages.find(p => p.id === currentPageId);
+    const page = pages.find(p => p.id === currentPageId);
+    console.log('🔍 getCurrentPage - regular page:', currentPageId, 'page found:', !!page, 'sections count:', page?.sections?.length || 0);
+    return page;
   };
   
   const getCurrentAuthState = () => {
@@ -1594,32 +1598,35 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                         
                         <div className="flex-1 flex flex-col min-h-0">
                           <div>
-                            {currentPage?.sections.sort((a, b) => a.order - b.order).map((section) => (
-                              <div 
-                                key={section.id}
-                                className={`${section.id === selectedSection?.id ? 'ring-2 ring-primary ring-offset-2' : ''} cursor-pointer hover:ring-1 hover:ring-primary/50 transition-all`}
-                                onClick={() => setSelectedSection(section)}
-                              >
-                              <SectionRenderer
-                                section={section}
-                                isPreview={true}
-                                isRuntimeMode={true}
-                                storeOptions={[]}
-                                brandColors={brandData?.brand_colors}
-                                authConfig={currentPage?.settings?.authConfig}
-                                authState={getCurrentAuthState()}
-                                onNavigateToPage={(pageId) => {
-                                  if (pageId === 'next') {
-                                    const idx = pages.findIndex(p => p.id === currentPageId);
-                                    const next = idx >= 0 ? pages[idx + 1] : null;
-                                    if (next?.id) setCurrentPageId(next.id);
-                                  } else {
-                                    setCurrentPageId(pageId);
-                                  }
-                                }}
-                              />
-                              </div>
-                            ))}
+                            {currentPage?.sections.sort((a, b) => a.order - b.order).map((section) => {
+                              console.log('🔍 Rendering section:', section.id, section.type, 'for page:', currentPageId, 'authState:', getCurrentAuthState());
+                              return (
+                                <div 
+                                  key={section.id}
+                                  className={`${section.id === selectedSection?.id ? 'ring-2 ring-primary ring-offset-2' : ''} cursor-pointer hover:ring-1 hover:ring-primary/50 transition-all`}
+                                  onClick={() => setSelectedSection(section)}
+                                >
+                                <SectionRenderer
+                                  section={section}
+                                  isPreview={true}
+                                  isRuntimeMode={true}
+                                  storeOptions={[]}
+                                  brandColors={brandData?.brand_colors}
+                                  authConfig={currentPage?.settings?.authConfig}
+                                  authState={getCurrentAuthState()}
+                                  onNavigateToPage={(pageId) => {
+                                    if (pageId === 'next') {
+                                      const idx = pages.findIndex(p => p.id === currentPageId);
+                                      const next = idx >= 0 ? pages[idx + 1] : null;
+                                      if (next?.id) setCurrentPageId(next.id);
+                                    } else {
+                                      setCurrentPageId(pageId);
+                                    }
+                                  }}
+                                />
+                                </div>
+                              );
+                            })}
                           </div>
                           {/* Default footer if none present, matching editor preview */}
                           {currentPage && currentPage.sections.every(s => s.type !== 'footer') && (
