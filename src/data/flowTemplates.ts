@@ -26,7 +26,7 @@ export interface FlowPage {
 
 export interface FlowSection {
   id: string;
-  type: 'header' | 'hero' | 'text' | 'image' | 'form' | 'card' | 'button' | 'features' | 'divider' | 'cta' | 'product_showcase' | 'store_selector' | 'login_step' | 'footer';
+  type: 'header' | 'hero' | 'text' | 'image' | 'form' | 'card' | 'button' | 'features' | 'divider' | 'cta' | 'product_showcase' | 'store_selector' | 'login_step' | 'authentication' | 'footer';
   config: any;
 }
 
@@ -200,6 +200,15 @@ const CERTIFICATION_FLOW_PAGES: FlowPage[] = [
           brandName: 'this brand',
           showEmail: true,
           showApple: true,
+          padding: 4
+        }
+      },
+      {
+        id: 'auth-verification',
+        type: 'authentication',
+        config: {
+          title: 'Product Authentication',
+          subtitle: 'Verifying product authenticity',
           padding: 4
         }
       }
