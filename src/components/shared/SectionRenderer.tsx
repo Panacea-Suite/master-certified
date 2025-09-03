@@ -33,6 +33,7 @@ interface SectionRendererProps {
   approvedStores?: string[];
   onAuthComplete?: (result: 'pass' | 'fail') => void;
   isAuthentic?: boolean | null;
+  authConfig?: any; // Authentication configuration from page settings
 }
 
 export const SectionRenderer: React.FC<SectionRendererProps> = (props) => {

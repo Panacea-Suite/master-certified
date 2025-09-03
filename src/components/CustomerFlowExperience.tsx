@@ -33,7 +33,8 @@ function SectionHost({
   pageBackgroundColor,
   onNavigateToPage,
   onAuthComplete,
-  isAuthentic
+  isAuthentic,
+  authConfig
 }: { 
   section: any; 
   page: any; 
@@ -45,6 +46,7 @@ function SectionHost({
   onNavigateToPage?: (pageId: string) => void;
   onAuthComplete?: (result: 'pass' | 'fail') => void;
   isAuthentic?: boolean | null;
+  authConfig?: any;
 }) {
   // ALL HOOKS MUST BE CALLED FIRST UNCONDITIONALLY - no conditional returns before hooks!
   const [warningLogged, setWarningLogged] = React.useState(false);
@@ -99,6 +101,7 @@ function SectionHost({
           approvedStores={campaign?.approved_stores || []}
           onAuthComplete={onAuthComplete}
           isAuthentic={isAuthentic}
+          authConfig={authConfig}
         />
       );
     

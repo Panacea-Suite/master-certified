@@ -10,6 +10,7 @@ interface AuthenticationSectionProps extends SectionRendererProps {
   selectedStore?: string;
   approvedStores?: string[];
   onAuthComplete?: (result: 'pass' | 'fail') => void;
+  authConfig?: any; // Configuration from the sub-page manager
 }
 
 export const AuthenticationSection: React.FC<AuthenticationSectionProps> = ({
@@ -18,10 +19,16 @@ export const AuthenticationSection: React.FC<AuthenticationSectionProps> = ({
   approvedStores = [],
   onNavigateToPage,
   onAuthComplete,
-  isPreview = false
+  isPreview = false,
+  authConfig // New prop for authentication configuration
 }) => {
   const { getTemplateClasses } = useTemplateStyle();
   const [authStatus, setAuthStatus] = useState<'idle' | 'checking' | 'authentic' | 'not-authentic'>('idle');
+
+  // Get sub-page configurations
+  const getSubPageConfig = (type: 'idle' | 'checking' | 'authentic' | 'not-authentic') => {
+    return authConfig?.subPages?.[`auth-${type}`] || {};
+  };
 
   // Auto-start authentication when component loads or when user has selected store
   useEffect(() => {
@@ -79,49 +86,64 @@ export const AuthenticationSection: React.FC<AuthenticationSectionProps> = ({
   };
 
   const getStatusMessage = () => {
+    const idleConfig = getSubPageConfig('idle');
+    const checkingConfig = getSubPageConfig('checking');
+    const authenticConfig = getSubPageConfig('authentic');
+    const notAuthenticConfig = getSubPageConfig('not-authentic');
+
     switch (authStatus) {
       case 'checking':
         return {
-          title: 'Authenticating Product...',
-          subtitle: 'Please wait while we verify your product authenticity',
-          color: 'text-foreground'
+          title: checkingConfig.title || 'Authenticating Product...',
+          subtitle: checkingConfig.subtitle || 'Please wait while we verify your product authenticity',
+          color: checkingConfig.titleColor || 'text-foreground'
         };
       case 'authentic':
         return {
-          title: 'Product Authenticated!',
-          subtitle: 'Your product is genuine and verified',
-          color: 'text-green-600'
+          title: authenticConfig.title || 'Product Authenticated!',
+          subtitle: authenticConfig.subtitle || 'Your product is genuine and verified',
+          color: authenticConfig.titleColor || 'text-green-600'
         };
       case 'not-authentic':
         return {
-          title: 'Authentication Failed',
-          subtitle: 'We could not verify this product',
-          color: 'text-red-600'
+          title: notAuthenticConfig.title || 'Product Not Authentic',
+          subtitle: notAuthenticConfig.subtitle || 'This product could not be authenticated',
+          color: notAuthenticConfig.titleColor || 'text-red-600'
         };
       default:
         return {
-          title: 'Product Authentication',
-          subtitle: 'Preparing to verify your product',
-          color: 'text-foreground'
+          title: idleConfig.title || 'Product Authentication',
+          subtitle: idleConfig.subtitle || 'Preparing to verify your product',
+          color: idleConfig.titleColor || 'text-foreground'
         };
     }
   };
 
   const statusMessage = getStatusMessage();
+  const currentConfig = getSubPageConfig(authStatus);
 
   return (
-    <div className={`min-h-screen flex items-center justify-center p-4 ${getTemplateClasses('section')}`}>
+    <div 
+      className={`min-h-screen flex items-center justify-center p-4 ${getTemplateClasses('section')}`}
+      style={{ backgroundColor: currentConfig.backgroundColor || '#ffffff' }}
+    >
       <Card className="w-full max-w-md mx-auto">
         <CardHeader className="text-center">
           <div className="mx-auto mb-4 w-20 h-20 rounded-full bg-muted/50 flex items-center justify-center">
             {getStatusIcon()}
           </div>
           
-          <CardTitle className={`text-2xl font-bold ${statusMessage.color}`}>
+          <CardTitle 
+            className={`text-2xl font-bold`}
+            style={{ color: currentConfig.titleColor || statusMessage.color }}
+          >
             {statusMessage.title}
           </CardTitle>
           
-          <p className="text-muted-foreground mt-2">
+          <p 
+            className="text-lg mt-2"
+            style={{ color: currentConfig.subtitleColor || '#6b7280' }}
+          >
             {statusMessage.subtitle}
           </p>
         </CardHeader>
@@ -163,27 +185,41 @@ export const AuthenticationSection: React.FC<AuthenticationSectionProps> = ({
             <div className="text-center space-y-4 animate-scale-in">
               <Alert className="border-red-200 bg-red-50 animate-fade-in">
                 <XCircle className="h-4 w-4 text-red-600" />
-                <AlertDescription className="text-red-800">
-                  This product could not be authenticated. This product may be counterfeit or from an unauthorized retailer.
+                <AlertDescription style={{ color: currentConfig.titleColor || '#dc2626' }}>
+                  {currentConfig.failureMessage || 'This product could not be authenticated. This product may be counterfeit or from an unauthorized retailer.'}
                 </AlertDescription>
               </Alert>
-              <p className="text-sm text-muted-foreground animate-fade-in" style={{ animationDelay: '0.2s' }}>
-                Please contact the brand directly if you believe this is an error.
+              <p className="text-sm animate-fade-in" style={{ 
+                animationDelay: '0.2s',
+                color: currentConfig.subtitleColor || '#6b7280' 
+              }}>
+                {currentConfig.contactMessage || 'Please contact the brand directly if you believe this is an error.'}
               </p>
               <Button 
                 onClick={() => onNavigateToPage?.('final')}
                 variant="outline" 
                 className="w-full mt-4 animate-fade-in hover-scale"
-                style={{ animationDelay: '0.4s' }}
+                style={{ 
+                  animationDelay: '0.4s',
+                  backgroundColor: currentConfig.buttonColor || '#6b7280',
+                  color: currentConfig.buttonTextColor || '#ffffff'
+                }}
               >
-                Close
+                {currentConfig.buttonText || 'Close'}
               </Button>
             </div>
           )}
 
           {isPreview && authStatus === 'idle' && (
-            <Button onClick={handleAuthentication} className="w-full">
-              Start Authentication
+            <Button 
+              onClick={handleAuthentication} 
+              className="w-full"
+              style={{
+                backgroundColor: currentConfig.buttonColor || '#3b82f6',
+                color: currentConfig.buttonTextColor || '#ffffff'
+              }}
+            >
+              {currentConfig.buttonText || 'Start Authentication'}
               <Shield className="w-4 h-4 ml-2" />
             </Button>
           )}

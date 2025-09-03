@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Slider } from '@/components/ui/slider';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ImageEditor } from '@/components/ImageEditor';
-import { BrandColorPicker } from '@/components/ui/brand-color-picker';
+import { AuthenticationSubPageManager } from './flow-editor/AuthenticationSubPageManager';
 import { PageManager } from './flow-editor/PageManager';
 import { ComponentPalette } from './flow-editor/ComponentPalette';
 import { MobilePreview } from './flow-editor/MobilePreview';
@@ -25,6 +25,7 @@ import { PanaceaFooter } from '@/components/PanaceaFooter';
 import { Smartphone, Save, ChevronDown, ChevronRight, ArrowLeft, TestTube2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { BrandColorPicker } from '@/components/ui/brand-color-picker';
 import { useAuth } from '@/hooks/useAuth';
 import { TestLinkModal } from './TestLinkModal';
 import { DesignTemplateSelector } from './DesignTemplateSelector';
