@@ -54,6 +54,7 @@ export const ImageSection: SectionComponent = ({ section, isPreview = false, onS
               alt={config.alt || 'Section image'}
               className={`w-full h-auto ${getBorderRadius()} select-none pointer-events-none transition-opacity ${!isPreview ? 'group-hover:opacity-80' : ''} ${getImageDropShadowClass()}`}
               style={{ 
+                maxWidth: config.width ? `${config.width}px` : '100%',
                 maxHeight: config.height ? `${config.height}px` : 'auto'
               }}
             />

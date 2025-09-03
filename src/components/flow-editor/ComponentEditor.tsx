@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import { Slider } from '@/components/ui/slider';
-import { Trash2, Upload, Edit2, Settings, Bold, Italic, Underline, List, Link } from 'lucide-react';
+import { Trash2, Upload, Edit2, Settings, Bold, Italic, Underline, List, Link, Lock, Unlock } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { ImageEditor } from '@/components/ImageEditor';
 import { BrandColorPicker } from '@/components/ui/brand-color-picker';
@@ -245,116 +245,177 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
     </div>
   );
 
-  const renderImageEditor = () => (
-    <div className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="imageUrl">Image URL</Label>
-        <div className="flex gap-2">
-          <Input
-            id="imageUrl"
-            type="url"
-            value={config.imageUrl || ''}
-            onChange={(e) => updateConfig('imageUrl', e.target.value)}
-            placeholder="https://example.com/image.jpg"
-            className="flex-1"
-          />
-          {config.imageUrl && (
-            <Button
-              variant="outline"
-              size="sm"
-              data-edit-image={section.id}
-              onClick={() => {
-                // Convert existing image URL to file for editing
-                fetch(config.imageUrl)
-                  .then(res => res.blob())
-                  .then(blob => {
-                    const file = new File([blob], 'image.jpg', { type: blob.type });
+  const renderImageEditor = () => {
+    const [aspectRatioLocked, setAspectRatioLocked] = React.useState(false);
+    
+    const handleDimensionChange = (dimension: 'width' | 'height', value: string) => {
+      const numValue = parseFloat(value) || 0;
+      
+      if (!aspectRatioLocked || !config.width || !config.height) {
+        updateConfig(dimension, value);
+        return;
+      }
+      
+      // Calculate aspect ratio from current dimensions
+      const aspectRatio = parseFloat(config.width) / parseFloat(config.height);
+      
+      if (dimension === 'width') {
+        const newHeight = numValue / aspectRatio;
+        updateConfig('width', value);
+        updateConfig('height', newHeight.toString());
+      } else {
+        const newWidth = numValue * aspectRatio;
+        updateConfig('height', value);
+        updateConfig('width', newWidth.toString());
+      }
+    };
+    
+    return (
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="imageUrl">Image URL</Label>
+          <div className="flex gap-2">
+            <Input
+              id="imageUrl"
+              type="url"
+              value={config.imageUrl || ''}
+              onChange={(e) => updateConfig('imageUrl', e.target.value)}
+              placeholder="https://example.com/image.jpg"
+              className="flex-1"
+            />
+            {config.imageUrl && (
+              <Button
+                variant="outline"
+                size="sm"
+                data-edit-image={section.id}
+                onClick={() => {
+                  // Convert existing image URL to file for editing
+                  fetch(config.imageUrl)
+                    .then(res => res.blob())
+                    .then(blob => {
+                      const file = new File([blob], 'image.jpg', { type: blob.type });
+                      setSelectedImageFile(file);
+                      setShowImageEditor(true);
+                    })
+                    .catch(() => {
+                      // Fallback: open file picker
+                      const input = document.createElement('input');
+                      input.type = 'file';
+                      input.accept = 'image/*';
+                      input.onchange = (e) => {
+                        const file = (e.target as HTMLInputElement).files?.[0];
+                        if (file) {
+                          setSelectedImageFile(file);
+                          setShowImageEditor(true);
+                        }
+                      };
+                      input.click();
+                    });
+                }}
+              >
+                <Edit2 className="h-4 w-4" />
+                Edit
+              </Button>
+            )}
+          </div>
+        </div>
+        
+        <div className="space-y-2">
+          <Label>Upload & Edit Image</Label>
+          <div className="flex items-center justify-center w-full">
+            <label htmlFor="imageUpload" className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-muted-foreground/25 rounded-lg cursor-pointer hover:bg-muted/50">
+              <div className="flex flex-col items-center justify-center">
+                <Upload className="w-8 h-8 mb-2 text-muted-foreground" />
+                <p className="text-sm text-muted-foreground text-center">
+                  <span className="font-semibold">Click to upload & edit</span><br />
+                  PNG, JPG (MAX. 5MB)
+                </p>
+              </div>
+              <input
+                id="imageUpload"
+                type="file"
+                className="hidden"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
                     setSelectedImageFile(file);
                     setShowImageEditor(true);
-                  })
-                  .catch(() => {
-                    // Fallback: open file picker
-                    const input = document.createElement('input');
-                    input.type = 'file';
-                    input.accept = 'image/*';
-                    input.onchange = (e) => {
-                      const file = (e.target as HTMLInputElement).files?.[0];
-                      if (file) {
-                        setSelectedImageFile(file);
-                        setShowImageEditor(true);
-                      }
-                    };
-                    input.click();
-                  });
-              }}
+                  }
+                }}
+              />
+            </label>
+          </div>
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="alt">Alt Text</Label>
+          <Input
+            id="alt"
+            value={config.alt || ''}
+            onChange={(e) => updateConfig('alt', e.target.value)}
+            placeholder="Describe the image"
+          />
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="caption">Caption (Optional)</Label>
+          <Input
+            id="caption"
+            value={config.caption || ''}
+            onChange={(e) => updateConfig('caption', e.target.value)}
+            placeholder="Image caption"
+          />
+        </div>
+        
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <Label>Dimensions</Label>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => setAspectRatioLocked(!aspectRatioLocked)}
+              className={`h-8 w-8 p-0 ${aspectRatioLocked ? 'text-primary' : 'text-muted-foreground'}`}
             >
-              <Edit2 className="h-4 w-4" />
-              Edit
+              {aspectRatioLocked ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}
             </Button>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-1">
+              <Label htmlFor="width" className="text-xs">Max Width (px)</Label>
+              <Input
+                id="width"
+                type="number"
+                value={config.width || ''}
+                onChange={(e) => handleDimensionChange('width', e.target.value)}
+                placeholder="Auto"
+                min="1"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="height" className="text-xs">Max Height (px)</Label>
+              <Input
+                id="height"
+                type="number"
+                value={config.height || ''}
+                onChange={(e) => handleDimensionChange('height', e.target.value)}
+                placeholder="Auto"
+                min="1"
+              />
+            </div>
+          </div>
+          
+          {aspectRatioLocked && (
+            <p className="text-xs text-muted-foreground">
+              🔒 Aspect ratio locked - changing one dimension will adjust the other
+            </p>
           )}
         </div>
       </div>
-      
-      <div className="space-y-2">
-        <Label>Upload & Edit Image</Label>
-        <div className="flex items-center justify-center w-full">
-          <label htmlFor="imageUpload" className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-muted-foreground/25 rounded-lg cursor-pointer hover:bg-muted/50">
-            <div className="flex flex-col items-center justify-center">
-              <Upload className="w-8 h-8 mb-2 text-muted-foreground" />
-              <p className="text-sm text-muted-foreground text-center">
-                <span className="font-semibold">Click to upload & edit</span><br />
-                PNG, JPG (MAX. 5MB)
-              </p>
-            </div>
-            <input
-              id="imageUpload"
-              type="file"
-              className="hidden"
-              accept="image/*"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) {
-                  setSelectedImageFile(file);
-                  setShowImageEditor(true);
-                }
-              }}
-            />
-          </label>
-        </div>
-      </div>
-      
-      <div className="space-y-2">
-        <Label htmlFor="alt">Alt Text</Label>
-        <Input
-          id="alt"
-          value={config.alt || ''}
-          onChange={(e) => updateConfig('alt', e.target.value)}
-          placeholder="Describe the image"
-        />
-      </div>
-      
-      <div className="space-y-2">
-        <Label htmlFor="caption">Caption (Optional)</Label>
-        <Input
-          id="caption"
-          value={config.caption || ''}
-          onChange={(e) => updateConfig('caption', e.target.value)}
-          placeholder="Image caption"
-        />
-      </div>
-      
-      <div className="space-y-2">
-        <Label htmlFor="height">Max Height (px)</Label>
-        <Input
-          id="height"
-          type="number"
-          value={config.height || ''}
-          onChange={(e) => updateConfig('height', e.target.value)}
-          placeholder="Auto"
-        />
-      </div>
-    </div>
-  );
+    );
+  };
 
   const renderDropShadowSettings = () => (
     <div className="space-y-4">
