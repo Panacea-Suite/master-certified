@@ -30,7 +30,7 @@ export const AuthenticationSection: React.FC<AuthenticationSectionProps> = ({
   // Use forced authState in preview mode, otherwise use internal state
   const currentAuthStatus = authState || authStatus;
   
-  console.log('🔍 AuthenticationSection - authState prop:', authState, 'internal authStatus:', authStatus, 'final currentAuthStatus:', currentAuthStatus);
+  console.log('🔍 AuthenticationSection - authState prop:', authState, 'internal authStatus:', authStatus, 'final currentAuthStatus:', currentAuthStatus, 'selectedStore:', selectedStore, 'approvedStores:', approvedStores);
 
   // Get sub-page configurations
   const getSubPageConfig = (type: 'idle' | 'checking' | 'authentic' | 'not-authentic') => {
@@ -61,7 +61,7 @@ export const AuthenticationSection: React.FC<AuthenticationSectionProps> = ({
       const isStoreAligned = approvedStores.some(store => 
         normalize(store) === normalize(selectedStore)
       );
-      console.log('🔍 Auth check:', { selectedStore, approvedStores, isStoreAligned });
+      console.log('🔍 Auth check:', { selectedStore, approvedStores, isStoreAligned, normalizedSelected: normalize(selectedStore), normalizedApproved: approvedStores.map(normalize) });
       
       if (isStoreAligned) {
         setAuthStatus('authentic');
