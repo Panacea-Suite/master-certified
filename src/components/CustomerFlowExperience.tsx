@@ -78,11 +78,11 @@ function SectionHost({
     case 'store_selector':
     case 'authentication':
       return (
-          <SectionRenderer
-            key={section.id}
-            section={section}
-            isPreview={true}
-            isRuntimeMode={true}
+        <SectionRenderer
+          key={section.id}
+          section={section}
+          isPreview={false}
+          isRuntimeMode={true}
             storeOptions={campaign?.approved_stores || []}
             brandColors={null}
             // Controlled store selector props for runtime binding
