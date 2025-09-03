@@ -677,10 +677,10 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
 
   // Helper functions for page management
   const getCurrentPage = () => {
-    // Handle authentication sub-pages (e.g., "product-authentication-idle")
-    if (currentPageId.includes('-idle') || currentPageId.includes('-checking') || 
-        currentPageId.includes('-authentic') || currentPageId.includes('-not-authentic')) {
-      const parentPageId = currentPageId.split('-').slice(0, -1).join('-');
+    // Handle authentication sub-pages (suffix: -idle | -checking | -authentic | -not-authentic)
+    const isAuthSubPage = /-(idle|checking|authentic|not-authentic)$/.test(currentPageId);
+    if (isAuthSubPage) {
+      const parentPageId = currentPageId.replace(/-(idle|checking|authentic|not-authentic)$/, '');
       const parentPage = pages.find(p => p.id === parentPageId);
       console.log('🔍 getCurrentPage - sub-page detected:', currentPageId, 'parentPageId:', parentPageId, 'parentPage found:', !!parentPage, 'sections count:', parentPage?.sections?.length || 0);
       return parentPage;
@@ -692,10 +692,10 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
   
   const getCurrentAuthState = () => {
     console.log('🔍 getCurrentAuthState - currentPageId:', currentPageId);
-    if (currentPageId.includes('-idle')) return 'idle';
-    if (currentPageId.includes('-checking')) return 'checking';
-    if (currentPageId.includes('-not-authentic')) return 'not-authentic'; // Check this BEFORE -authentic
-    if (currentPageId.includes('-authentic')) return 'authentic';
+    if (currentPageId.endsWith('-idle')) return 'idle';
+    if (currentPageId.endsWith('-checking')) return 'checking';
+    if (currentPageId.endsWith('-not-authentic')) return 'not-authentic';
+    if (currentPageId.endsWith('-authentic')) return 'authentic';
     console.log('🔍 No auth state match, returning idle');
     return 'idle'; // default state
   };
