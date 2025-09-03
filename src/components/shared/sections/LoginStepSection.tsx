@@ -54,7 +54,10 @@ export const LoginStepSection: SectionComponent = ({
         showEmail={isPreview ? true : config.showEmail !== false}
         showApple={isPreview ? true : config.showApple !== false}
         brandName={config.brandName || 'this brand'}
-        onAuthSuccess={onAuthSuccess}
+        onAuthSuccess={(params) => {
+          onAuthSuccess?.(params);
+          onNavigateToPage?.('next');
+        }}
         onAuthError={onAuthError}
         onTrackEvent={onTrackEvent}
         onSkip={() => onNavigateToPage?.('next')}
