@@ -57,9 +57,11 @@ export const AuthenticationSection: React.FC<AuthenticationSectionProps> = ({
     
     // Add smooth animation transition
     setTimeout(() => {
+      const normalize = (v?: string) => (v ?? '').toString().trim().toLowerCase();
       const isStoreAligned = approvedStores.some(store => 
-        store.toLowerCase() === selectedStore?.toLowerCase()
+        normalize(store) === normalize(selectedStore)
       );
+      console.log('🔍 Auth check:', { selectedStore, approvedStores, isStoreAligned });
       
       if (isStoreAligned) {
         setAuthStatus('authentic');
