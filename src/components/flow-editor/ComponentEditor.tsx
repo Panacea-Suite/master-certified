@@ -756,8 +756,8 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
       <div className="space-y-2">
         <Label htmlFor="targetPage">Navigate to Page</Label>
         <Select 
-          value={config.targetPageId || ''} 
-          onValueChange={(value) => updateConfig('targetPageId', value)}
+          value={config.targetPageId || 'none'} 
+          onValueChange={(value) => updateConfig('targetPageId', value === 'none' ? '' : value)}
         >
           <SelectTrigger>
             <SelectValue placeholder="Select page to navigate to" />
