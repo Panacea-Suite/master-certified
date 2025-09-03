@@ -12,7 +12,8 @@ import {
   ChevronDown,
   ChevronRight,
   Layout,
-  User
+  User,
+  MousePointerClick
 } from 'lucide-react';
 
 interface ComponentPaletteProps {
@@ -42,6 +43,12 @@ const sectionCategories = [
     category: 'Interactive',
     icon: ChevronDown,
     sections: [
+      {
+        type: 'cta',
+        icon: MousePointerClick,
+        title: 'CTA Button',
+        description: 'Call-to-action button with page navigation'
+      },
       {
         type: 'store_selector',
         icon: ChevronDown,
