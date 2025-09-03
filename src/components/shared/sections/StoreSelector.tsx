@@ -11,7 +11,8 @@ export const StoreSelector: SectionComponent = ({
   purchaseChannel,
   selectedStore,
   onPurchaseChannelChange,
-  onSelectedStoreChange
+  onSelectedStoreChange,
+  onNavigateToPage
 }) => {
   const [previewPurchaseChannel, setPreviewPurchaseChannel] = useState<string>('');
   const [previewSelectedStore, setPreviewSelectedStore] = useState<string>('');
