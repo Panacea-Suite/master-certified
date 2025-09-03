@@ -13,7 +13,7 @@ import {
 
 export interface PageData {
   id: string;
-  type: 'landing' | 'store_selection' | 'account_creation' | 'authentication' | 'content_display' | 'thank_you';
+  type: 'landing' | 'store_selection' | 'account_creation' | 'authentication' | 'product_authentication' | 'content_display' | 'thank_you';
   name: string;
   sections: any[];
   settings: any;

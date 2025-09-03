@@ -40,7 +40,7 @@ interface FlowTemplate {
 
 interface PageData {
   id: string;
-  type: 'landing' | 'store_selection' | 'account_creation' | 'authentication' | 'content_display' | 'thank_you';
+  type: 'landing' | 'store_selection' | 'account_creation' | 'authentication' | 'product_authentication' | 'content_display' | 'thank_you';
   name: string;
   sections: SectionData[];
   settings: any;
@@ -1384,8 +1384,8 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
               
               <Separator />
 
-              {/* Authentication Sub-Pages */}
-              {currentPage && currentPage.type === 'authentication' && (
+               {/* Authentication Sub-Pages */}
+              {currentPage && currentPage.type === 'product_authentication' && (
                 <Collapsible open={!collapsedSections.authSubPages} onOpenChange={() => toggleSection('authSubPages')}>
                   <CollapsibleTrigger asChild>
                     <Button variant="ghost" className="w-full justify-between text-sm font-medium p-2 h-auto hover:bg-accent">
@@ -1420,7 +1420,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                 </Collapsible>
               )}
 
-              {currentPage && currentPage.type === 'authentication' && <Separator />}
+              {currentPage && currentPage.type === 'product_authentication' && <Separator />}
               
               {/* Current Page Sections */}
               {currentPage && <Collapsible open={!collapsedSections.sections} onOpenChange={() => toggleSection('sections')}>
