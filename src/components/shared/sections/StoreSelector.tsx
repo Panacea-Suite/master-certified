@@ -41,9 +41,11 @@ export const StoreSelector: SectionComponent = ({
   };
 
   // Use actual store options if provided, otherwise fall back to config
-  const availableStores = storeOptions.length > 0 ? storeOptions : 
-    (config.storeOptions ? config.storeOptions.split('\n').filter((option: string) => option.trim()) : 
-    ['Downtown Location', 'Mall Branch', 'Airport Store']);
+  const availableStores = storeOptions.length > 0 
+    ? storeOptions.filter((option: string) => option && option.trim()) 
+    : (config.storeOptions 
+        ? config.storeOptions.split('\n').filter((option: string) => option && option.trim()) 
+        : ['Downtown Location', 'Mall Branch', 'Airport Store']);
 
   return (
     <div className="store-selector-section space-y-4">
