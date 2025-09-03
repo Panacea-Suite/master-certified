@@ -48,7 +48,13 @@ export const StoreSelector: SectionComponent = ({
         : ['Downtown Location', 'Mall Branch', 'Airport Store']);
 
   return (
-    <div className="store-selector-section space-y-4">
+    <div 
+      className="store-selector-section space-y-4"
+      style={{ 
+        color: config.textColor || 'inherit',
+        backgroundColor: config.backgroundColor || 'transparent'
+      }}
+    >
       {!currentPurchaseChannel ? (
         // Step 1: Purchase Channel Selection
         <div className="space-y-3">
@@ -92,9 +98,12 @@ export const StoreSelector: SectionComponent = ({
       ) : (
         // Step 2: Store Selection
         <div className="space-y-4">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span>Purchase channel:</span>
-            <span className="font-medium">
+          <div className="flex items-center gap-2 text-sm">
+            <span style={{ color: config.textColor || 'inherit' }}>Purchase channel:</span>
+            <span 
+              className="font-medium"
+              style={{ color: config.textColor || 'inherit' }}
+            >
               {currentPurchaseChannel === 'in-store' ? 'In-store' : 'Online'}
             </span>
             <Button
@@ -105,13 +114,19 @@ export const StoreSelector: SectionComponent = ({
                 handlePurchaseChannelChange('');
               }}
               className="text-xs underline h-auto p-0"
+              style={{ color: config.textColor || 'inherit' }}
             >
               Change
             </Button>
           </div>
           
           <div>
-            <Label htmlFor="store">Select Store</Label>
+            <Label 
+              htmlFor="store"
+              style={{ color: config.textColor || 'inherit' }}
+            >
+              Select Store
+            </Label>
             <Select 
               value={currentSelectedStore} 
               onValueChange={handleSelectedStoreChange}
