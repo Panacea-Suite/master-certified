@@ -1384,8 +1384,8 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
               
               <Separator />
 
-               {/* Authentication Sub-Pages */}
-              {currentPage && currentPage.type === 'product_authentication' && (
+              {/* Authentication Sub-Pages */}
+              {currentPage && (currentPage.type === 'product_authentication' || currentPage.sections?.some(s => s.type === 'authentication')) && (
                 <Collapsible open={!collapsedSections.authSubPages} onOpenChange={() => toggleSection('authSubPages')}>
                   <CollapsibleTrigger asChild>
                     <Button variant="ghost" className="w-full justify-between text-sm font-medium p-2 h-auto hover:bg-accent">
@@ -1420,7 +1420,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                 </Collapsible>
               )}
 
-              {currentPage && currentPage.type === 'product_authentication' && <Separator />}
+              {currentPage && (currentPage.type === 'product_authentication' || currentPage.sections?.some(s => s.type === 'authentication')) && <Separator />}
               
               {/* Current Page Sections */}
               {currentPage && <Collapsible open={!collapsedSections.sections} onOpenChange={() => toggleSection('sections')}>
