@@ -318,6 +318,15 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
           backgroundColor: 'transparent',
           padding: 4
         }
+      }, {
+        id: 'auth-verification',
+        type: 'authentication',
+        order: 2,
+        config: {
+          title: 'Product Authentication',
+          subtitle: 'Verifying product authenticity',
+          padding: 4
+        }
       }],
       settings: {},
       isMandatory: true,
@@ -1618,6 +1627,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                                 isRuntimeMode={true}
                                 storeOptions={[]}
                                 brandColors={brandData?.brand_colors}
+                                authConfig={currentPage?.settings?.authConfig}
                                 onNavigateToPage={(pageId) => {
                                   if (pageId === 'next') {
                                     const idx = pages.findIndex(p => p.id === currentPageId);

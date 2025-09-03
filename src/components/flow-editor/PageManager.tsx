@@ -149,6 +149,11 @@ export const PageManager: React.FC<PageManagerProps> = ({
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <div className="font-medium text-sm">{page.name}</div>
+                      {(page.type === 'authentication' || (page.sections || []).some((s: any) => s.type === 'authentication')) && (
+                        <span className="text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded">
+                          Auth
+                        </span>
+                      )}
                       {page.isMandatory && (
                         <span className="text-xs bg-orange-100 text-orange-800 px-1.5 py-0.5 rounded">
                           Required
