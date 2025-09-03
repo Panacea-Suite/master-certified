@@ -268,20 +268,21 @@ const CERTIFICATION_FLOW_PAGES: FlowPage[] = [
   },
   {
     id: 'thank-you',
-    name: 'Registration Complete',
+    name: 'Final Sales Page',
     type: 'thank_you',
     sections: [
       {
         id: 'success-title',
         type: 'text',
         config: {
-          content: '✅ Registration Complete!',
+          content: 'Product Verification Complete',
           fontSize: 28,
           textColor: '#16a34a',
           backgroundColor: 'transparent',
           padding: 4,
           align: 'center',
-          fontWeight: 'bold'
+          fontWeight: 'bold',
+          dynamicAuthContent: true  // Flag to indicate this should be dynamic based on auth status
         }
       },
       {

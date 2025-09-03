@@ -44,11 +44,23 @@ export const TextSection: SectionComponent = ({ section, isAuthentic }) => {
       .replace(/\n/g, '<br/>');
   };
 
-  // Check if this is a thank you/completion text and override content if not authentic
+  // Check if this section should have dynamic content based on authentication status
   const getDisplayContent = () => {
     const originalContent = config.content || '';
     
-    // If this is a thank you/completion related text and product is not authentic
+    // If this section is flagged for dynamic auth content
+    if (config.dynamicAuthContent) {
+      if (isAuthentic === true) {
+        return '✅ Authentic Product Verified!';
+      } else if (isAuthentic === false) {
+        return '❌ Product Authenticity Unverified';
+      } else {
+        // Default content while authentication is pending
+        return originalContent;
+      }
+    }
+    
+    // Legacy fallback: Check if this is a thank you/completion text and override content if not authentic
     if (isAuthentic === false && (
       originalContent.toLowerCase().includes('registration complete') ||
       originalContent.toLowerCase().includes('thank you') ||
