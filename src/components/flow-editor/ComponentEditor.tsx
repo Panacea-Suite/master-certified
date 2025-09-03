@@ -671,6 +671,14 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
         return renderDividerEditor();
       case 'column':
         return renderColumnEditor();
+      case 'cta':
+        return renderCTAEditor();
+      case 'features':
+        return renderFeaturesEditor();
+      case 'product-showcase':
+        return renderProductShowcaseEditor();
+      case 'footer':
+        return renderFooterEditor();
       default:
         return (
           <div className="text-center py-4 text-muted-foreground">

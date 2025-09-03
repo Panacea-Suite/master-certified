@@ -30,7 +30,8 @@ function SectionHost({
   campaign, 
   userInputs, 
   setUserInputs,
-  pageBackgroundColor
+  pageBackgroundColor,
+  onNavigateToPage
 }: { 
   section: any; 
   page: any; 
@@ -39,6 +40,7 @@ function SectionHost({
   userInputs: any; 
   setUserInputs: any;
   pageBackgroundColor?: string;
+  onNavigateToPage?: (pageId: string) => void;
 }) {
   // ALL HOOKS MUST BE CALLED FIRST UNCONDITIONALLY - no conditional returns before hooks!
   const [warningLogged, setWarningLogged] = React.useState(false);
@@ -75,26 +77,21 @@ function SectionHost({
     case 'login-step':
     case 'store-selector':
       return (
-                          <SectionRenderer
-                            key={section.id}
-                            section={section}
-                            isPreview={true}
-                            isRuntimeMode={true}
-                            storeOptions={campaign?.approved_stores || []}
-                            brandColors={null}
-                            // Controlled store selector props for runtime binding
-                            purchaseChannel={userInputs.purchaseChannel}
-                            selectedStore={userInputs.selectedStore}
-                            onPurchaseChannelChange={(channel) => setUserInputs(prev => ({ ...prev, purchaseChannel: channel, selectedStore: '' }))}
-                            onSelectedStoreChange={(store) => setUserInputs(prev => ({ ...prev, selectedStore: store }))}
-                            pageBackgroundColor={pageBackgroundColor}
-                            onNavigateToPage={(pageId) => {
-                              const targetPageIndex = (flow?.flow_config?.pages || []).findIndex((p: any) => p.id === pageId);
-                              if (targetPageIndex >= 0) {
-                                setCurrentPageIndex(targetPageIndex);
-                              }
-                            }}
-                          />
+          <SectionRenderer
+            key={section.id}
+            section={section}
+            isPreview={true}
+            isRuntimeMode={true}
+            storeOptions={campaign?.approved_stores || []}
+            brandColors={null}
+            // Controlled store selector props for runtime binding
+            purchaseChannel={userInputs.purchaseChannel}
+            selectedStore={userInputs.selectedStore}
+            onPurchaseChannelChange={(channel) => setUserInputs(prev => ({ ...prev, purchaseChannel: channel, selectedStore: '' }))}
+            onSelectedStoreChange={(store) => setUserInputs(prev => ({ ...prev, selectedStore: store }))}
+            pageBackgroundColor={pageBackgroundColor}
+            onNavigateToPage={onNavigateToPage}
+          />
       );
     
     default:
@@ -767,6 +764,13 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
                   userInputs={userInputs}
                   setUserInputs={setUserInputs}
                   pageBackgroundColor={flow?.flow_config?.theme?.backgroundColor || flow?.flow_config?.designConfig?.backgroundColor || '#ffffff'}
+                  onNavigateToPage={(pageId) => {
+                    const pages = flow?.flow_config?.pages || [];
+                    const targetPageIndex = pages.findIndex((p: any) => p.id === pageId);
+                    if (targetPageIndex >= 0) {
+                      setCurrentPageIndex(targetPageIndex);
+                    }
+                  }}
                   key={section.id || `s-${idx}`} 
                 />
               );
@@ -1170,6 +1174,13 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
                         userInputs={userInputs}
                         setUserInputs={setUserInputs}
                         pageBackgroundColor={backgroundColor}
+                        onNavigateToPage={(pageId) => {
+                          const pages = flow?.flow_config?.pages || [];
+                          const targetPageIndex = pages.findIndex((p: any) => p.id === pageId);
+                          if (targetPageIndex >= 0) {
+                            setCurrentPageIndex(targetPageIndex);
+                          }
+                        }}
                         key={section.id || `s-${idx}`} 
                       />
                     );
