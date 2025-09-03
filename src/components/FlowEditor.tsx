@@ -580,6 +580,20 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
       setCurrentPageId(pages[0].id);
     }
   }, [pages.length, currentPageId]);
+
+  // Debug: log current page info for AuthSubPages visibility
+  React.useEffect(() => {
+    const cp = getCurrentPage();
+    if (cp) {
+      const hasAuthSection = cp.sections?.some((s: any) => s.type === 'authentication');
+      console.info('FlowEditor: AuthSubPages visibility check', {
+        pageId: cp.id,
+        type: cp.type,
+        name: cp.name,
+        hasAuthSection
+      });
+    }
+  }, [currentPageId, pages]);
   const [pageSettings, setPageSettings] = useState({
     backgroundColor: templateToEdit?.flow_config?.theme?.backgroundColor || '#ffffff'
   });
@@ -1385,7 +1399,11 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
               <Separator />
 
               {/* Authentication Sub-Pages */}
-              {currentPage && (currentPage.type === 'product_authentication' || currentPage.sections?.some(s => s.type === 'authentication')) && (
+              {currentPage && (
+                currentPage.type === 'product_authentication' ||
+                currentPage.sections?.some(s => s.type === 'authentication') ||
+                /product\s*authentication|verification/i.test(currentPage.name || '')
+              ) && (
                 <Collapsible open={!collapsedSections.authSubPages} onOpenChange={() => toggleSection('authSubPages')}>
                   <CollapsibleTrigger asChild>
                     <Button variant="ghost" className="w-full justify-between text-sm font-medium p-2 h-auto hover:bg-accent">
@@ -1420,7 +1438,11 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                 </Collapsible>
               )}
 
-              {currentPage && (currentPage.type === 'product_authentication' || currentPage.sections?.some(s => s.type === 'authentication')) && <Separator />}
+              {currentPage && (
+                currentPage.type === 'product_authentication' ||
+                currentPage.sections?.some(s => s.type === 'authentication') ||
+                /product\s*authentication|verification/i.test(currentPage.name || '')
+              ) && <Separator />}
               
               {/* Current Page Sections */}
               {currentPage && <Collapsible open={!collapsedSections.sections} onOpenChange={() => toggleSection('sections')}>
