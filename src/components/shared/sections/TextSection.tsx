@@ -5,6 +5,7 @@ import { useTemplateStyle } from '@/components/TemplateStyleProvider';
 export const TextSection: SectionComponent = ({ section }) => {
   const { getTemplateClasses } = useTemplateStyle();
   const { config } = section;
+  const paddingClass = `p-${section.config?.padding ?? 4}`;
   
   const getSectionClassName = () => {
     let classes = config?.dropShadow ? getTemplateClasses('card') : getTemplateClasses('card').replace(/shadow-\w+/g, '');
@@ -30,7 +31,7 @@ export const TextSection: SectionComponent = ({ section }) => {
   };
 
   return (
-    <div className={`text-section ${getSectionClassName()}`}>
+    <div className={`text-section ${getSectionClassName()} ${paddingClass}`}>
       <div 
         className="prose prose-sm max-w-none"
         style={{ 

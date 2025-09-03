@@ -6,6 +6,7 @@ import { useTemplateStyle } from '@/components/TemplateStyleProvider';
 export const ImageSection: SectionComponent = ({ section, isPreview = false, onSelect }) => {
   const { getTemplateClasses, getBorderRadius } = useTemplateStyle();
   const { config } = section;
+  const paddingClass = `p-${section.config?.padding ?? 4}`;
   
   const getSectionClassName = () => {
     let classes = config?.dropShadow && section.type !== 'image' ? getTemplateClasses('card') : getTemplateClasses('card').replace(/shadow-\w+/g, '');
@@ -30,7 +31,7 @@ export const ImageSection: SectionComponent = ({ section, isPreview = false, onS
   };
   
   return (
-    <div className={`image-section ${getSectionClassName()}`}>
+    <div className={`image-section ${getSectionClassName()} ${paddingClass}`}>
       <div className="space-y-2">
         {config.imageUrl ? (
           <div 

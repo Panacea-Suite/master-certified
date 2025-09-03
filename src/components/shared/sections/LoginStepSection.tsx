@@ -12,6 +12,7 @@ export const LoginStepSection: SectionComponent = ({
 }) => {
   const { getTemplateClasses } = useTemplateStyle();
   const { config } = section;
+  const paddingClass = `p-${section.config?.padding ?? 4}`;
   
   const getSectionClassName = () => {
     let classes = config?.dropShadow ? getTemplateClasses('card') : getTemplateClasses('card').replace(/shadow-\w+/g, '');
@@ -28,7 +29,7 @@ export const LoginStepSection: SectionComponent = ({
   console.log('LoginStepSection rendering with config:', config);
   
   return (
-    <div className={`login-step-section ${getSectionClassName()}`}>
+    <div className={`login-step-section ${getSectionClassName()} ${paddingClass}`}>
       <LoginStep
         title={config.title}
         subtitle={config.subtitle}

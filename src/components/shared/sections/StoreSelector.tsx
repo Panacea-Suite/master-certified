@@ -17,6 +17,7 @@ export const StoreSelector: SectionComponent = ({
   const [previewSelectedStore, setPreviewSelectedStore] = useState<string>('');
   
   const { config } = section;
+  const paddingClass = `p-${section.config?.padding ?? 4}`;
   
   // Use controlled props if provided, otherwise use internal state
   const isControlled = purchaseChannel !== undefined && onPurchaseChannelChange !== undefined;
@@ -49,7 +50,7 @@ export const StoreSelector: SectionComponent = ({
 
   return (
     <div 
-      className="store-selector-section space-y-4"
+      className={`store-selector-section space-y-4 ${paddingClass}`}
       style={{ 
         color: config.textColor || 'inherit',
         backgroundColor: config.backgroundColor || 'transparent'

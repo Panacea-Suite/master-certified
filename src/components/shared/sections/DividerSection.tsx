@@ -5,6 +5,7 @@ import { useTemplateStyle } from '@/components/TemplateStyleProvider';
 export const DividerSection: SectionComponent = ({ section }) => {
   const { getTemplateClasses } = useTemplateStyle();
   const { config } = section;
+  const paddingClass = `p-${section.config?.padding ?? 4}`;
   
   const getSectionClassName = () => {
     let classes = config?.dropShadow ? getTemplateClasses('card') : getTemplateClasses('card').replace(/shadow-\w+/g, '');
@@ -19,7 +20,7 @@ export const DividerSection: SectionComponent = ({ section }) => {
   };
   
   return (
-    <div className={`divider-section ${getSectionClassName()}`}>
+    <div className={`divider-section ${getSectionClassName()} ${paddingClass}`}>
       <hr 
         className="border-0"
         style={{
