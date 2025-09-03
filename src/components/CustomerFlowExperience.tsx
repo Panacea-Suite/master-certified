@@ -705,7 +705,7 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
         className="flex flex-col min-h-screen" 
         style={{ 
           '--device-width-px': '390px',
-          backgroundColor: flow?.flow_config?.designConfig?.backgroundColor || '#ffffff'
+          backgroundColor: flow?.flow_config?.theme?.backgroundColor || flow?.flow_config?.designConfig?.backgroundColor || '#ffffff'
         } as React.CSSProperties}
       >
         {/* Header */}
@@ -760,7 +760,7 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
             maxWidth: 'var(--device-width-px, 390px)', 
             margin: '0 auto', 
             width: '100%',
-            backgroundColor: flow?.flow_config?.designConfig?.backgroundColor || '#ffffff'
+            backgroundColor: flow?.flow_config?.theme?.backgroundColor || flow?.flow_config?.designConfig?.backgroundColor || '#ffffff'
           }}>
             <div className="p-4 flex justify-between">
               <Button
@@ -1184,7 +1184,7 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
             className="min-h-screen flex flex-col"
             style={{ 
               '--device-width-px': '390px',
-              backgroundColor: flow?.flow_config?.designConfig?.backgroundColor || '#ffffff'
+              backgroundColor: flow?.flow_config?.theme?.backgroundColor || flow?.flow_config?.designConfig?.backgroundColor || '#ffffff'
             } as React.CSSProperties}
           >
             {/* Legacy flow rendering */}

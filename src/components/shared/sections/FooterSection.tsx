@@ -7,7 +7,7 @@ export const FooterSection: SectionComponent = ({ section }) => {
   
   return (
     <PanaceaFooter 
-      backgroundColor={config.backgroundColor} 
+      backgroundColor={config.backgroundColor === 'transparent' ? undefined : config.backgroundColor} 
       logoSize={config.logoSize || 120}
     />
   );
