@@ -709,21 +709,80 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
     </div>
   );
 
-  const renderSpacingSettings = () => (
-    <div className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="padding">Padding: {config.padding ?? 4}</Label>
-        <Slider
-          value={[config.padding ?? 4]}
-          onValueChange={(value) => updateConfig('padding', value[0])}
-          min={0}
-          max={12}
-          step={1}
-          className="w-full"
-        />
+  const renderSpacingSettings = () => {
+    // Helper function to get individual padding values with backward compatibility
+    const getPaddingValue = (side: string) => {
+      const newValue = config[`padding${side}`];
+      if (newValue !== undefined) return newValue;
+      // Fallback to old single padding value
+      return config.padding ?? 4;
+    };
+
+    return (
+      <div className="space-y-4">
+        <div className="space-y-3">
+          <Label>Padding (rem)</Label>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-1">
+              <Label htmlFor="paddingTop" className="text-xs">Top</Label>
+              <Input
+                id="paddingTop"
+                type="number"
+                value={getPaddingValue('Top')}
+                onChange={(e) => updateConfig('paddingTop', Math.max(0, parseFloat(e.target.value) || 0))}
+                min={0}
+                max={12}
+                step={0.25}
+                className="h-8"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="paddingRight" className="text-xs">Right</Label>
+              <Input
+                id="paddingRight"
+                type="number"
+                value={getPaddingValue('Right')}
+                onChange={(e) => updateConfig('paddingRight', Math.max(0, parseFloat(e.target.value) || 0))}
+                min={0}
+                max={12}
+                step={0.25}
+                className="h-8"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="paddingBottom" className="text-xs">Bottom</Label>
+              <Input
+                id="paddingBottom"
+                type="number"
+                value={getPaddingValue('Bottom')}
+                onChange={(e) => updateConfig('paddingBottom', Math.max(0, parseFloat(e.target.value) || 0))}
+                min={0}
+                max={12}
+                step={0.25}
+                className="h-8"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="paddingLeft" className="text-xs">Left</Label>
+              <Input
+                id="paddingLeft"
+                type="number"
+                value={getPaddingValue('Left')}
+                onChange={(e) => updateConfig('paddingLeft', Math.max(0, parseFloat(e.target.value) || 0))}
+                min={0}
+                max={12}
+                step={0.25}
+                className="h-8"
+              />
+            </div>
+          </div>
+          <div className="text-xs text-muted-foreground">
+            Controls inner spacing of each side independently
+          </div>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const renderFeaturesEditor = () => (
     <div className="space-y-4">
@@ -1019,25 +1078,71 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
         )}
       </Card>
       
-      {/* Only show spacing card for non-divider sections or dividers without edge-to-edge */}
-      {(section.type !== 'divider' || (config.padding ?? 2) !== 0) && (
+      {/* Only show spacing card for non-divider sections */}
+      {section.type !== 'divider' && (
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm">Spacing</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2">
-              <Label htmlFor="padding">Padding: {config.padding ?? 4}</Label>
-              <Slider
-                value={[config.padding ?? 4]}
-                onValueChange={(value) => updateConfig('padding', value[0])}
-                min={0}
-                max={12}
-                step={1}
-                className="w-full"
-              />
+            <div className="space-y-3">
+              <Label>Padding (rem)</Label>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <Label htmlFor="paddingTop" className="text-xs">Top</Label>
+                  <Input
+                    id="paddingTop"
+                    type="number"
+                    value={config.paddingTop ?? config.padding ?? 1}
+                    onChange={(e) => updateConfig('paddingTop', Math.max(0, parseFloat(e.target.value) || 0))}
+                    min={0}
+                    max={12}
+                    step={0.25}
+                    className="h-8"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="paddingRight" className="text-xs">Right</Label>
+                  <Input
+                    id="paddingRight"
+                    type="number"
+                    value={config.paddingRight ?? config.padding ?? 1}
+                    onChange={(e) => updateConfig('paddingRight', Math.max(0, parseFloat(e.target.value) || 0))}
+                    min={0}
+                    max={12}
+                    step={0.25}
+                    className="h-8"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="paddingBottom" className="text-xs">Bottom</Label>
+                  <Input
+                    id="paddingBottom"
+                    type="number"
+                    value={config.paddingBottom ?? config.padding ?? 1}
+                    onChange={(e) => updateConfig('paddingBottom', Math.max(0, parseFloat(e.target.value) || 0))}
+                    min={0}
+                    max={12}
+                    step={0.25}
+                    className="h-8"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="paddingLeft" className="text-xs">Left</Label>
+                  <Input
+                    id="paddingLeft"
+                    type="number"
+                    value={config.paddingLeft ?? config.padding ?? 1}
+                    onChange={(e) => updateConfig('paddingLeft', Math.max(0, parseFloat(e.target.value) || 0))}
+                    min={0}
+                    max={12}
+                    step={0.25}
+                    className="h-8"
+                  />
+                </div>
+              </div>
               <div className="text-xs text-muted-foreground">
-                Controls inner spacing of the section
+                Controls inner spacing of each side independently
               </div>
             </div>
           </CardContent>

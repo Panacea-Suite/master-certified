@@ -12,7 +12,21 @@ export const LoginStepSection: SectionComponent = ({
 }) => {
   const { getTemplateClasses } = useTemplateStyle();
   const { config } = section;
-  const paddingValue = `${(section.config?.padding ?? 4) * 0.25}rem`;
+  
+  // Helper function to get padding style with backward compatibility
+  const getPaddingStyle = () => {
+    const paddingTop = config.paddingTop ?? config.padding ?? 1;
+    const paddingRight = config.paddingRight ?? config.padding ?? 1;
+    const paddingBottom = config.paddingBottom ?? config.padding ?? 1;
+    const paddingLeft = config.paddingLeft ?? config.padding ?? 1;
+    
+    return {
+      paddingTop: `${paddingTop}rem`,
+      paddingRight: `${paddingRight}rem`,
+      paddingBottom: `${paddingBottom}rem`,
+      paddingLeft: `${paddingLeft}rem`
+    };
+  };
   
   const getSectionClassName = () => {
     let classes = config?.dropShadow ? getTemplateClasses('card') : getTemplateClasses('card').replace(/shadow-\w+/g, '');
@@ -31,7 +45,7 @@ export const LoginStepSection: SectionComponent = ({
   return (
     <div 
       className={`login-step-section ${getSectionClassName()}`}
-      style={{ padding: paddingValue }}
+      style={getPaddingStyle()}
     >
       <LoginStep
         title={config.title}

@@ -4,7 +4,21 @@ import { useTemplateStyle } from '@/components/TemplateStyleProvider';
 
 export const CtaSection: SectionComponent = ({ section, onNavigateToPage }) => {
   const { getTemplateClasses } = useTemplateStyle();
-  const paddingValue = `${(section.config?.padding ?? 4) * 0.25}rem`;
+  
+  // Helper function to get padding style with backward compatibility
+  const getPaddingStyle = () => {
+    const paddingTop = section.config?.paddingTop ?? section.config?.padding ?? 1;
+    const paddingRight = section.config?.paddingRight ?? section.config?.padding ?? 1;
+    const paddingBottom = section.config?.paddingBottom ?? section.config?.padding ?? 1;
+    const paddingLeft = section.config?.paddingLeft ?? section.config?.padding ?? 1;
+    
+    return {
+      paddingTop: `${paddingTop}rem`,
+      paddingRight: `${paddingRight}rem`,
+      paddingBottom: `${paddingBottom}rem`,
+      paddingLeft: `${paddingLeft}rem`
+    };
+  };
   
   const getSectionClassName = () => {
     let classes = section.config?.dropShadow ? getTemplateClasses('card') : getTemplateClasses('card').replace(/shadow-\w+/g, '');
@@ -27,7 +41,7 @@ export const CtaSection: SectionComponent = ({ section, onNavigateToPage }) => {
   return (
     <div 
       className={`cta-section ${getSectionClassName()} flex justify-center`}
-      style={{ padding: paddingValue }}
+      style={getPaddingStyle()}
     >
       <button 
         className={`px-6 py-3 rounded-lg font-medium transition-colors ${

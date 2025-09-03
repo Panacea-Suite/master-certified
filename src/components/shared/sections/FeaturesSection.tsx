@@ -5,7 +5,21 @@ import { useTemplateStyle } from '@/components/TemplateStyleProvider';
 
 export const FeaturesSection: SectionComponent = ({ section }) => {
   const { getTemplateClasses } = useTemplateStyle();
-  const paddingValue = `${(section.config?.padding ?? 4) * 0.25}rem`;
+  
+  // Helper function to get padding style with backward compatibility
+  const getPaddingStyle = () => {
+    const paddingTop = section.config?.paddingTop ?? section.config?.padding ?? 1;
+    const paddingRight = section.config?.paddingRight ?? section.config?.padding ?? 1;
+    const paddingBottom = section.config?.paddingBottom ?? section.config?.padding ?? 1;
+    const paddingLeft = section.config?.paddingLeft ?? section.config?.padding ?? 1;
+    
+    return {
+      paddingTop: `${paddingTop}rem`,
+      paddingRight: `${paddingRight}rem`,
+      paddingBottom: `${paddingBottom}rem`,
+      paddingLeft: `${paddingLeft}rem`
+    };
+  };
   
   const getSectionClassName = () => {
     let classes = section.config?.dropShadow ? getTemplateClasses('card') : getTemplateClasses('card').replace(/shadow-\w+/g, '');
@@ -22,7 +36,7 @@ export const FeaturesSection: SectionComponent = ({ section }) => {
   return (
     <div 
       className={`features-section ${getSectionClassName()}`}
-      style={{ padding: paddingValue }}
+      style={getPaddingStyle()}
     >
       <div className="space-y-3">
         {section.config?.items?.map((item: string, index: number) => (

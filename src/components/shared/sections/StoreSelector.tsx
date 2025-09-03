@@ -17,7 +17,21 @@ export const StoreSelector: SectionComponent = ({
   const [previewSelectedStore, setPreviewSelectedStore] = useState<string>('');
   
   const { config } = section;
-  const paddingClass = `p-${section.config?.padding ?? 4}`;
+  
+  // Helper function to get padding style with backward compatibility
+  const getPaddingStyle = () => {
+    const paddingTop = config.paddingTop ?? config.padding ?? 1;
+    const paddingRight = config.paddingRight ?? config.padding ?? 1;
+    const paddingBottom = config.paddingBottom ?? config.padding ?? 1;
+    const paddingLeft = config.paddingLeft ?? config.padding ?? 1;
+    
+    return {
+      paddingTop: `${paddingTop}rem`,
+      paddingRight: `${paddingRight}rem`,
+      paddingBottom: `${paddingBottom}rem`,
+      paddingLeft: `${paddingLeft}rem`
+    };
+  };
   
   // Use controlled props if provided, otherwise use internal state
   const isControlled = purchaseChannel !== undefined && onPurchaseChannelChange !== undefined;
