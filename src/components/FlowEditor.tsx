@@ -1056,15 +1056,15 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
     flow={{ flow_config: { pages, designConfig: { backgroundColor: pageSettings?.backgroundColor } } }}
   >
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-7xl max-h-[95vh] overflow-hidden p-0">
+        <DialogContent className="max-w-[98vw] max-h-[98vh] overflow-hidden p-0">
           <DialogHeader className="sr-only">
             <DialogTitle>Flow Builder</DialogTitle>
           </DialogHeader>
-        <div className="flex h-[95vh]"
+        <div className="flex h-[98vh] min-w-0"
           style={{ '--device-width-px': '390px' } as React.CSSProperties}
         >
           {/* Left Panel - Pages & Components */}
-          <div className="w-80 border-r bg-muted/30 p-4 overflow-y-auto">
+          <div className="w-80 shrink-0 border-r bg-muted/30 p-4 overflow-y-auto">
             <div className="space-y-4">
               <div className="flex items-center gap-2">
                 <Button variant="ghost" size="sm" onClick={onClose}>
@@ -1279,7 +1279,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
           </div>
 
           {/* Middle Panel - Preview */}
-          <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+          <div className="flex-1 flex flex-col min-w-0 overflow-hidden max-w-[calc(100vw-640px)]">
             <div className="p-4 bg-white border-b">
               <div className="flex items-center justify-center gap-6">
                 <div className="flex items-center gap-2">
@@ -1413,7 +1413,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
             </div>
 
           {/* Right Panel - Section Properties */}
-          <div className="w-80 border-l bg-muted/30 flex flex-col overflow-hidden">
+          <div className="w-80 shrink-0 border-l bg-muted/30 flex flex-col overflow-hidden">
             <ScrollArea className="flex-1 p-4">
               {selectedSection ? (
                 <ComponentEditor 
