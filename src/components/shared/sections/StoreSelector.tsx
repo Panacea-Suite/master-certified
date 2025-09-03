@@ -170,9 +170,13 @@ export const StoreSelector: SectionComponent = ({
                 aria-disabled={!currentSelectedStore}
                 aria-label="Submit selected store"
                 style={{
-                  backgroundColor: !currentSelectedStore ? undefined : (config.borderColor || brandColors?.primary || '#3b82f6'),
-                  borderColor: config.borderColor || brandColors?.primary || '#3b82f6',
-                  color: !currentSelectedStore ? undefined : 'white'
+                  backgroundColor: currentSelectedStore 
+                    ? (config.borderColor || brandColors?.primary || '#3b82f6')
+                    : `${config.borderColor || brandColors?.primary || '#3b82f6'}40`,
+                  borderColor: currentSelectedStore 
+                    ? (config.borderColor || brandColors?.primary || '#3b82f6')
+                    : `${config.borderColor || brandColors?.primary || '#3b82f6'}60`,
+                  color: currentSelectedStore ? 'white' : `${config.borderColor || brandColors?.primary || '#3b82f6'}80`
                 }}
               >
                 Submit
