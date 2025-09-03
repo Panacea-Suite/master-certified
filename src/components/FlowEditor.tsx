@@ -694,8 +694,8 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
     console.log('🔍 getCurrentAuthState - currentPageId:', currentPageId);
     if (currentPageId.includes('-idle')) return 'idle';
     if (currentPageId.includes('-checking')) return 'checking';
+    if (currentPageId.includes('-not-authentic')) return 'not-authentic'; // Check this BEFORE -authentic
     if (currentPageId.includes('-authentic')) return 'authentic';
-    if (currentPageId.includes('-not-authentic')) return 'not-authentic';
     console.log('🔍 No auth state match, returning idle');
     return 'idle'; // default state
   };
