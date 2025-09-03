@@ -56,15 +56,11 @@ export const LoginStepSection: SectionComponent = ({
         brandName={config.brandName || 'this brand'}
         onAuthSuccess={(params) => {
           onAuthSuccess?.(params);
-          // Signal auth success to trigger authentication section on this page
-          window.dispatchEvent(new CustomEvent('flow-auth-success'));
+          onNavigateToPage?.('next');
         }}
         onAuthError={onAuthError}
         onTrackEvent={onTrackEvent}
-        onSkip={() => {
-          // Skip still triggers authentication as the next stage on this page
-          window.dispatchEvent(new CustomEvent('flow-auth-success'));
-        }}
+        onSkip={() => onNavigateToPage?.('next')}
       />
     </div>
   );

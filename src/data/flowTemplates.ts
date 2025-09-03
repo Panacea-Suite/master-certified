@@ -202,6 +202,26 @@ const CERTIFICATION_FLOW_PAGES: FlowPage[] = [
           showApple: true,
           padding: 4
         }
+      }
+    ]
+  },
+  {
+    id: 'product-authentication',
+    name: 'Product Authentication',
+    type: 'authentication',
+    sections: [
+      {
+        id: 'auth-verification-title',
+        type: 'text',
+        config: {
+          content: 'Verifying Product Authenticity',
+          fontSize: 24,
+          textColor: '#1a1a1a',
+          backgroundColor: 'transparent',
+          padding: 4,
+          align: 'center',
+          fontWeight: 'bold'
+        }
       },
       {
         id: 'auth-verification',
