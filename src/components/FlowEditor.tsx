@@ -367,9 +367,11 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
 
           // Apply template-specific defaults (e.g., Classic Certification tweaks)
           const adjustedPages = (() => {
+            let result = convertedPages;
             if (processedTemplate.id === 'classic-certification') {
               console.log('Applying Classic Certification defaults, brand colors:', activeBrandData?.brand_colors);
-              return convertedPages.map((page: any) => {
+              // Enhance sections for welcome and login pages
+              result = convertedPages.map((page: any) => {
                 if (page.type === 'welcome' || page.name === 'Welcome') {
                   console.log('Processing welcome page sections:', page.sections);
                   return {
@@ -391,7 +393,6 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                     })
                   };
                 }
-                // Fix login_step sections for Classic Certification
                 if (page.type === 'authentication' || page.name === 'User Login') {
                   console.log('Processing authentication page sections:', page.sections);
                   return {
@@ -419,8 +420,41 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                 }
                 return page;
               });
+
+              // Ensure a dedicated Product Authentication page exists between Login and Thank You
+              const hasVerificationPage = result.some((p: any) => p.type === 'authentication' && p.sections.some((s: any) => s.type === 'authentication'));
+              if (!hasVerificationPage) {
+                const authPageIndex = result.findIndex((p: any) => p.type === 'authentication' || p.name === 'User Login');
+                const insertIndex = authPageIndex >= 0 ? authPageIndex + 1 : result.length - 1;
+                const newPage = {
+                  id: 'product-authentication',
+                  type: 'authentication',
+                  name: 'Product Authentication',
+                  sections: [
+                    {
+                      id: 'auth-verification',
+                      type: 'authentication',
+                      order: 0,
+                      config: {
+                        title: 'Product Authentication',
+                        subtitle: 'Verifying product authenticity',
+                        padding: 4
+                      }
+                    }
+                  ],
+                  settings: {},
+                  isMandatory: true,
+                  order: insertIndex
+                };
+                // Recompute orders
+                result = [
+                  ...result.slice(0, insertIndex),
+                  newPage,
+                  ...result.slice(insertIndex).map((p: any) => ({ ...p, order: (p.order ?? 0) + 1 }))
+                ].map((p: any, idx: number) => ({ ...p, order: idx }));
+              }
             }
-            return convertedPages;
+            return result;
           })();
           // Update footer default for Classic Certification if not explicitly set
           if (processedTemplate.id === 'classic-certification') {
