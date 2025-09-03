@@ -676,7 +676,23 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
   }, [currentPageId]);
 
   // Helper functions for page management
-  const getCurrentPage = () => pages.find(p => p.id === currentPageId);
+  const getCurrentPage = () => {
+    // Handle authentication sub-pages (e.g., "product-authentication-idle")
+    if (currentPageId.includes('-idle') || currentPageId.includes('-checking') || 
+        currentPageId.includes('-authentic') || currentPageId.includes('-not-authentic')) {
+      const parentPageId = currentPageId.split('-').slice(0, -1).join('-');
+      return pages.find(p => p.id === parentPageId);
+    }
+    return pages.find(p => p.id === currentPageId);
+  };
+  
+  const getCurrentAuthState = () => {
+    if (currentPageId.includes('-idle')) return 'idle';
+    if (currentPageId.includes('-checking')) return 'checking';
+    if (currentPageId.includes('-authentic')) return 'authentic';
+    if (currentPageId.includes('-not-authentic')) return 'not-authentic';
+    return 'idle'; // default state
+  };
   const updateCurrentPageSections = (newSections: SectionData[]) => {
     setPages(prev => prev.map(page => page.id === currentPageId ? {
       ...page,
@@ -1589,6 +1605,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                                 storeOptions={[]}
                                 brandColors={brandData?.brand_colors}
                                 authConfig={currentPage?.settings?.authConfig}
+                                authState={getCurrentAuthState()}
                                 onNavigateToPage={(pageId) => {
                                   if (pageId === 'next') {
                                     const idx = pages.findIndex(p => p.id === currentPageId);

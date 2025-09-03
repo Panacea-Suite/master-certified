@@ -34,6 +34,7 @@ interface SectionRendererProps {
   onAuthComplete?: (result: 'pass' | 'fail') => void;
   isAuthentic?: boolean | null;
   authConfig?: any; // Authentication configuration from page settings
+  authState?: 'idle' | 'checking' | 'authentic' | 'not-authentic'; // Force specific auth state for preview
 }
 
 export const SectionRenderer: React.FC<SectionRendererProps> = (props) => {

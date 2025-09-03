@@ -11,6 +11,7 @@ interface AuthenticationSectionProps extends SectionRendererProps {
   approvedStores?: string[];
   onAuthComplete?: (result: 'pass' | 'fail') => void;
   authConfig?: any; // Configuration from the sub-page manager
+  authState?: 'idle' | 'checking' | 'authentic' | 'not-authentic'; // Force specific state for preview
 }
 
 export const AuthenticationSection: React.FC<AuthenticationSectionProps> = ({
@@ -20,10 +21,14 @@ export const AuthenticationSection: React.FC<AuthenticationSectionProps> = ({
   onNavigateToPage,
   onAuthComplete,
   isPreview = false,
-  authConfig // New prop for authentication configuration
+  authConfig, // New prop for authentication configuration
+  authState // Forced state for preview mode
 }) => {
   const { getTemplateClasses } = useTemplateStyle();
   const [authStatus, setAuthStatus] = useState<'idle' | 'checking' | 'authentic' | 'not-authentic'>('idle');
+
+  // Use forced authState in preview mode, otherwise use internal state
+  const currentAuthStatus = authState || authStatus;
 
   // Get sub-page configurations
   const getSubPageConfig = (type: 'idle' | 'checking' | 'authentic' | 'not-authentic') => {
@@ -73,7 +78,7 @@ export const AuthenticationSection: React.FC<AuthenticationSectionProps> = ({
 
 
   const getStatusIcon = () => {
-    switch (authStatus) {
+    switch (currentAuthStatus) {
       case 'checking':
         return <Loader2 className="w-16 h-16 text-primary animate-spin" />;
       case 'authentic':
@@ -91,7 +96,7 @@ export const AuthenticationSection: React.FC<AuthenticationSectionProps> = ({
     const authenticConfig = getSubPageConfig('authentic');
     const notAuthenticConfig = getSubPageConfig('not-authentic');
 
-    switch (authStatus) {
+    switch (currentAuthStatus) {
       case 'checking':
         return {
           title: checkingConfig.title || 'Authenticating Product...',
@@ -120,7 +125,7 @@ export const AuthenticationSection: React.FC<AuthenticationSectionProps> = ({
   };
 
   const statusMessage = getStatusMessage();
-  const currentConfig = getSubPageConfig(authStatus);
+  const currentConfig = getSubPageConfig(currentAuthStatus);
 
   return (
     <div 
@@ -149,7 +154,7 @@ export const AuthenticationSection: React.FC<AuthenticationSectionProps> = ({
         </CardHeader>
 
         <CardContent className="space-y-6">
-          {authStatus === 'checking' && (
+          {currentAuthStatus === 'checking' && (
             <div className="space-y-4 animate-fade-in">
               <div className="w-full bg-muted rounded-full h-2">
                 <div className="bg-primary h-2 rounded-full animate-pulse" style={{ width: '75%' }}></div>
@@ -162,7 +167,7 @@ export const AuthenticationSection: React.FC<AuthenticationSectionProps> = ({
             </div>
           )}
 
-          {authStatus === 'authentic' && (
+          {currentAuthStatus === 'authentic' && (
             <div className="text-center space-y-4 animate-scale-in">
               <div className="animate-bounce">
                 <div className="w-12 h-12 bg-green-100 rounded-full mx-auto flex items-center justify-center">
@@ -181,7 +186,7 @@ export const AuthenticationSection: React.FC<AuthenticationSectionProps> = ({
             </div>
           )}
 
-          {authStatus === 'not-authentic' && (
+          {currentAuthStatus === 'not-authentic' && (
             <div className="text-center space-y-4 animate-scale-in">
               <Alert className="border-red-200 bg-red-50 animate-fade-in">
                 <XCircle className="h-4 w-4 text-red-600" />
@@ -210,7 +215,7 @@ export const AuthenticationSection: React.FC<AuthenticationSectionProps> = ({
             </div>
           )}
 
-          {isPreview && authStatus === 'idle' && (
+          {isPreview && currentAuthStatus === 'idle' && (
             <Button 
               onClick={handleAuthentication} 
               className="w-full"
