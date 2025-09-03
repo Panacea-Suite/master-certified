@@ -111,13 +111,13 @@ export const CustomerFlowRun: React.FC = () => {
         }
 
         // Fetch campaign data with specific fields for runtime
-        const campaignQuery = `campaigns?select=id,name,brands(id,name),locked_design_tokens&eq.id=${cid}`;
+        const campaignQuery = `campaigns?select=id,name,brands(id,name),locked_design_tokens,approved_stores&eq.id=${cid}`;
         console.log('🔍 Fetching campaign:', campaignQuery);
         setLastRequest({ url: campaignQuery, status: 0 });
         
         const { data: campaign, error: campaignError } = await supabase
           .from('campaigns')
-          .select('id, name, brands(id, name), locked_design_tokens')
+          .select('id, name, brands(id, name), locked_design_tokens, approved_stores')
           .eq('id', cid)
           .single();
 
@@ -360,6 +360,7 @@ export const CustomerFlowRun: React.FC = () => {
       <CustomerFlowExperience 
         templateData={flowData.flow_config}
         brandData={campaignData?.brands}
+        campaignData={campaignData}
         flowId={flowData.id}
         qrCode={flowData.qrId}
         runtimeMode={flowData.mode}

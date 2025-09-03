@@ -37,6 +37,16 @@ export const AuthenticationSection: React.FC<AuthenticationSectionProps> = ({
     return authConfig?.subPages?.[`auth-${type}`] || {};
   };
 
+  // Log approved stores for debugging
+  useEffect(() => {
+    console.log('🔍 AuthenticationSection: Approved stores received:', {
+      approvedStores,
+      approvedStoresCount: Array.isArray(approvedStores) ? approvedStores.length : 0,
+      selectedStore,
+      isPreview
+    });
+  }, [approvedStores, selectedStore, isPreview]);
+
   // Auto-start authentication when component loads or when user has selected store
   useEffect(() => {
     if (!isPreview && selectedStore && authStatus === 'idle') {

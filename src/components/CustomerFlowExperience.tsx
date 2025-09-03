@@ -102,6 +102,15 @@ function SectionHost({
           onAuthComplete={onAuthComplete}
           isAuthentic={isAuthentic}
           authConfig={authConfig}
+          // Debug logging for approved stores
+          {...(() => {
+            console.log('🔍 SectionHost: Passing approved stores to section:', {
+              sectionType: section.type,
+              approvedStores: campaign?.approved_stores,
+              campaignName: campaign?.name
+            });
+            return {};
+          })()}
         />
       );
     
@@ -145,13 +154,14 @@ interface CustomerFlowExperienceProps {
   qrCode?: string;
   templateData?: any; // For direct template preview
   brandData?: any; // For provided brand data from parent
+  campaignData?: any; // For provided campaign data from parent
   externalPageIndex?: number; // For external page navigation control
   hideInternalNavigation?: boolean; // Hide internal navigation when controlled externally
   runtimeMode?: string; // Runtime mode: 'published' | 'draft' | 'draft-fallback'
   effective?: { pages: any[] }; // Pre-computed effective pages from runtime
 }
 
-const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId, qrCode, templateData, brandData, externalPageIndex, hideInternalNavigation, runtimeMode, effective }) => {
+const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId, qrCode, templateData, brandData, campaignData, externalPageIndex, hideInternalNavigation, runtimeMode, effective }) => {
   // ALL HOOKS MUST BE CALLED UNCONDITIONALLY AT THE TOP
   const [currentStage, setCurrentStage] = useState(0);
   const [flow, setFlow] = useState<any>(null);
@@ -209,6 +219,14 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
     { type: 'authentication', title: 'Verification', icon: CheckCircle },
     { type: 'content', title: 'Product Information', icon: Truck }
   ];
+
+  // Set campaign data from parent if provided
+  useEffect(() => {
+    if (campaignData) {
+      console.log('🔍 CustomerFlowExperience: Setting campaign from provided data:', campaignData);
+      setCampaign(campaignData);
+    }
+  }, [campaignData]);
 
   useEffect(() => {
     fetchFlowData();
