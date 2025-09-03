@@ -31,7 +31,8 @@ function SectionHost({
   userInputs, 
   setUserInputs,
   pageBackgroundColor,
-  onNavigateToPage
+  onNavigateToPage,
+  onAuthComplete
 }: { 
   section: any; 
   page: any; 
@@ -41,6 +42,7 @@ function SectionHost({
   setUserInputs: any;
   pageBackgroundColor?: string;
   onNavigateToPage?: (pageId: string) => void;
+  onAuthComplete?: (result: 'pass' | 'fail') => void;
 }) {
   // ALL HOOKS MUST BE CALLED FIRST UNCONDITIONALLY - no conditional returns before hooks!
   const [warningLogged, setWarningLogged] = React.useState(false);
@@ -83,17 +85,18 @@ function SectionHost({
           section={section}
           isPreview={false}
           isRuntimeMode={true}
-            storeOptions={campaign?.approved_stores || []}
-            brandColors={null}
-            // Controlled store selector props for runtime binding
-            purchaseChannel={userInputs.purchaseChannel}
-            selectedStore={userInputs.selectedStore}
-            onPurchaseChannelChange={(channel) => setUserInputs(prev => ({ ...prev, purchaseChannel: channel, selectedStore: '' }))}
-            onSelectedStoreChange={(store) => setUserInputs(prev => ({ ...prev, selectedStore: store }))}
-            pageBackgroundColor={pageBackgroundColor}
-            onNavigateToPage={onNavigateToPage}
-            approvedStores={campaign?.approved_stores || []}
-          />
+          storeOptions={campaign?.approved_stores || []}
+          brandColors={null}
+          // Controlled store selector props for runtime binding
+          purchaseChannel={userInputs.purchaseChannel}
+          selectedStore={userInputs.selectedStore}
+          onPurchaseChannelChange={(channel) => setUserInputs(prev => ({ ...prev, purchaseChannel: channel, selectedStore: '' }))}
+          onSelectedStoreChange={(store) => setUserInputs(prev => ({ ...prev, selectedStore: store }))}
+          pageBackgroundColor={pageBackgroundColor}
+          onNavigateToPage={onNavigateToPage}
+          approvedStores={campaign?.approved_stores || []}
+          onAuthComplete={onAuthComplete}
+        />
       );
     
     default:
@@ -567,6 +570,10 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
       </div>
     );
   };
+  const handleAuthComplete = (result: 'pass' | 'fail') => {
+    setIsAuthentic(result === 'pass');
+  };
+
   const handleStoreSelection = (store: string) => {
     setUserInputs({ ...userInputs, selectedStore: store });
   };
@@ -775,6 +782,12 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
                       if (nextIndex < pages.length) {
                         setCurrentPageIndex(nextIndex);
                       }
+                    } else if (pageId === 'final') {
+                      // Navigate to the final page (thank you page)
+                      const finalPageIndex = pages.findIndex((p: any) => p.type === 'thank_you');
+                      if (finalPageIndex >= 0) {
+                        setCurrentPageIndex(finalPageIndex);
+                      }
                     } else {
                       // Navigate to specific page by ID
                       const targetPageIndex = pages.findIndex((p: any) => p.id === pageId);
@@ -783,6 +796,7 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
                       }
                     }
                   }}
+                  onAuthComplete={handleAuthComplete}
                   key={section.id || `s-${idx}`} 
                 />
               );
@@ -1195,6 +1209,12 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
                             if (nextIndex < pages.length) {
                               setCurrentPageIndex(nextIndex);
                             }
+                          } else if (pageId === 'final') {
+                            // Navigate to the final page (thank you page)
+                            const finalPageIndex = pages.findIndex((p: any) => p.type === 'thank_you');
+                            if (finalPageIndex >= 0) {
+                              setCurrentPageIndex(finalPageIndex);
+                            }
                           } else {
                             // Navigate to specific page by ID
                             const targetPageIndex = pages.findIndex((p: any) => p.id === pageId);
@@ -1203,6 +1223,7 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
                             }
                           }
                         }}
+                        onAuthComplete={handleAuthComplete}
                         key={section.id || `s-${idx}`} 
                       />
                     );

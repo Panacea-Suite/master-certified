@@ -22,7 +22,6 @@ export const AuthenticationSection: React.FC<AuthenticationSectionProps> = ({
 }) => {
   const { getTemplateClasses } = useTemplateStyle();
   const [authStatus, setAuthStatus] = useState<'idle' | 'checking' | 'authentic' | 'not-authentic'>('idle');
-  const [showPopup, setShowPopup] = useState(false);
 
   // Auto-start authentication when component loads or when user has selected store
   useEffect(() => {
@@ -53,18 +52,17 @@ export const AuthenticationSection: React.FC<AuthenticationSectionProps> = ({
         }
       } else {
         setAuthStatus('not-authentic');
-        setShowPopup(true);
         onAuthComplete?.('fail');
+        // Navigate directly to final page for non-authentic products
+        if (!isPreview) {
+          setTimeout(() => {
+            onNavigateToPage?.('final');
+          }, 3000);
+        }
       }
     }, 2000);
   };
 
-  const handleRetry = () => {
-    setShowPopup(false);
-    setAuthStatus('idle');
-    // Go back to store selection
-    onNavigateToPage?.('previous');
-  };
 
   const getStatusIcon = () => {
     switch (authStatus) {
@@ -160,17 +158,17 @@ export const AuthenticationSection: React.FC<AuthenticationSectionProps> = ({
             </div>
           )}
 
-          {authStatus === 'not-authentic' && !showPopup && (
+          {authStatus === 'not-authentic' && (
             <div className="text-center space-y-4">
               <Alert className="border-red-200 bg-red-50">
                 <XCircle className="h-4 w-4 text-red-600" />
                 <AlertDescription className="text-red-800">
-                  This product could not be authenticated. Please check your store selection.
+                  This product could not be authenticated.
                 </AlertDescription>
               </Alert>
-              <Button onClick={handleRetry} variant="outline" className="w-full">
-                Try Different Store
-              </Button>
+              <p className="text-sm text-muted-foreground">
+                Redirecting to results page...
+              </p>
             </div>
           )}
 
@@ -183,38 +181,6 @@ export const AuthenticationSection: React.FC<AuthenticationSectionProps> = ({
         </CardContent>
       </Card>
 
-      {/* Popup for failed authentication */}
-      {showPopup && (
-        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <Card className="w-full max-w-sm mx-auto animate-in fade-in-0 zoom-in-95">
-            <CardHeader className="text-center">
-              <div className="mx-auto mb-4 w-16 h-16 rounded-full bg-red-100 flex items-center justify-center">
-                <XCircle className="w-8 h-8 text-red-600" />
-              </div>
-              <CardTitle className="text-xl font-bold text-red-600">
-                Product Not Authentic
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4 text-center">
-              <p className="text-sm text-muted-foreground">
-                The selected store does not match our approved retailer network for this product.
-              </p>
-              <div className="space-y-2">
-                <Button onClick={handleRetry} className="w-full">
-                  Select Different Store
-                </Button>
-                <Button 
-                  variant="outline" 
-                  onClick={() => setShowPopup(false)} 
-                  className="w-full"
-                >
-                  Close
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
     </div>
   );
 };

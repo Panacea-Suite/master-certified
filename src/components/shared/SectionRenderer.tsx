@@ -31,6 +31,7 @@ interface SectionRendererProps {
   pageBackgroundColor?: string;
   onNavigateToPage?: (pageId: string) => void;
   approvedStores?: string[];
+  onAuthComplete?: (result: 'pass' | 'fail') => void;
 }
 
 export const SectionRenderer: React.FC<SectionRendererProps> = (props) => {

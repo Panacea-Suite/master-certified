@@ -50,6 +50,7 @@ export interface SectionRendererProps {
   pageBackgroundColor?: string;
   // Authentication props  
   approvedStores?: string[];
+  onAuthComplete?: (result: 'pass' | 'fail') => void;
 }
 
 export type SectionComponent = React.FC<SectionRendererProps>;
