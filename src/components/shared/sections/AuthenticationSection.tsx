@@ -53,12 +53,7 @@ export const AuthenticationSection: React.FC<AuthenticationSectionProps> = ({
       } else {
         setAuthStatus('not-authentic');
         onAuthComplete?.('fail');
-        // Navigate directly to final page for non-authentic products
-        if (!isPreview) {
-          setTimeout(() => {
-            onNavigateToPage?.('final');
-          }, 3000);
-        }
+        // Stay on the not-authentic screen - no automatic navigation
       }
     }, 2000);
   };
@@ -163,11 +158,11 @@ export const AuthenticationSection: React.FC<AuthenticationSectionProps> = ({
               <Alert className="border-red-200 bg-red-50">
                 <XCircle className="h-4 w-4 text-red-600" />
                 <AlertDescription className="text-red-800">
-                  This product could not be authenticated.
+                  This product could not be authenticated. This product may be counterfeit or from an unauthorized retailer.
                 </AlertDescription>
               </Alert>
               <p className="text-sm text-muted-foreground">
-                Redirecting to results page...
+                Please contact the brand directly if you believe this is an error.
               </p>
             </div>
           )}
