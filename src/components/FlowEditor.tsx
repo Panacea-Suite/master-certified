@@ -614,6 +614,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
     footer: false,
     designTemplate: false,
     components: false,
+    authSubPages: false,
     sections: false
   });
   const [isDragging, setIsDragging] = useState(false);
@@ -1382,6 +1383,44 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
               </Collapsible>
               
               <Separator />
+
+              {/* Authentication Sub-Pages */}
+              {currentPage && currentPage.type === 'authentication' && (
+                <Collapsible open={!collapsedSections.authSubPages} onOpenChange={() => toggleSection('authSubPages')}>
+                  <CollapsibleTrigger asChild>
+                    <Button variant="ghost" className="w-full justify-between text-sm font-medium p-2 h-auto hover:bg-accent">
+                      <span>Authentication Sub-Pages</span>
+                      {collapsedSections.authSubPages ? <ChevronRight className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                    </Button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="pt-2">
+                    <AuthenticationSubPageManager
+                      authConfig={currentPage.settings?.authConfig}
+                      onUpdateAuthConfig={(config) => {
+                        const updatedPages = pages.map(p => 
+                          p.id === currentPage.id 
+                            ? { 
+                                ...p, 
+                                settings: { 
+                                  ...p.settings, 
+                                  authConfig: config 
+                                } 
+                              }
+                            : p
+                        );
+                        setPages(updatedPages);
+                      }}
+                      brandColors={brandData?.brand_colors ? {
+                        primary: brandData.brand_colors.primary,
+                        secondary: brandData.brand_colors.secondary,
+                        accent: brandData.brand_colors.accent
+                      } : null}
+                    />
+                  </CollapsibleContent>
+                </Collapsible>
+              )}
+
+              {currentPage && currentPage.type === 'authentication' && <Separator />}
               
               {/* Current Page Sections */}
               {currentPage && <Collapsible open={!collapsedSections.sections} onOpenChange={() => toggleSection('sections')}>
