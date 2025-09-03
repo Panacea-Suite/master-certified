@@ -1086,72 +1086,112 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
             <CardTitle className="text-sm">Spacing</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              <Label>Padding (rem)</Label>
-              <div className="grid grid-cols-2 gap-2">
-                <div className="space-y-1">
-                  <Label htmlFor="paddingTop" className="text-xs">Top</Label>
-                  <Input
-                    id="paddingTop"
-                    type="number"
-                    value={config.paddingTop ?? config.padding ?? 1}
-                    onChange={(e) => updateConfig('paddingTop', Math.max(0, parseFloat(e.target.value) || 0))}
-                    min={0}
-                    max={12}
-                    step={0.25}
-                    className="h-8"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <Label htmlFor="paddingRight" className="text-xs">Right</Label>
-                  <Input
-                    id="paddingRight"
-                    type="number"
-                    value={config.paddingRight ?? config.padding ?? 1}
-                    onChange={(e) => updateConfig('paddingRight', Math.max(0, parseFloat(e.target.value) || 0))}
-                    min={0}
-                    max={12}
-                    step={0.25}
-                    className="h-8"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <Label htmlFor="paddingBottom" className="text-xs">Bottom</Label>
-                  <Input
-                    id="paddingBottom"
-                    type="number"
-                    value={config.paddingBottom ?? config.padding ?? 1}
-                    onChange={(e) => updateConfig('paddingBottom', Math.max(0, parseFloat(e.target.value) || 0))}
-                    min={0}
-                    max={12}
-                    step={0.25}
-                    className="h-8"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <Label htmlFor="paddingLeft" className="text-xs">Left</Label>
-                  <Input
-                    id="paddingLeft"
-                    type="number"
-                    value={config.paddingLeft ?? config.padding ?? 1}
-                    onChange={(e) => {
-                      const value = Math.max(0, parseFloat(e.target.value) || 0);
-                      if (paddingLocked) {
-                        updateConfig('paddingTop', value);
-                        updateConfig('paddingRight', value);
-                        updateConfig('paddingBottom', value);
-                        updateConfig('paddingLeft', value);
-                      } else {
-                        updateConfig('paddingLeft', value);
-                      }
-                    }}
-                    min={0}
-                    max={12}
-                    step={0.25}
-                    className="h-8"
-                  />
-                </div>
-              </div>
+             <div className="space-y-3">
+               <div className="flex items-center justify-between">
+                 <Label>Padding (rem)</Label>
+                 <Button
+                   variant="ghost"
+                   size="sm"
+                   onClick={() => setPaddingLocked(!paddingLocked)}
+                   className="h-6 w-6 p-0"
+                 >
+                   {paddingLocked ? <Lock className="h-3 w-3" /> : <Unlock className="h-3 w-3" />}
+                 </Button>
+               </div>
+               <div className="grid grid-cols-2 gap-2">
+                 <div className="space-y-1">
+                   <Label htmlFor="paddingTop" className="text-xs">Top</Label>
+                   <Input
+                     id="paddingTop"
+                     type="number"
+                     value={config.paddingTop ?? config.padding ?? 1}
+                     onChange={(e) => {
+                       const value = Math.max(0, parseFloat(e.target.value) || 0);
+                       if (paddingLocked) {
+                         updateConfig('paddingTop', value);
+                         updateConfig('paddingRight', value);
+                         updateConfig('paddingBottom', value);
+                         updateConfig('paddingLeft', value);
+                       } else {
+                         updateConfig('paddingTop', value);
+                       }
+                     }}
+                     min={0}
+                     max={12}
+                     step={0.25}
+                     className="h-8"
+                   />
+                 </div>
+                 <div className="space-y-1">
+                   <Label htmlFor="paddingRight" className="text-xs">Right</Label>
+                   <Input
+                     id="paddingRight"
+                     type="number"
+                     value={config.paddingRight ?? config.padding ?? 1}
+                     onChange={(e) => {
+                       const value = Math.max(0, parseFloat(e.target.value) || 0);
+                       if (paddingLocked) {
+                         updateConfig('paddingTop', value);
+                         updateConfig('paddingRight', value);
+                         updateConfig('paddingBottom', value);
+                         updateConfig('paddingLeft', value);
+                       } else {
+                         updateConfig('paddingRight', value);
+                       }
+                     }}
+                     min={0}
+                     max={12}
+                     step={0.25}
+                     className="h-8"
+                   />
+                 </div>
+                 <div className="space-y-1">
+                   <Label htmlFor="paddingBottom" className="text-xs">Bottom</Label>
+                   <Input
+                     id="paddingBottom"
+                     type="number"
+                     value={config.paddingBottom ?? config.padding ?? 1}
+                     onChange={(e) => {
+                       const value = Math.max(0, parseFloat(e.target.value) || 0);
+                       if (paddingLocked) {
+                         updateConfig('paddingTop', value);
+                         updateConfig('paddingRight', value);
+                         updateConfig('paddingBottom', value);
+                         updateConfig('paddingLeft', value);
+                       } else {
+                         updateConfig('paddingBottom', value);
+                       }
+                     }}
+                     min={0}
+                     max={12}
+                     step={0.25}
+                     className="h-8"
+                   />
+                 </div>
+                 <div className="space-y-1">
+                   <Label htmlFor="paddingLeft" className="text-xs">Left</Label>
+                   <Input
+                     id="paddingLeft"
+                     type="number"
+                     value={config.paddingLeft ?? config.padding ?? 1}
+                     onChange={(e) => {
+                       const value = Math.max(0, parseFloat(e.target.value) || 0);
+                       if (paddingLocked) {
+                         updateConfig('paddingTop', value);
+                         updateConfig('paddingRight', value);
+                         updateConfig('paddingBottom', value);
+                         updateConfig('paddingLeft', value);
+                       } else {
+                         updateConfig('paddingLeft', value);
+                       }
+                     }}
+                     min={0}
+                     max={12}
+                     step={0.25}
+                     className="h-8"
+                   />
+                 </div>
+               </div>
               <div className="text-xs text-muted-foreground">
                 Controls inner spacing of each side independently
               </div>
