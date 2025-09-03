@@ -100,9 +100,9 @@ Deno.serve(async (req) => {
   console.log("Extracted QR code:", code);
 
   try {
-    // Initialize Supabase client
+    // Initialize Supabase client with service role key to bypass RLS
     const supabaseUrl = Deno.env.get('EDGE_SUPABASE_URL') ?? Deno.env.get('SUPABASE_URL')
-    const supabaseKey = Deno.env.get('EDGE_SUPABASE_ANON_KEY') ?? Deno.env.get('SUPABASE_ANON_KEY')
+    const supabaseKey = Deno.env.get('EDGE_SUPABASE_SERVICE_ROLE_KEY') ?? Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
     const dbBranch = Deno.env.get('EDGE_DB_BRANCH')
     
     if (!supabaseUrl || !supabaseKey) {
