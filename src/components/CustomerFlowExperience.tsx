@@ -1274,6 +1274,16 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
                   })}
                 </div>
                 
+                {/* Default footer - sticks to bottom, same as page-based flow */}
+                {safeSections.every((s: any) => s.type !== 'footer') && (
+                  <div className="mt-auto">
+                    <PanaceaFooter 
+                      backgroundColor={flow?.flow_config?.footerConfig?.backgroundColor === 'transparent' ? undefined : flow?.flow_config?.footerConfig?.backgroundColor}
+                      logoSize={flow?.flow_config?.footerConfig?.logoSize || 60} 
+                    />
+                  </div>
+                )}
+                
               </div>
             </div>
           );
