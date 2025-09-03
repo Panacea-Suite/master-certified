@@ -2,7 +2,7 @@ import React from 'react';
 import { SectionComponent } from '../SectionRegistry';
 import { useTemplateStyle } from '@/components/TemplateStyleProvider';
 
-export const TextSection: SectionComponent = ({ section }) => {
+export const TextSection: SectionComponent = ({ section, isAuthentic }) => {
   const { getTemplateClasses } = useTemplateStyle();
   const { config } = section;
   
@@ -44,6 +44,23 @@ export const TextSection: SectionComponent = ({ section }) => {
       .replace(/\n/g, '<br/>');
   };
 
+  // Check if this is a thank you/completion text and override content if not authentic
+  const getDisplayContent = () => {
+    const originalContent = config.content || '';
+    
+    // If this is a thank you/completion related text and product is not authentic
+    if (isAuthentic === false && (
+      originalContent.toLowerCase().includes('registration complete') ||
+      originalContent.toLowerCase().includes('thank you') ||
+      originalContent.toLowerCase().includes('✅') ||
+      originalContent.toLowerCase().includes('complete!')
+    )) {
+      return '❌ Product Not Authentic';
+    }
+    
+    return originalContent;
+  };
+
   return (
     <div 
       className={`text-section ${getSectionClassName()}`}
@@ -55,10 +72,10 @@ export const TextSection: SectionComponent = ({ section }) => {
           fontSize: `${config.fontSize || 16}px`,
           fontWeight: config.fontWeight || 'normal',
           textAlign: config.align || 'left',
-          color: config.textColor || 'inherit',
+          color: isAuthentic === false && getDisplayContent().includes('❌') ? '#dc2626' : (config.textColor || 'inherit'),
           backgroundColor: config.backgroundColor || 'transparent'
         }}
-        dangerouslySetInnerHTML={{ __html: formatContent(config.content) }}
+        dangerouslySetInnerHTML={{ __html: formatContent(getDisplayContent()) }}
       />
     </div>
   );

@@ -164,6 +164,13 @@ export const AuthenticationSection: React.FC<AuthenticationSectionProps> = ({
               <p className="text-sm text-muted-foreground">
                 Please contact the brand directly if you believe this is an error.
               </p>
+              <Button 
+                onClick={() => onNavigateToPage?.('final')}
+                variant="outline" 
+                className="w-full mt-4"
+              >
+                Close
+              </Button>
             </div>
           )}
 

@@ -32,6 +32,7 @@ interface SectionRendererProps {
   onNavigateToPage?: (pageId: string) => void;
   approvedStores?: string[];
   onAuthComplete?: (result: 'pass' | 'fail') => void;
+  isAuthentic?: boolean | null;
 }
 
 export const SectionRenderer: React.FC<SectionRendererProps> = (props) => {

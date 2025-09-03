@@ -32,7 +32,8 @@ function SectionHost({
   setUserInputs,
   pageBackgroundColor,
   onNavigateToPage,
-  onAuthComplete
+  onAuthComplete,
+  isAuthentic
 }: { 
   section: any; 
   page: any; 
@@ -43,6 +44,7 @@ function SectionHost({
   pageBackgroundColor?: string;
   onNavigateToPage?: (pageId: string) => void;
   onAuthComplete?: (result: 'pass' | 'fail') => void;
+  isAuthentic?: boolean | null;
 }) {
   // ALL HOOKS MUST BE CALLED FIRST UNCONDITIONALLY - no conditional returns before hooks!
   const [warningLogged, setWarningLogged] = React.useState(false);
@@ -96,6 +98,7 @@ function SectionHost({
           onNavigateToPage={onNavigateToPage}
           approvedStores={campaign?.approved_stores || []}
           onAuthComplete={onAuthComplete}
+          isAuthentic={isAuthentic}
         />
       );
     
@@ -797,6 +800,7 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
                     }
                   }}
                   onAuthComplete={handleAuthComplete}
+                  isAuthentic={isAuthentic}
                   key={section.id || `s-${idx}`} 
                 />
               );
