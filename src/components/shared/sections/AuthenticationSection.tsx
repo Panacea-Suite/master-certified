@@ -26,16 +26,22 @@ export const AuthenticationSection: React.FC<AuthenticationSectionProps> = ({
   // Auto-start authentication when component loads or when user has selected store
   useEffect(() => {
     if (!isPreview && selectedStore && authStatus === 'idle') {
-      setTimeout(() => {
-        handleAuthentication();
-      }, 500);
+      // Start immediately without delay to avoid showing the button
+      handleAuthentication();
     }
   }, [selectedStore, authStatus, isPreview]);
+
+  // Initialize with checking state if conditions are met
+  useEffect(() => {
+    if (!isPreview && selectedStore && authStatus === 'idle') {
+      setAuthStatus('checking');
+    }
+  }, [selectedStore, isPreview]);
 
   const handleAuthentication = () => {
     setAuthStatus('checking');
     
-    // Simulate checking process
+    // Add smooth animation transition
     setTimeout(() => {
       const isStoreAligned = approvedStores.some(store => 
         store.toLowerCase() === selectedStore?.toLowerCase()
@@ -122,52 +128,53 @@ export const AuthenticationSection: React.FC<AuthenticationSectionProps> = ({
 
         <CardContent className="space-y-6">
           {authStatus === 'checking' && (
-            <div className="space-y-4">
+            <div className="space-y-4 animate-fade-in">
               <div className="w-full bg-muted rounded-full h-2">
                 <div className="bg-primary h-2 rounded-full animate-pulse" style={{ width: '75%' }}></div>
               </div>
-              <div className="text-center text-sm text-muted-foreground space-y-1">
-                <p>✓ Checking store alignment</p>
-                <p>✓ Verifying product batch</p>
-                <p className="opacity-50">• Confirming authenticity</p>
+              <div className="text-center text-sm text-muted-foreground space-y-1 animate-fade-in">
+                <p className="animate-fade-in">✓ Checking store alignment</p>
+                <p className="animate-fade-in" style={{ animationDelay: '0.3s' }}>✓ Verifying product batch</p>
+                <p className="opacity-50 animate-fade-in" style={{ animationDelay: '0.6s' }}>• Confirming authenticity</p>
               </div>
             </div>
           )}
 
           {authStatus === 'authentic' && (
-            <div className="text-center space-y-4">
+            <div className="text-center space-y-4 animate-scale-in">
               <div className="animate-bounce">
                 <div className="w-12 h-12 bg-green-100 rounded-full mx-auto flex items-center justify-center">
                   <CheckCircle className="w-6 h-6 text-green-600" />
                 </div>
               </div>
-              <Alert className="border-green-200 bg-green-50">
+              <Alert className="border-green-200 bg-green-50 animate-fade-in">
                 <CheckCircle className="h-4 w-4 text-green-600" />
                 <AlertDescription className="text-green-800">
                   Your product has been successfully verified as authentic!
                 </AlertDescription>
               </Alert>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground animate-fade-in" style={{ animationDelay: '0.2s' }}>
                 Proceeding to product information...
               </p>
             </div>
           )}
 
           {authStatus === 'not-authentic' && (
-            <div className="text-center space-y-4">
-              <Alert className="border-red-200 bg-red-50">
+            <div className="text-center space-y-4 animate-scale-in">
+              <Alert className="border-red-200 bg-red-50 animate-fade-in">
                 <XCircle className="h-4 w-4 text-red-600" />
                 <AlertDescription className="text-red-800">
                   This product could not be authenticated. This product may be counterfeit or from an unauthorized retailer.
                 </AlertDescription>
               </Alert>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground animate-fade-in" style={{ animationDelay: '0.2s' }}>
                 Please contact the brand directly if you believe this is an error.
               </p>
               <Button 
                 onClick={() => onNavigateToPage?.('final')}
                 variant="outline" 
-                className="w-full mt-4"
+                className="w-full mt-4 animate-fade-in hover-scale"
+                style={{ animationDelay: '0.4s' }}
               >
                 Close
               </Button>
