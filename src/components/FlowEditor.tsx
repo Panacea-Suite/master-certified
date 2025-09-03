@@ -1661,6 +1661,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                   {selectedSection.type === 'authentication' && (
                     <AuthenticationSubPageManager
                       authConfig={currentPage?.settings?.authConfig}
+                      initialType={getCurrentAuthState()}
                       onUpdateAuthConfig={(authConfig) => {
                         const currentPage = getCurrentPage();
                         if (!currentPage) return;

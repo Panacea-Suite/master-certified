@@ -172,10 +172,10 @@ export const AuthenticationSection: React.FC<AuthenticationSectionProps> = ({
                   }}
                 ></div>
               </div>
-              <div className="text-center text-sm text-muted-foreground space-y-1 animate-fade-in">
-                <p className="animate-fade-in">✓ Checking store alignment</p>
-                <p className="animate-fade-in" style={{ animationDelay: '0.3s' }}>✓ Verifying product batch</p>
-                <p className="opacity-50 animate-fade-in" style={{ animationDelay: '0.6s' }}>• Confirming authenticity</p>
+              <div className="text-center text-sm space-y-1 animate-fade-in" style={{ color: currentConfig.stepTextColor || currentConfig.subtitleColor || '#6b7280' }}>
+                <p className="animate-fade-in">{currentConfig.step1Text || '✓ Checking store alignment'}</p>
+                <p className="animate-fade-in" style={{ animationDelay: '0.3s' }}>{currentConfig.step2Text || '✓ Verifying product batch'}</p>
+                <p className="opacity-50 animate-fade-in" style={{ animationDelay: '0.6s' }}>{currentConfig.step3Text || '• Confirming authenticity'}</p>
               </div>
             </div>
           )}

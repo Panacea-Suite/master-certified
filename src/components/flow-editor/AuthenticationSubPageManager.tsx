@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -26,6 +26,11 @@ export interface AuthenticationSubPage {
     successMessage?: string;
     failureMessage?: string;
     contactMessage?: string;
+    // Checking (Verifying...) specific
+    step1Text?: string;
+    step2Text?: string;
+    step3Text?: string;
+    stepTextColor?: string;
   };
 }
 
@@ -57,7 +62,11 @@ const defaultAuthSubPages: AuthenticationSubPage[] = [
       backgroundColor: '#ffffff',
       titleColor: '#000000',
       subtitleColor: '#6b7280',
-      progressColor: '#3b82f6'
+      progressColor: '#3b82f6',
+      step1Text: '✓ Checking store alignment',
+      step2Text: '✓ Verifying product batch',
+      step3Text: '• Confirming authenticity',
+      stepTextColor: '#6b7280'
     }
   },
   {
@@ -102,14 +111,19 @@ interface AuthenticationSubPageManagerProps {
     secondary: string;
     accent: string;
   } | null;
+  initialType?: 'idle' | 'checking' | 'authentic' | 'not-authentic';
 }
 
 export const AuthenticationSubPageManager: React.FC<AuthenticationSubPageManagerProps> = ({
   authConfig = {},
   onUpdateAuthConfig = () => {},
-  brandColors
+  brandColors,
+  initialType
 }) => {
-  const [selectedSubPageId, setSelectedSubPageId] = useState<string>('auth-idle');
+  const [selectedSubPageId, setSelectedSubPageId] = useState<string>(() => {
+    if (initialType) return `auth-${initialType}`;
+    return 'auth-idle';
+  });
   const [subPages, setSubPages] = useState<AuthenticationSubPage[]>(() => {
     // Merge default config with saved config
     return defaultAuthSubPages.map(defaultPage => ({
@@ -122,6 +136,10 @@ export const AuthenticationSubPageManager: React.FC<AuthenticationSubPageManager
   });
 
   const selectedSubPage = subPages.find(page => page.id === selectedSubPageId) || subPages[0];
+
+  useEffect(() => {
+    if (initialType) setSelectedSubPageId(`auth-${initialType}`);
+  }, [initialType]);
 
   const updateSubPageConfig = (configUpdates: Partial<AuthenticationSubPage['config']>) => {
     const updatedSubPages = subPages.map(page =>
@@ -279,16 +297,50 @@ export const AuthenticationSubPageManager: React.FC<AuthenticationSubPageManager
             </>
           )}
 
-          {/* Progress Color (for checking state) */}
+          {/* Progress/Spinner Color (for checking state) */}
           {type === 'checking' && (
-            <div className="space-y-2">
-              <Label>Progress Color</Label>
-              <BrandColorPicker
-                value={config.progressColor || '#3b82f6'}
-                onChange={(color) => updateSubPageConfig({ progressColor: color })}
-                brandColors={brandColors}
-              />
-            </div>
+            <>
+              <div className="space-y-2">
+                <Label>Progress/Spinner Color</Label>
+                <BrandColorPicker
+                  value={config.progressColor || '#3b82f6'}
+                  onChange={(color) => updateSubPageConfig({ progressColor: color })}
+                  brandColors={brandColors}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Step Text Color</Label>
+                <BrandColorPicker
+                  value={config.stepTextColor || config.subtitleColor || '#6b7280'}
+                  onChange={(color) => updateSubPageConfig({ stepTextColor: color })}
+                  brandColors={brandColors}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Step 1 Text</Label>
+                <Input
+                  value={config.step1Text || ''}
+                  onChange={(e) => updateSubPageConfig({ step1Text: e.target.value })}
+                  placeholder="e.g., ✓ Checking store alignment"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Step 2 Text</Label>
+                <Input
+                  value={config.step2Text || ''}
+                  onChange={(e) => updateSubPageConfig({ step2Text: e.target.value })}
+                  placeholder="e.g., ✓ Verifying product batch"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Step 3 Text</Label>
+                <Input
+                  value={config.step3Text || ''}
+                  onChange={(e) => updateSubPageConfig({ step3Text: e.target.value })}
+                  placeholder="e.g., • Confirming authenticity"
+                />
+              </div>
+            </>
           )}
         </div>
       </div>
