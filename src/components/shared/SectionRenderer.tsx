@@ -30,6 +30,7 @@ interface SectionRendererProps {
   onTrackEvent?: (eventName: string, metadata?: any) => void;
   pageBackgroundColor?: string;
   onNavigateToPage?: (pageId: string) => void;
+  approvedStores?: string[];
 }
 
 export const SectionRenderer: React.FC<SectionRendererProps> = (props) => {

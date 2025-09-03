@@ -48,7 +48,7 @@ export interface SectionRendererProps {
   onNavigateToPage?: (pageId: string) => void;
   // Page background
   pageBackgroundColor?: string;
-  // Authentication props
+  // Authentication props  
   approvedStores?: string[];
 }
 

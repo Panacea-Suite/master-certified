@@ -13,7 +13,8 @@ import {
   ChevronRight,
   Layout,
   User,
-  MousePointerClick
+  MousePointerClick,
+  Shield
 } from 'lucide-react';
 
 interface ComponentPaletteProps {
@@ -60,6 +61,12 @@ const sectionCategories = [
         icon: User,
         title: 'Login Step',
         description: 'User authentication with Google/Apple/Email'
+      },
+      {
+        type: 'authentication',
+        icon: Shield,
+        title: 'Authentication',
+        description: 'Product verification with store alignment check'
       }
     ]
   },
