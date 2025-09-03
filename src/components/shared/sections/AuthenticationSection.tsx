@@ -37,20 +37,13 @@ export const AuthenticationSection: React.FC<AuthenticationSectionProps> = ({
     return authConfig?.subPages?.[`auth-${type}`] || {};
   };
 
-  // Auto-start authentication when component loads or when user has selected store
+  // Auto-start authentication when component loads AND approved stores are available
   useEffect(() => {
-    if (!isPreview && selectedStore && authStatus === 'idle') {
-      // Start immediately without delay to avoid showing the button
+    const hasStores = Array.isArray(approvedStores) && approvedStores.length > 0;
+    if (!isPreview && selectedStore && hasStores && authStatus === 'idle') {
       handleAuthentication();
     }
-  }, [selectedStore, authStatus, isPreview]);
-
-  // Initialize with checking state if conditions are met
-  useEffect(() => {
-    if (!isPreview && selectedStore && authStatus === 'idle') {
-      setAuthStatus('checking');
-    }
-  }, [selectedStore, isPreview]);
+  }, [selectedStore, approvedStores, authStatus, isPreview]);
 
   const handleAuthentication = () => {
     setAuthStatus('checking');
