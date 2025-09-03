@@ -1134,7 +1134,17 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
                     id="paddingLeft"
                     type="number"
                     value={config.paddingLeft ?? config.padding ?? 1}
-                    onChange={(e) => updateConfig('paddingLeft', Math.max(0, parseFloat(e.target.value) || 0))}
+                    onChange={(e) => {
+                      const value = Math.max(0, parseFloat(e.target.value) || 0);
+                      if (paddingLocked) {
+                        updateConfig('paddingTop', value);
+                        updateConfig('paddingRight', value);
+                        updateConfig('paddingBottom', value);
+                        updateConfig('paddingLeft', value);
+                      } else {
+                        updateConfig('paddingLeft', value);
+                      }
+                    }}
                     min={0}
                     max={12}
                     step={0.25}
