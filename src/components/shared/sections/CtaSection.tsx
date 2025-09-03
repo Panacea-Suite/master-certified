@@ -2,7 +2,7 @@ import React from 'react';
 import { SectionComponent } from '../SectionRegistry';
 import { useTemplateStyle } from '@/components/TemplateStyleProvider';
 
-export const CtaSection: SectionComponent = ({ section }) => {
+export const CtaSection: SectionComponent = ({ section, onNavigateToPage }) => {
   const { getTemplateClasses } = useTemplateStyle();
   
   const getSectionClassName = () => {
@@ -17,6 +17,12 @@ export const CtaSection: SectionComponent = ({ section }) => {
     return classes.trim();
   };
   
+  const handleClick = () => {
+    if (section.config?.targetPageId && onNavigateToPage) {
+      onNavigateToPage(section.config.targetPageId);
+    }
+  };
+  
   return (
     <div className={`cta-section ${getSectionClassName()} flex justify-center`}>
       <button 
@@ -28,6 +34,7 @@ export const CtaSection: SectionComponent = ({ section }) => {
           backgroundColor: section.config?.buttonColor || (section.config?.color === 'secondary' ? 'var(--template-secondary)' : section.config?.color === 'accent' ? 'var(--template-accent)' : 'var(--template-primary)'),
           color: section.config?.textColor || '#ffffff'
         }}
+        onClick={handleClick}
       >
         {section.config?.text || 'Click here'}
       </button>

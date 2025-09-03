@@ -44,6 +44,8 @@ export interface SectionRendererProps {
   onAuthSuccess?: (params: { user: any; provider: string; marketingOptIn: boolean }) => void;
   onAuthError?: (error: Error) => void;
   onTrackEvent?: (eventName: string, metadata?: any) => void;
+  // CTA navigation
+  onNavigateToPage?: (pageId: string) => void;
 }
 
 export type SectionComponent = React.FC<SectionRendererProps>;

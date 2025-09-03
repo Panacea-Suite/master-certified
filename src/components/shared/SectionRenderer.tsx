@@ -21,17 +21,15 @@ interface SectionRendererProps {
     secondary: string;
     accent: string;
   } | null;
-  // Controlled store selector props for runtime binding
   purchaseChannel?: 'in-store' | 'online' | '';
   selectedStore?: string;
   onPurchaseChannelChange?: (channel: 'in-store' | 'online' | '') => void;
   onSelectedStoreChange?: (store: string) => void;
-  // Login step props
   onAuthSuccess?: (params: { user: any; provider: string; marketingOptIn: boolean }) => void;
   onAuthError?: (error: Error) => void;
   onTrackEvent?: (eventName: string, metadata?: any) => void;
-  // Page background color
   pageBackgroundColor?: string;
+  onNavigateToPage?: (pageId: string) => void;
 }
 
 export const SectionRenderer: React.FC<SectionRendererProps> = (props) => {
@@ -49,29 +47,29 @@ export const SectionRenderer: React.FC<SectionRendererProps> = (props) => {
       // Explicitly transparent - don't inherit page background
       return { width: '100%' };
     } else if (sectionBgColor) {
-      // Section has its own color
-      return { backgroundColor: sectionBgColor, width: '100%' };
-    } else {
-      // No section background configured - inherit page background
-      return { backgroundColor: props.pageBackgroundColor || undefined, width: '100%' };
+      // Section has its own background color
+      return { 
+        width: '100%',
+        backgroundColor: sectionBgColor
+      };
+    } else if (pageBackgroundColor) {
+      // No section background, inherit from page
+      return { 
+        width: '100%',
+        backgroundColor: pageBackgroundColor
+      };
     }
+    
+    // Default - no background
+    return { width: '100%' };
   };
 
-  // Inner content style - shadows, borders, text color, but NO backgroundColor
+  // Inner content container style - padding and alignment
   const getInnerStyle = () => {
-    const shadowStyle = (config.dropShadow && section.type !== 'image') ? {
-      boxShadow: `${config.shadowOffsetX || 0}px ${config.shadowOffsetY || 4}px ${config.shadowBlur || 10}px ${config.shadowSpread || 0}px ${config.shadowColor || 'rgba(0,0,0,0.1)'}`
-    } : {
-      boxShadow: 'none'
-    };
-
     return {
-      color: config.textColor || undefined,
-      border: config.backgroundColor ? 'none' : undefined,
-      padding: `${(config.padding ?? 4) * 0.25}rem`,
       maxWidth: 'var(--device-width-px, 390px)',
       margin: '0 auto',
-      ...shadowStyle
+      width: '100%'
     };
   };
 

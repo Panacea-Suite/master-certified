@@ -75,20 +75,26 @@ function SectionHost({
     case 'login-step':
     case 'store-selector':
       return (
-        <SectionRenderer
-          key={section.id}
-          section={section}
-          isPreview={true}
-          isRuntimeMode={true}
-          storeOptions={campaign?.approved_stores || []}
-          brandColors={null}
-          // Controlled store selector props for runtime binding
-          purchaseChannel={userInputs.purchaseChannel}
-          selectedStore={userInputs.selectedStore}
-          onPurchaseChannelChange={(channel) => setUserInputs(prev => ({ ...prev, purchaseChannel: channel, selectedStore: '' }))}
-          onSelectedStoreChange={(store) => setUserInputs(prev => ({ ...prev, selectedStore: store }))}
-          pageBackgroundColor={pageBackgroundColor}
-        />
+                          <SectionRenderer
+                            key={section.id}
+                            section={section}
+                            isPreview={true}
+                            isRuntimeMode={true}
+                            storeOptions={campaign?.approved_stores || []}
+                            brandColors={null}
+                            // Controlled store selector props for runtime binding
+                            purchaseChannel={userInputs.purchaseChannel}
+                            selectedStore={userInputs.selectedStore}
+                            onPurchaseChannelChange={(channel) => setUserInputs(prev => ({ ...prev, purchaseChannel: channel, selectedStore: '' }))}
+                            onSelectedStoreChange={(store) => setUserInputs(prev => ({ ...prev, selectedStore: store }))}
+                            pageBackgroundColor={pageBackgroundColor}
+                            onNavigateToPage={(pageId) => {
+                              const targetPageIndex = (flow?.flow_config?.pages || []).findIndex((p: any) => p.id === pageId);
+                              if (targetPageIndex >= 0) {
+                                setCurrentPageIndex(targetPageIndex);
+                              }
+                            }}
+                          />
       );
     
     default:

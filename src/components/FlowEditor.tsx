@@ -1392,6 +1392,9 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                                 isRuntimeMode={true}
                                 storeOptions={[]}
                                 brandColors={brandData?.brand_colors}
+                                onNavigateToPage={(pageId) => {
+                                  setCurrentPageId(pageId);
+                                }}
                               />
                               </div>
                             ))}

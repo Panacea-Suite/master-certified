@@ -29,9 +29,10 @@ interface ComponentEditorProps {
     secondary: string;
     accent: string;
   } | null;
+  pages?: Array<{ id: string; name: string; }>;
 }
 
-export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpdate, brandColors }) => {
+export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpdate, brandColors, pages = [] }) => {
   const [showImageEditor, setShowImageEditor] = useState(false);
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
