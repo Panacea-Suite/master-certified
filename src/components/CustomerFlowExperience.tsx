@@ -749,7 +749,7 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
           {/* Default footer - sticks to bottom */}
           {safeSections.every((s: any) => s.type !== 'footer') && (
             <div className="mt-auto">
-              <PanaceaFooter backgroundColor="var(--template-secondary)" logoSize={60} />
+              <PanaceaFooter logoSize={60} />
             </div>
           )}
         </div>
