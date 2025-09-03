@@ -45,10 +45,12 @@ export const AuthenticationSection: React.FC<AuthenticationSectionProps> = ({
       if (isStoreAligned) {
         setAuthStatus('authentic');
         onAuthComplete?.('pass');
-        // Auto-proceed after showing success animation
-        setTimeout(() => {
-          onNavigateToPage?.('next');
-        }, 3000);
+        // Auto-proceed only in runtime mode, not in preview
+        if (!isPreview) {
+          setTimeout(() => {
+            onNavigateToPage?.('next');
+          }, 3000);
+        }
       } else {
         setAuthStatus('not-authentic');
         setShowPopup(true);

@@ -56,11 +56,19 @@ export const LoginStepSection: SectionComponent = ({
         brandName={config.brandName || 'this brand'}
         onAuthSuccess={(params) => {
           onAuthSuccess?.(params);
-          onNavigateToPage?.('next');
+          // Only navigate in runtime mode, not in preview/builder
+          if (!isPreview) {
+            onNavigateToPage?.('next');
+          }
         }}
         onAuthError={onAuthError}
         onTrackEvent={onTrackEvent}
-        onSkip={() => onNavigateToPage?.('next')}
+        onSkip={() => {
+          // Only navigate in runtime mode, not in preview/builder
+          if (!isPreview) {
+            onNavigateToPage?.('next');
+          }
+        }}
       />
     </div>
   );
