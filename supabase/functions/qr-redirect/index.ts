@@ -144,9 +144,16 @@ Deno.serve(async (req) => {
       
     if (error || !qr) {
       console.error(`QR not found by unique_code`, { code, error });
-      return new Response(JSON.stringify({ error: "qr_not_found", code }), { 
-        status: 404,
-        headers: { "content-type": "application/json" }
+      const appOrigin = Deno.env.get('EDGE_APP_ORIGIN') ?? 'https://7d6ac784-8fa0-4a08-b762-40e95bd7844c.sandbox.lovable.dev';
+      const fallbackUrl = new URL(`${appOrigin}/#/`);
+      fallbackUrl.searchParams.set('qr_error', '1');
+      fallbackUrl.searchParams.set('code', code);
+      return new Response(null, {
+        status: 302,
+        headers: {
+          ...corsHeaders,
+          'Location': fallbackUrl.toString(),
+        }
       });
     }
 
