@@ -40,13 +40,21 @@ export const SectionRenderer: React.FC<SectionRendererProps> = (props) => {
   
   // Full-bleed background wrapper style - only backgrounds here
   const getOuterStyle = () => {
-    // If section has its own background color, use it
-    // Otherwise, inherit from page background
+    // If section has its own background color set (and not 'transparent'), use it
+    // If section explicitly set to 'transparent', don't inherit page background
+    // Only inherit page background if no section background is configured at all
     const sectionBgColor = config.backgroundColor;
-    return {
-      backgroundColor: sectionBgColor || props.pageBackgroundColor || undefined,
-      width: '100%'
-    };
+    
+    if (sectionBgColor === 'transparent' || sectionBgColor === '') {
+      // Explicitly transparent - don't inherit page background
+      return { width: '100%' };
+    } else if (sectionBgColor) {
+      // Section has its own color
+      return { backgroundColor: sectionBgColor, width: '100%' };
+    } else {
+      // No section background configured - inherit page background
+      return { backgroundColor: props.pageBackgroundColor || undefined, width: '100%' };
+    }
   };
 
   // Inner content style - shadows, borders, text color, but NO backgroundColor
