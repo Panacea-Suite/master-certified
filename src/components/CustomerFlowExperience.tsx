@@ -74,7 +74,7 @@ function SectionHost({
     case 'column':
     case 'footer':
     case 'header':
-    case 'login-step':
+    case 'login_step':
     case 'store_selector':
       return (
           <SectionRenderer
