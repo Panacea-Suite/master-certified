@@ -310,47 +310,67 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
         setIsLoading(true);
         console.log('CustomerFlowExperience: Using provided template data:', templateData);
         console.log('CustomerFlowExperience: Provided brand data:', brandData);
-        
-        // Use provided brand data or fetch if not provided
-        let finalBrandData = brandData;
-        if (!finalBrandData) {
-          try {
-            console.log('CustomerFlowExperience: No brand data provided, fetching from database...');
-            const { data: brand } = await supabase
-              .from('brands')
-              .select('*')
-              .maybeSingle();
-            finalBrandData = brand;
-            console.log('CustomerFlowExperience: Fetched brand data from DB:', finalBrandData);
-          } catch (error) {
-            console.log('No brand data available for template processing');
+
+        // Heuristic: if templateData already looks like a flow payload (has pages/theme/globalHeader), use it directly
+        const isFlowPayload = typeof templateData === 'object' && !!templateData && (
+          Array.isArray((templateData as any).pages) ||
+          !!(templateData as any).theme ||
+          !!(templateData as any).globalHeader ||
+          !!(templateData as any).footerConfig
+        );
+
+        if (isFlowPayload) {
+          const cfg = templateData as any;
+          setFlow({
+            id: cfg.id || 'inline-flow',
+            name: cfg.name || 'Inline Flow',
+            flow_config: cfg
+          });
+          // If pages exist, start at provided external index or 0
+          if (Array.isArray(cfg.pages)) {
+            setCurrentPageIndex(externalPageIndex ?? 0);
           }
         } else {
-          console.log('CustomerFlowExperience: Using provided brand data for preview:', finalBrandData);
-        }
-        
-        // Process template data using the unified processor
-        const { processTemplateData, templateToFlowConfig } = await import('@/utils/templateProcessor');
-        const processedTemplate = processTemplateData(templateData);
-        console.log('CustomerFlowExperience: Processed template:', processedTemplate);
-        
-        // Set flow data from processed template with proper flow_config and brand data
-        const flowConfig = templateToFlowConfig(processedTemplate, finalBrandData);
-        console.log('CustomerFlowExperience: Final flow config:', flowConfig);
-        
-        setFlow({
-          id: processedTemplate.id,
-          name: processedTemplate.name,
-          flow_config: {
-            ...flowConfig,
-            pages: processedTemplate.pages
+          // Use provided brand data or fetch if not provided
+          let finalBrandData = brandData;
+          if (!finalBrandData) {
+            try {
+              console.log('CustomerFlowExperience: No brand data provided, fetching from database...');
+              const { data: brand } = await supabase
+                .from('brands')
+                .select('*')
+                .maybeSingle();
+              finalBrandData = brand;
+              console.log('CustomerFlowExperience: Fetched brand data from DB:', finalBrandData);
+            } catch (error) {
+              console.log('No brand data available for template processing');
+            }
+          } else {
+            console.log('CustomerFlowExperience: Using provided brand data for preview:', finalBrandData);
           }
-        });
-        // Use external page index if provided, otherwise start at 0
-        setCurrentPageIndex(externalPageIndex ?? 0);
-        
+
+          // Process template data using the unified processor
+          const { processTemplateData, templateToFlowConfig } = await import('@/utils/templateProcessor');
+          const processedTemplate = processTemplateData(templateData);
+          console.log('CustomerFlowExperience: Processed template:', processedTemplate);
+
+          // Set flow data from processed template with proper flow_config and brand data
+          const flowConfig = templateToFlowConfig(processedTemplate, finalBrandData);
+          console.log('CustomerFlowExperience: Final flow config:', flowConfig);
+
+          setFlow({
+            id: processedTemplate.id,
+            name: processedTemplate.name,
+            flow_config: {
+              ...flowConfig,
+              pages: processedTemplate.pages
+            }
+          });
+          // Use external page index if provided, otherwise start at 0
+          setCurrentPageIndex(externalPageIndex ?? 0);
+        }
       } catch (error) {
-        console.error('Error processing template data:', error);
+        console.error('Error handling provided template data:', error);
         setError('Failed to process template data');
       } finally {
         setIsLoading(false);
@@ -740,6 +760,7 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
                   campaign={campaign}
                   userInputs={userInputs}
                   setUserInputs={setUserInputs}
+                  pageBackgroundColor={flow?.flow_config?.theme?.backgroundColor || flow?.flow_config?.designConfig?.backgroundColor || '#ffffff'}
                   key={section.id || `s-${idx}`} 
                 />
               );
@@ -1086,7 +1107,7 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
           // Use the pre-computed sections from top-level useMemo
           const safeSections = sectionBasedFlowSections;
           
-          const backgroundColor = flowConfig?.designConfig?.backgroundColor || '#ffffff';
+          const backgroundColor = flowConfig?.theme?.backgroundColor || flowConfig?.designConfig?.backgroundColor || '#ffffff';
           const globalHeader = flowConfig?.globalHeader || {
             showHeader: true,
             brandName: '',

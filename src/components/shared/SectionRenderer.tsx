@@ -41,10 +41,10 @@ export const SectionRenderer: React.FC<SectionRendererProps> = (props) => {
   // Full-bleed background wrapper style - only backgrounds here
   const getOuterStyle = () => {
     // If section has its own background color, use it
-    // Otherwise, inherit from page background (don't set backgroundColor at all to inherit)
+    // Otherwise, inherit from page background
     const sectionBgColor = config.backgroundColor;
     return {
-      backgroundColor: sectionBgColor || undefined,
+      backgroundColor: sectionBgColor || props.pageBackgroundColor || undefined,
       width: '100%'
     };
   };
