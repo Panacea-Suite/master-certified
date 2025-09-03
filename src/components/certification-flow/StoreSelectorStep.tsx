@@ -120,13 +120,13 @@ export const StoreSelectorStep: React.FC<StoreSelectorStepProps> = ({
                 <SelectTrigger>
                   <SelectValue placeholder="Select or type store name..." />
                 </SelectTrigger>
-                <SelectContent>
-                  {storeOptions[locationType].map((store) => (
-                    <SelectItem key={store} value={store}>
-                      {store}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
+                  <SelectContent>
+                    {storeOptions[locationType].filter(store => store && store.trim()).map((store) => (
+                      <SelectItem key={store} value={store}>
+                        {store}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
               </Select>
               
               {storeName === 'Other Retailer' || storeName === 'Other Pharmacy' || storeName === 'Other' ? (

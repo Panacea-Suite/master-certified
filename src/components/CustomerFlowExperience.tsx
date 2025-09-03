@@ -878,7 +878,7 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
                       <SelectValue placeholder="Choose your store" />
                     </SelectTrigger>
                     <SelectContent>
-                      {campaign?.approved_stores?.map((store: string) => (
+                      {campaign?.approved_stores?.filter(store => store && store.trim()).map((store: string) => (
                         <SelectItem key={store} value={store}>{store}</SelectItem>
                       ))}
                       <SelectItem value="other">Other Store</SelectItem>

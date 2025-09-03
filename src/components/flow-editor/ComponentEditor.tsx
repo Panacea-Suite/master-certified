@@ -763,7 +763,7 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
             <SelectValue placeholder="Select page to navigate to" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">No navigation</SelectItem>
+            <SelectItem value="none">No navigation</SelectItem>
             {pages.map((page) => (
               <SelectItem key={page.id} value={page.id}>
                 {page.name}
