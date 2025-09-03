@@ -752,6 +752,26 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
         />
       </div>
       
+      <div className="space-y-2">
+        <Label htmlFor="targetPage">Navigate to Page</Label>
+        <Select 
+          value={config.targetPageId || ''} 
+          onValueChange={(value) => updateConfig('targetPageId', value)}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Select page to navigate to" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="">No navigation</SelectItem>
+            {pages.map((page) => (
+              <SelectItem key={page.id} value={page.id}>
+                {page.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      
       <div className="grid grid-cols-3 gap-2">
         <BrandColorPicker
           label="Background"
