@@ -779,6 +779,7 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
                   userInputs={userInputs}
                   setUserInputs={setUserInputs}
                   pageBackgroundColor={flow?.flow_config?.theme?.backgroundColor || flow?.flow_config?.designConfig?.backgroundColor || '#ffffff'}
+                  authConfig={currentPageData?.settings?.authConfig}
                   onNavigateToPage={(pageId) => {
                     const pages = flow?.flow_config?.pages || [];
                     
@@ -1201,12 +1202,13 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
                     return (
                       <SectionHost 
                         section={section} 
-                        page={null} 
+                        page={pages[externalPageIndex ?? currentPageIndex]} 
                         styleTokens={styleTokens}
                         campaign={campaign}
                         userInputs={userInputs}
                         setUserInputs={setUserInputs}
                         pageBackgroundColor={backgroundColor}
+                        authConfig={pages[externalPageIndex ?? currentPageIndex]?.settings?.authConfig}
                         onNavigateToPage={(pageId) => {
                           const pages = flow?.flow_config?.pages || [];
                           
