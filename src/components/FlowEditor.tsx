@@ -334,17 +334,18 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
     }, {
       id: 'thank-you',
       type: 'thank_you',
-      name: 'Thank You',
+      name: 'Final Sales Page',
       sections: [{
         id: 'thanks-title',
         type: 'text',
         order: 0,
         config: {
-          content: 'Thank You!',
+          content: 'Product Verification Complete',
           fontSize: 24,
           textColor: '#000000',
           backgroundColor: 'transparent',
-          padding: 4
+          padding: 4,
+          dynamicAuthContent: true
         }
       }, {
         id: 'thanks-description',

@@ -40,7 +40,7 @@ const pageTypes = [
   { type: 'account_creation', icon: UserPlus, title: 'Login/Signup', description: 'User authentication', isMandatory: true },
   { type: 'authentication', icon: Shield, title: 'Verification', description: 'User verification', isMandatory: true },
   { type: 'content_display', icon: FileText, title: 'Content Display', description: 'Show products/content', isMandatory: false },
-  { type: 'thank_you', icon: CheckCircle, title: 'Thank You', description: 'Completion message', isMandatory: true }
+  { type: 'thank_you', icon: CheckCircle, title: 'Final Sales Page', description: 'Completion message', isMandatory: true }
 ] as const;
 
 const getPageTypeInfo = (type: PageData['type']) => {
@@ -79,7 +79,7 @@ const getMandatoryPages = (): PageData[] => {
     {
       id: 'thank-you',
       type: 'thank_you',
-      name: 'Thank You',
+      name: 'Final Sales Page',
       sections: [],
       settings: {},
       isMandatory: true,
@@ -155,7 +155,7 @@ export const PageManager: React.FC<PageManagerProps> = ({
                     <Icon className="h-4 w-4 text-primary flex-shrink-0" />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <div className="font-medium text-sm">{page.name}</div>
+                        <div className="font-medium text-sm">{page.type === 'thank_you' ? 'Final Sales Page' : page.name}</div>
                         {hasAuthSections && (
                           <span className="text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded">
                             Auth
@@ -232,12 +232,12 @@ export const PageManager: React.FC<PageManagerProps> = ({
       {pages.length === 0 && (
         <div className="text-center py-4 text-muted-foreground">
           <p className="text-sm">Flow will include all pages</p>
-          <p className="text-xs">Landing → Store Selection → Login → Verification → Thank You</p>
+          <p className="text-xs">Landing → Store Selection → Login → Verification → Final Sales Page</p>
         </div>
       )}
       
       <div className="text-xs text-muted-foreground p-2 bg-orange-50 border border-orange-200 rounded">
-        💡 Required pages (Store Selection, Login, Verification, Thank You) are automatically included and cannot be removed
+        💡 Required pages (Store Selection, Login, Verification, Final Sales Page) are automatically included and cannot be removed
       </div>
     </div>
   );
