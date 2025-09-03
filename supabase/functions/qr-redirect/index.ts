@@ -121,29 +121,15 @@ Deno.serve(async (req) => {
 
     console.log(`QR redirect request for code: ${code}`)
 
-    // Look up the QR code in the database, joining to batch → campaign
-    const { data: qr, error } = await supabase
+    // Look up the QR code and get campaign info with simpler queries
+    const { data: qr, error: qrError } = await supabase
       .from("qr_codes")
-      .select(`
-        id, 
-        unique_code, 
-        batch_id, 
-        scans, 
-        batches!inner(
-          campaign_id,
-          campaigns!inner(
-            id,
-            name,
-            final_redirect_url,
-            customer_access_token
-          )
-        )
-      `)
+      .select("id, unique_code, batch_id, scans")
       .eq("unique_code", code)
       .single();
       
-    if (error || !qr) {
-      console.error(`QR not found by unique_code`, { code, error });
+    if (qrError || !qr) {
+      console.error(`QR not found by unique_code`, { code, error: qrError });
       const appOrigin = Deno.env.get('EDGE_APP_ORIGIN') ?? 'https://7d6ac784-8fa0-4a08-b762-40e95bd7844c.sandbox.lovable.dev';
       const fallbackUrl = new URL(`${appOrigin}/#/`);
       fallbackUrl.searchParams.set('qr_error', '1');
@@ -154,6 +140,38 @@ Deno.serve(async (req) => {
           ...corsHeaders,
           'Location': fallbackUrl.toString(),
         }
+      });
+    }
+
+    // Get batch and campaign info
+    const { data: batch, error: batchError } = await supabase
+      .from("batches")
+      .select("campaign_id")
+      .eq("id", qr.batch_id)
+      .single();
+      
+    if (batchError || !batch) {
+      console.error(`Batch not found for QR`, { qr_id: qr.id, batch_id: qr.batch_id });
+      const appOrigin = Deno.env.get('EDGE_APP_ORIGIN') ?? 'https://7d6ac784-8fa0-4a08-b762-40e95bd7844c.sandbox.lovable.dev';
+      return new Response(null, {
+        status: 302,
+        headers: { ...corsHeaders, 'Location': `${appOrigin}/#/` }
+      });
+    }
+
+    // Get campaign info
+    const { data: campaign, error: campaignError } = await supabase
+      .from("campaigns")
+      .select("id, name, final_redirect_url, customer_access_token")
+      .eq("id", batch.campaign_id)
+      .single();
+    
+    if (campaignError || !campaign) {
+      console.error(`Campaign not found for batch`, { batch_id: qr.batch_id, campaign_id: batch.campaign_id });
+      const appOrigin = Deno.env.get('EDGE_APP_ORIGIN') ?? 'https://7d6ac784-8fa0-4a08-b762-40e95bd7844c.sandbox.lovable.dev';
+      return new Response(null, {
+        status: 302,
+        headers: { ...corsHeaders, 'Location': `${appOrigin}/#/` }
       });
     }
 
@@ -171,8 +189,7 @@ Deno.serve(async (req) => {
       console.error('Scan count update failed (non-blocking):', scanError)
     }
 
-    // Get campaign data from the joined result
-    const campaign = qr.batches?.campaigns
+    // Use the campaign data we fetched
     
     if (campaign) {
       // Create customer flow URL: https://<app-origin>/#/flow/run?cid=<campaign_id>&qr=<qr_id>&ct=<customer_access_token>
