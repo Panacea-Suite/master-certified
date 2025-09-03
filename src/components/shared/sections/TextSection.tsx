@@ -36,7 +36,9 @@ export const TextSection: SectionComponent = ({ section }) => {
         style={{ 
           fontSize: `${config.fontSize || 16}px`,
           fontWeight: config.fontWeight || 'normal',
-          textAlign: config.align || 'left'
+          textAlign: config.align || 'left',
+          color: config.textColor || 'inherit',
+          backgroundColor: config.backgroundColor || 'transparent'
         }}
         dangerouslySetInnerHTML={{ __html: formatContent(config.content) }}
       />
