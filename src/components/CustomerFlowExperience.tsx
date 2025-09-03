@@ -29,14 +29,16 @@ function SectionHost({
   styleTokens, 
   campaign, 
   userInputs, 
-  setUserInputs 
+  setUserInputs,
+  pageBackgroundColor
 }: { 
   section: any; 
   page: any; 
   styleTokens: any; 
   campaign: any; 
   userInputs: any; 
-  setUserInputs: any; 
+  setUserInputs: any;
+  pageBackgroundColor?: string;
 }) {
   // ALL HOOKS MUST BE CALLED FIRST UNCONDITIONALLY - no conditional returns before hooks!
   const [warningLogged, setWarningLogged] = React.useState(false);
@@ -85,6 +87,7 @@ function SectionHost({
           selectedStore={userInputs.selectedStore}
           onPurchaseChannelChange={(channel) => setUserInputs(prev => ({ ...prev, purchaseChannel: channel, selectedStore: '' }))}
           onSelectedStoreChange={(store) => setUserInputs(prev => ({ ...prev, selectedStore: store }))}
+          pageBackgroundColor={pageBackgroundColor}
         />
       );
     
@@ -1163,6 +1166,7 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
                         campaign={campaign}
                         userInputs={userInputs}
                         setUserInputs={setUserInputs}
+                        pageBackgroundColor={backgroundColor}
                         key={section.id || `s-${idx}`} 
                       />
                     );

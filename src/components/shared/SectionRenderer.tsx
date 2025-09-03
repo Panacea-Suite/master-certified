@@ -30,16 +30,21 @@ interface SectionRendererProps {
   onAuthSuccess?: (params: { user: any; provider: string; marketingOptIn: boolean }) => void;
   onAuthError?: (error: Error) => void;
   onTrackEvent?: (eventName: string, metadata?: any) => void;
+  // Page background color
+  pageBackgroundColor?: string;
 }
 
 export const SectionRenderer: React.FC<SectionRendererProps> = (props) => {
-  const { section } = props;
+  const { section, pageBackgroundColor } = props;
   const { config } = section;
   
   // Full-bleed background wrapper style - only backgrounds here
   const getOuterStyle = () => {
+    // If section has its own background color, use it
+    // Otherwise, inherit from page background (don't set backgroundColor at all to inherit)
+    const sectionBgColor = config.backgroundColor;
     return {
-      backgroundColor: config.backgroundColor || undefined,
+      backgroundColor: sectionBgColor || undefined,
       width: '100%'
     };
   };
