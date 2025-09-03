@@ -126,17 +126,22 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
       // Map and normalize pages from draft
       let mapped: PageData[] = draftPagesRaw.map((page: any, index: number) => {
         const rawSections = page.sections || [];
+        const name = (page.name || '').toString();
+        const isLoginByName = /login|sign\s*in|sign\s*up|signup/i.test(name);
+        const isAuthByName = /product\s*authentication|verification|verify/i.test(name);
         const sections = rawSections.map((s: any, sectionIndex: number) => ({
           ...s,
           order: s.order ?? sectionIndex
         }));
         const hasLoginStep = rawSections.some((s: any) => s.type === 'login_step');
         const hasAuthSection = rawSections.some((s: any) => s.type === 'authentication');
-        let normalizedType: PageData['type'] = page.type as PageData['type'];
-        if (hasLoginStep) {
+        let normalizedType: PageData['type'];
+        if (hasLoginStep || isLoginByName) {
           normalizedType = 'account_creation';
-        } else if ((page.type === 'product_authentication' as any) || hasAuthSection) {
+        } else if ((page.type === 'product_authentication' as any) || hasAuthSection || isAuthByName) {
           normalizedType = 'authentication';
+        } else {
+          normalizedType = (page.type as PageData['type']);
         }
         return {
           ...page,
@@ -500,8 +505,15 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                 return page;
               });
 
-              // Normalize deprecated 'product_authentication' page type to 'authentication'
-              result = result.map((p: any) => p.type === 'product_authentication' ? { ...p, type: 'authentication' } : p);
+              // Normalize page types from system template
+              result = result.map((p: any) => {
+                const name = (p.name || '').toString();
+                const isLoginByName = /login|sign\s*in|sign\s*up|signup/i.test(name);
+                const hasLoginStep = (p.sections || []).some((s: any) => s.type === 'login_step');
+                if (hasLoginStep || isLoginByName) return { ...p, type: 'account_creation' };
+                if (p.type === 'product_authentication') return { ...p, type: 'authentication' };
+                return p;
+              });
 
               // Ensure a dedicated Product Authentication page exists between Login and Thank You
               const hasVerificationPage = result.some((p: any) => p.type === 'authentication' && p.sections.some((s: any) => s.type === 'authentication'));
