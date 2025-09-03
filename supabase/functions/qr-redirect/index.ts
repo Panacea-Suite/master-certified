@@ -192,16 +192,18 @@ Deno.serve(async (req) => {
     // Use the campaign data we fetched
     
     if (campaign) {
-      // Create customer flow URL: https://<app-origin>/#/flow/run?cid=<campaign_id>&qr=<qr_id>&ct=<customer_access_token>
+      // Create customer flow URL with hash routing: https://<app-origin>/#/flow/run?cid=<campaign_id>&qr=<qr_id>&ct=<customer_access_token>
       const appOrigin = Deno.env.get('EDGE_APP_ORIGIN') ?? 'https://7d6ac784-8fa0-4a08-b762-40e95bd7844c.sandbox.lovable.dev'
-      const flowUrl = new URL(`${appOrigin}/#/flow/run`)
       
-      // Add required parameters
-      flowUrl.searchParams.set('cid', campaign.id)
-      flowUrl.searchParams.set('qr', qr.id)
+      // Build URL with query parameters after the hash for React Router
+      const params = new URLSearchParams()
+      params.set('cid', campaign.id)
+      params.set('qr', qr.id)
       if (campaign.customer_access_token) {
-        flowUrl.searchParams.set('ct', campaign.customer_access_token)
+        params.set('ct', campaign.customer_access_token)
       }
+      
+      const flowUrl = `${appOrigin}/#/flow/run?${params.toString()}`
       
       console.log(JSON.stringify({
         resolved_code: code,
