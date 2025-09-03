@@ -356,7 +356,7 @@ export const CustomerFlowRun: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen">
       <CustomerFlowExperience 
         templateData={flowData.flow_config}
         brandData={campaignData?.brands}

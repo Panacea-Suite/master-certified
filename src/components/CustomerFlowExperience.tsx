@@ -702,7 +702,7 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
         className="flex flex-col min-h-screen" 
         style={{ 
           '--device-width-px': '390px',
-          backgroundColor: flow?.flow_config?.theme?.backgroundColor || '#ffffff'
+          backgroundColor: flow?.flow_config?.designConfig?.backgroundColor || '#ffffff'
         } as React.CSSProperties}
       >
         {/* Header */}
@@ -757,7 +757,7 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
             maxWidth: 'var(--device-width-px, 390px)', 
             margin: '0 auto', 
             width: '100%',
-            backgroundColor: flow?.flow_config?.theme?.backgroundColor || '#ffffff'
+            backgroundColor: flow?.flow_config?.designConfig?.backgroundColor || '#ffffff'
           }}>
             <div className="p-4 flex justify-between">
               <Button
@@ -1065,7 +1065,7 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
       brandColors={brandColors}
     >
       {isLoading ? (
-        <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
             <p>Loading verification flow...</p>
@@ -1083,7 +1083,7 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
           // Use the pre-computed sections from top-level useMemo
           const safeSections = sectionBasedFlowSections;
           
-          const backgroundColor = flowConfig?.theme?.backgroundColor || '#ffffff';
+          const backgroundColor = flowConfig?.designConfig?.backgroundColor || '#ffffff';
           const globalHeader = flowConfig?.globalHeader || {
             showHeader: true,
             brandName: '',
@@ -1180,7 +1180,7 @@ const CustomerFlowExperience: React.FC<CustomerFlowExperienceProps> = ({ flowId,
             className="min-h-screen flex flex-col"
             style={{ 
               '--device-width-px': '390px',
-              backgroundColor: flow?.flow_config?.theme?.backgroundColor || '#ffffff'
+              backgroundColor: flow?.flow_config?.designConfig?.backgroundColor || '#ffffff'
             } as React.CSSProperties}
           >
             {/* Legacy flow rendering */}
