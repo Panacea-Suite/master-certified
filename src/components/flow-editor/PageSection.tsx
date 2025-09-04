@@ -16,11 +16,11 @@ import {
   Columns2,
   ChevronDown,
   Layout,
+  User,
   CheckCircle,
   MousePointer,
   Package,
-  Edit2,
-  User
+  FileImage
 } from 'lucide-react';
 
 interface SectionData {
@@ -52,7 +52,8 @@ const sectionIcons = {
   features: CheckCircle,
   cta: MousePointer,
   product_showcase: Package,
-  footer: Layout
+  footer: Layout,
+  documentation: FileImage
 };
 
 export const PageSection: React.FC<PageSectionProps> = ({
@@ -321,6 +322,7 @@ export const PageSection: React.FC<PageSectionProps> = ({
             {section.type === 'divider' && `${config.width || 100}% width`}
             {section.type === 'column' && `${config.layout || '2-col-50-50'} layout`}
             {section.type === 'footer' && `Logo size: ${config.logoSize || 120}px`}
+            {section.type === 'documentation' && `${config.documents?.length || 0} documents`}
           </div>
         </div>
       </Card>

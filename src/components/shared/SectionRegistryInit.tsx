@@ -13,6 +13,7 @@ import {
   ProductShowcaseSection,
   ColumnSection,
   AuthenticationSection,
+  DocumentationSection,
 } from './sections';
 
 // Initialize the section registry with all known section types
@@ -33,6 +34,7 @@ export function initializeSectionRegistry() {
   SectionRegistry.register('product_showcase', ProductShowcaseSection);
   SectionRegistry.register('column', ColumnSection);
   SectionRegistry.register('authentication', AuthenticationSection);
+  SectionRegistry.register('documentation', DocumentationSection);
   
   console.log('🔍 SectionRegistry: Registered section types:', SectionRegistry.getRegisteredTypes());
 }

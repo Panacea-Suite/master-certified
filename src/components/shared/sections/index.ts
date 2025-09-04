@@ -12,3 +12,4 @@ export { FooterSection } from './FooterSection';
 export { ProductShowcaseSection } from './ProductShowcaseSection';
 export { ColumnSection } from './ColumnSection';
 export { AuthenticationSection } from './AuthenticationSection';
+export { DocumentationSection } from './DocumentationSection';

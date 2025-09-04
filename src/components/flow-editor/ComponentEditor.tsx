@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import { Slider } from '@/components/ui/slider';
-import { Trash2, Upload, Edit2, Settings, Bold, Italic, Underline, List, Link, Lock, Unlock } from 'lucide-react';
+import { Trash2, Upload, Edit2, Settings, Bold, Italic, Underline, List, Link, Lock, Unlock, FileText } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { ImageEditor } from '@/components/ImageEditor';
 import { BrandColorPicker } from '@/components/ui/brand-color-picker';
@@ -989,6 +989,135 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
     </div>
   );
 
+  const renderDocumentationEditor = () => {
+    const documents = config.documents || [];
+    
+    const handleDocumentUpload = async (file: File) => {
+      try {
+        const fileName = `documentation/${Date.now()}-${file.name}`;
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('flow-content')
+          .upload(fileName, file, { upsert: true });
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('flow-content')
+          .getPublicUrl(fileName);
+
+        const newDocument = {
+          id: Date.now().toString(),
+          title: file.name.replace(/\.[^/.]+$/, ""),
+          uploadDate: new Date().toISOString(),
+          pdfUrl: publicUrl,
+          description: ''
+        };
+
+        updateConfig('documents', [...documents, newDocument]);
+      } catch (error) {
+        console.error('Failed to upload document:', error);
+      }
+    };
+
+    const handleDocumentUpdate = (documentId: string, updates: any) => {
+      const updatedDocuments = documents.map((doc: any) => 
+        doc.id === documentId ? { ...doc, ...updates } : doc
+      );
+      updateConfig('documents', updatedDocuments);
+    };
+
+    const handleDocumentDelete = (documentId: string) => {
+      const updatedDocuments = documents.filter((doc: any) => doc.id !== documentId);
+      updateConfig('documents', updatedDocuments);
+    };
+
+    return (
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="sectionTitle">Section Title</Label>
+          <Input
+            id="sectionTitle"
+            value={config.title || ''}
+            onChange={(e) => updateConfig('title', e.target.value)}
+            placeholder="Documentation & Testing Results"
+          />
+        </div>
+
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <Label>Documents</Label>
+            <label htmlFor="documentUpload" className="cursor-pointer">
+              <Button type="button" size="sm" asChild>
+                <span>
+                  <Upload className="w-4 h-4 mr-2" />
+                  Upload PDF
+                </span>
+              </Button>
+              <input
+                id="documentUpload"
+                type="file"
+                accept=".pdf"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleDocumentUpload(file);
+                }}
+              />
+            </label>
+          </div>
+
+          {documents.map((document: any, index: number) => (
+            <Card key={document.id} className="p-4">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <Input
+                    value={document.title}
+                    onChange={(e) => handleDocumentUpdate(document.id, { title: e.target.value })}
+                    placeholder="Document title"
+                    className="flex-1 mr-2"
+                  />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleDocumentDelete(document.id)}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label>Document Description</Label>
+                  <Textarea
+                    value={document.description}
+                    onChange={(e) => handleDocumentUpdate(document.id, { description: e.target.value })}
+                    placeholder="Write-up about this document..."
+                    rows={4}
+                    className="text-sm"
+                  />
+                  <div className="text-xs text-muted-foreground">
+                    Use **bold**, *italic*, __underline__, • bullets, [link text](url)
+                  </div>
+                </div>
+                
+                <div className="text-xs text-muted-foreground">
+                  Uploaded: {new Date(document.uploadDate).toLocaleDateString()}
+                </div>
+              </div>
+            </Card>
+          ))}
+
+          {documents.length === 0 && (
+            <div className="text-center py-8 border-2 border-dashed border-muted-foreground/25 rounded-lg">
+              <FileText className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+              <p className="text-sm text-muted-foreground">No documents uploaded yet</p>
+              <p className="text-xs text-muted-foreground">Upload PDF documents to display them</p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-4">
       <Card>
@@ -1018,6 +1147,7 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
             {section.type === 'divider' && renderDividerEditor()}
             {section.type === 'column' && renderColumnEditor()}
             {section.type === 'footer' && renderFooterEditor()}
+            {section.type === 'documentation' && renderDocumentationEditor()}
           </div>
         </CardContent>
         

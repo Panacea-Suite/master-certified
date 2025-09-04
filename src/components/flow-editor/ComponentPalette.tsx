@@ -14,7 +14,8 @@ import {
   Layout,
   User,
   MousePointerClick,
-  Shield
+  Shield,
+  FileImage
 } from 'lucide-react';
 
 interface ComponentPaletteProps {
@@ -37,6 +38,12 @@ const sectionCategories = [
         icon: Image,
         title: 'Image Section',
         description: 'Add images with captions'
+      },
+      {
+        type: 'documentation',
+        icon: FileImage,
+        title: 'Documentation & Testing',
+        description: 'Upload and display PDF documents'
       }
     ]
   },
