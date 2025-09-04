@@ -77,7 +77,7 @@ export const DocumentationSection: React.FC<DocumentationSectionProps> = ({
                       <div className="flex items-center gap-1 mt-1">
                         <Calendar className="w-4 h-4 text-muted-foreground" />
                         <span className="text-sm text-muted-foreground">
-                          {new Date(document.uploadDate).toLocaleDateString()}
+                          {new Date(document.uploadDate).toLocaleDateString('en-GB')}
                         </span>
                       </div>
                     </div>
@@ -111,7 +111,7 @@ export const DocumentationSection: React.FC<DocumentationSectionProps> = ({
                       <div className="space-y-4">
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                           <Calendar className="w-4 h-4" />
-                          Uploaded: {new Date(document.uploadDate).toLocaleDateString()}
+                          Uploaded: {new Date(document.uploadDate).toLocaleDateString('en-GB')}
                         </div>
                         
                         {document.description && (
