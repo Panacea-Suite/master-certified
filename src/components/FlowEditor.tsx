@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import { ImageEditor } from '@/components/ImageEditor';
 import { PageManager } from './flow-editor/PageManager';
 import { ComponentPalette } from './flow-editor/ComponentPalette';
@@ -1242,12 +1243,13 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
           <DialogHeader className="sr-only">
             <DialogTitle>Flow Builder</DialogTitle>
           </DialogHeader>
-        <div className="flex h-[98vh] min-w-0 min-h-0"
+        <ResizablePanelGroup direction="horizontal" className="h-[98vh] min-w-0 min-h-0"
           style={{ '--device-width-px': '390px' } as React.CSSProperties}
         >
           {/* Left Panel - Pages & Components */}
-          <div className="w-80 shrink-0 border-r bg-muted/30 p-4 overflow-y-auto">
-            <div className="space-y-4">
+          <ResizablePanel defaultSize={25} minSize={20}>
+            <div className="h-full border-r bg-muted/30 p-4 overflow-y-auto">
+              <div className="space-y-4">
               <div className="flex items-center gap-2">
                 <Button variant="ghost" size="sm" onClick={onClose}>
                   <ArrowLeft className="h-4 w-4" />
@@ -1465,11 +1467,15 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                     </DndContext>
                   </CollapsibleContent>
                 </Collapsible>}
+              </div>
             </div>
-          </div>
+          </ResizablePanel>
+          
+          <ResizableHandle withHandle />
 
           {/* Middle Panel - Preview */}
-          <div className="flex-1 flex flex-col min-w-0 overflow-hidden max-w-[calc(100vw-640px)]">
+          <ResizablePanel defaultSize={50} minSize={30}>
+            <div className="h-full flex flex-col min-w-0 overflow-hidden">
             <div className="p-4 bg-white border-b">
               <div className="flex items-center justify-center gap-6">
                 <div className="flex items-center gap-2">
@@ -1650,10 +1656,14 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                 </div>
               </ScrollArea>
             </div>
+          </ResizablePanel>
+          
+          <ResizableHandle withHandle />
 
           {/* Right Panel - Section Properties */}
-          <div className="w-80 shrink-0 border-l bg-muted/30 flex flex-col min-h-0 max-h-[98vh]">
-            <div className="flex-1 h-full p-4 overflow-y-auto overflow-x-auto">
+          <ResizablePanel defaultSize={25} minSize={20}>
+            <div className="h-full border-l bg-muted/30 flex flex-col min-h-0">
+              <div className="flex-1 h-full p-4 overflow-y-auto overflow-x-auto">
               {selectedSection ? (
                 <div className="space-y-4 pb-24">
                   <ComponentEditor 
@@ -1696,9 +1706,10 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                   </div>
                 </div>
               )}
+              </div>
             </div>
-          </div>
-        </div>
+          </ResizablePanel>
+        </ResizablePanelGroup>
       </DialogContent>
       
       {/* Test Link Modal */}
