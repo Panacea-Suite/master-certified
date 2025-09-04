@@ -83,6 +83,7 @@ function SectionHost({
     case 'login_step':
     case 'store_selector':
     case 'authentication':
+    case 'documentation':
       return (
         <SectionRenderer
           key={section.id}
