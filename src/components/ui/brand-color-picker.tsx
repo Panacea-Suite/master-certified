@@ -96,16 +96,17 @@ export const BrandColorPicker: React.FC<BrandColorPickerProps> = ({
           <button
             type="button"
             className={cn(
-              "w-full h-8 rounded border-2 border-gray-200 hover:border-gray-300 transition-colors",
+              "w-full h-8 rounded border-2 border-gray-200 hover:border-gray-300 transition-colors cursor-pointer",
               className
             )}
             style={{ backgroundColor: value }}
-            title={`Current color: ${value}`}
+            title={`Click to change color: ${value}`}
+            onClick={() => setIsOpen(true)}
           >
           </button>
         </PopoverTrigger>
         
-        <PopoverContent className="w-64 p-4 bg-background border shadow-lg z-50" align="start">
+        <PopoverContent className="w-64 p-4 bg-background border shadow-lg z-[100] pointer-events-auto" align="start" side="right">
           <div className="space-y-4">
             {/* Color Picker */}
             <div className="space-y-2">
