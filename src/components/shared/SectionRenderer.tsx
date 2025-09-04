@@ -1,6 +1,14 @@
 import React from 'react';
-import { SafeSectionRenderer } from './SectionRegistry';
+import { SafeSectionRenderer, SectionRegistry } from './SectionRegistry';
 import './SectionRegistryInit'; // Auto-initialize registry
+
+// Ensure DocumentationSection is registered explicitly
+import { DocumentationSection } from './sections/DocumentationSection';
+SectionRegistry.register('documentation', DocumentationSection);
+
+// Add debugging to verify registration
+console.log('🔍 SectionRenderer: Available section types:', SectionRegistry.getRegisteredTypes());
+console.log('🔍 SectionRenderer: Documentation registered?', SectionRegistry.isRegistered('documentation'));
 
 interface SectionData {
   id: string;
