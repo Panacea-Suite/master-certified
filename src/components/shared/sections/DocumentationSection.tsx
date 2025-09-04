@@ -63,7 +63,7 @@ export const DocumentationSection: React.FC<DocumentationSectionProps> = ({
       <div className="max-w-4xl mx-auto px-4">
         <h2 className="text-2xl font-bold mb-6 text-center">{sectionTitle}</h2>
         
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4">
           {documents.map((document) => (
             <Card key={document.id} className="hover:shadow-lg transition-shadow cursor-pointer">
               <CardHeader className="pb-3">
