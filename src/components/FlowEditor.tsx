@@ -1652,8 +1652,8 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
             </div>
 
           {/* Right Panel - Section Properties */}
-          <div className="w-80 shrink-0 border-l bg-muted/30 flex flex-col min-h-0">
-            <ScrollArea className="flex-1 h-full p-4 overflow-x-auto">
+          <div className="w-80 shrink-0 border-l bg-muted/30 flex flex-col min-h-0 max-h-[98vh]">
+            <div className="flex-1 h-full p-4 overflow-y-auto overflow-x-auto">
               {selectedSection ? (
                 <div className="space-y-4 pb-24">
                   <ComponentEditor 
@@ -1662,7 +1662,6 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                     brandColors={brandData?.brand_colors}
                     pages={pages?.length ? pages.map(page => ({ id: page.id, name: page.name })) : []}
                   />
-                  
                   {/* Show AuthenticationSubPageManager for authentication sections */}
                   {selectedSection.type === 'authentication' && (
                     <AuthenticationSubPageManager
@@ -1671,7 +1670,6 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                       onUpdateAuthConfig={(authConfig) => {
                         const currentPage = getCurrentPage();
                         if (!currentPage) return;
-                        
                         const updatedPage = {
                           ...currentPage,
                           settings: {
@@ -1679,7 +1677,6 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                             authConfig
                           }
                         };
-                        
                         const updatedPages = pages.map(p => 
                           p.id === currentPage.id ? updatedPage : p
                         );
@@ -1699,7 +1696,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                   </div>
                 </div>
               )}
-            </ScrollArea>
+            </div>
           </div>
         </div>
       </DialogContent>
