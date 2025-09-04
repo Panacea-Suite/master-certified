@@ -1247,8 +1247,8 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
           style={{ '--device-width-px': '390px' } as React.CSSProperties}
         >
           {/* Left Panel - Pages & Components */}
-          <ResizablePanel defaultSize={25} minSize={20}>
-            <div className="h-full border-r bg-muted/30 p-4 overflow-y-auto">
+          <ResizablePanel defaultSize={25} minSize={20} className="flex flex-col">
+            <div className="flex-1 min-h-0 border-r bg-muted/30 p-4 overflow-y-auto">
               <div className="space-y-4">
               <div className="flex items-center gap-2">
                 <Button variant="ghost" size="sm" onClick={onClose}>
@@ -1474,8 +1474,8 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
           <ResizableHandle withHandle />
 
           {/* Middle Panel - Preview */}
-          <ResizablePanel defaultSize={50} minSize={30}>
-            <div className="h-full flex flex-col min-w-0 overflow-hidden">
+          <ResizablePanel defaultSize={50} minSize={30} className="flex flex-col">
+            <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
             <div className="p-4 bg-white border-b">
               <div className="flex items-center justify-center gap-6">
                 <div className="flex items-center gap-2">
@@ -1661,9 +1661,8 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
           <ResizableHandle withHandle />
 
           {/* Right Panel - Section Properties */}
-          <ResizablePanel defaultSize={25} minSize={20}>
-            <div className="h-full border-l bg-muted/30 flex flex-col min-h-0">
-              <div className="flex-1 min-h-0 p-4 overflow-y-auto">
+          <ResizablePanel defaultSize={25} minSize={20} className="flex flex-col">
+            <div className="flex-1 min-h-0 border-l bg-muted/30 p-4 overflow-y-auto">
               {selectedSection ? (
                 <div className="space-y-4 pb-8">
                   <ComponentEditor 
@@ -1706,7 +1705,6 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                   </div>
                 </div>
               )}
-              </div>
             </div>
           </ResizablePanel>
         </ResizablePanelGroup>
