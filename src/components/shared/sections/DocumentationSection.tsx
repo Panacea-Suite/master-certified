@@ -152,21 +152,6 @@ export const DocumentationSection: React.FC<DocumentationSectionProps> = ({
                       </div>
                     </DialogContent>
                   </Dialog>
-                  
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    onClick={() => handleView(document)}
-                  >
-                    <ExternalLink className="w-4 h-4" />
-                  </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    onClick={() => handleDownload(document)}
-                  >
-                    <Download className="w-4 h-4" />
-                  </Button>
                 </div>
               </CardContent>
             </Card>
