@@ -1662,10 +1662,10 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
 
           {/* Right Panel - Section Properties */}
           <ResizablePanel defaultSize={25} minSize={20}>
-            <div className="h-full border-l bg-muted/30 flex flex-col min-h-0">
-              <div className="flex-1 h-full p-4 overflow-y-auto overflow-x-auto">
+            <div className="h-full border-l bg-muted/30 flex flex-col">
+              <div className="flex-1 min-h-0 p-4 overflow-y-auto">
               {selectedSection ? (
-                <div className="space-y-4 pb-24">
+                <div className="space-y-4 pb-8">
                   <ComponentEditor 
                     section={selectedSection} 
                     onUpdate={config => handleUpdateSection(selectedSection.id, config)} 
@@ -1697,7 +1697,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                   )}
                 </div>
               ) : (
-                <div className="text-center py-8 pb-24 text-muted-foreground">
+                <div className="text-center py-8 text-muted-foreground">
                   <div className="space-y-2">
                     <div className="w-12 h-12 rounded-lg bg-muted mx-auto flex items-center justify-center">
                       ⚙️
