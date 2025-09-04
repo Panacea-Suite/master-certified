@@ -1209,6 +1209,36 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
             </div>
           )}
         </div>
+
+        <div className="space-y-4">
+          <Label className="text-sm font-medium">Styling</Label>
+          
+          <div className="space-y-3">
+            <BrandColorPicker
+              label="Title Color"
+              value={config.titleColor || '#000000'}
+              onChange={(color) => updateConfig('titleColor', color)}
+              brandColors={brandColors}
+              id="titleColor"
+            />
+            
+            <BrandColorPicker
+              label="Text Color"
+              value={config.textColor || '#666666'}
+              onChange={(color) => updateConfig('textColor', color)}
+              brandColors={brandColors}
+              id="textColor"
+            />
+            
+            <BrandColorPicker
+              label="Icon Color"
+              value={config.iconColor || '#3b82f6'}
+              onChange={(color) => updateConfig('iconColor', color)}
+              brandColors={brandColors}
+              id="iconColor"
+            />
+          </div>
+        </div>
       </div>
     );
   };

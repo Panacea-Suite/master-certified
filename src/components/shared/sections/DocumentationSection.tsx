@@ -27,6 +27,9 @@ export const DocumentationSection: React.FC<DocumentationSectionProps> = ({
   const config = section?.config || {};
   const documents: Document[] = config.documents || [];
   const sectionTitle = config.title || 'Documentation & Testing Results';
+  const titleColor = config.titleColor || '#000000';
+  const textColor = config.textColor || '#666666';
+  const iconColor = config.iconColor || '#3b82f6';
 
   const handleDownload = (document: Document) => {
     if (document.pdfUrl) {
@@ -44,9 +47,9 @@ export const DocumentationSection: React.FC<DocumentationSectionProps> = ({
     return (
       <div className="py-8 text-center">
         <div className="max-w-md mx-auto">
-          <FileText className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-          <h3 className="text-lg font-semibold mb-2">Documentation & Testing Results</h3>
-          <p className="text-muted-foreground text-sm">
+          <FileText className="w-12 h-12 mx-auto mb-4" style={{ color: iconColor }} />
+          <h3 className="text-lg font-semibold mb-2" style={{ color: titleColor }}>Documentation & Testing Results</h3>
+          <p className="text-sm" style={{ color: textColor }}>
             Add documents in the settings panel to display them here.
           </p>
         </div>
@@ -61,7 +64,7 @@ export const DocumentationSection: React.FC<DocumentationSectionProps> = ({
   return (
     <div className="w-full py-8">
       <div className="max-w-4xl mx-auto px-4">
-        <h2 className="text-2xl font-bold mb-6 text-center">{sectionTitle}</h2>
+        <h2 className="text-2xl font-bold mb-6 text-center" style={{ color: titleColor }}>{sectionTitle}</h2>
         
         <div className="grid gap-4">
           {documents.map((document) => (
@@ -70,13 +73,13 @@ export const DocumentationSection: React.FC<DocumentationSectionProps> = ({
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-primary/10 rounded-md">
-                      <FileText className="w-5 h-5 text-primary" />
+                      <FileText className="w-5 h-5" style={{ color: iconColor }} />
                     </div>
                     <div>
-                      <CardTitle className="text-lg">{document.title}</CardTitle>
+                      <CardTitle className="text-lg" style={{ color: titleColor }}>{document.title}</CardTitle>
                       <div className="flex items-center gap-1 mt-1">
-                        <Calendar className="w-4 h-4 text-muted-foreground" />
-                        <span className="text-sm text-muted-foreground">
+                        <Calendar className="w-4 h-4" style={{ color: textColor }} />
+                        <span className="text-sm" style={{ color: textColor }}>
                           {new Date(document.uploadDate).toLocaleDateString('en-GB')}
                         </span>
                       </div>
@@ -95,22 +98,22 @@ export const DocumentationSection: React.FC<DocumentationSectionProps> = ({
                         size="sm" 
                         onClick={() => setSelectedDocument(document)}
                       >
-                        <ChevronRight className="w-4 h-4 mr-1" />
+                        <ChevronRight className="w-4 h-4 mr-1" style={{ color: iconColor }} />
                         Details
                       </Button>
                     </DialogTrigger>
                     <DialogContent className="max-w-2xl">
                       <DialogHeader>
-                        <DialogTitle className="flex items-center gap-2">
-                          <FileText className="w-5 h-5" />
+                        <DialogTitle className="flex items-center gap-2" style={{ color: titleColor }}>
+                          <FileText className="w-5 h-5" style={{ color: iconColor }} />
                           {document.title}
                         </DialogTitle>
                       </DialogHeader>
                       <DialogDescription className="sr-only">Document details and actions</DialogDescription>
                       
-                      <div className="space-y-4">
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Calendar className="w-4 h-4" />
+                        <div className="space-y-4">
+                        <div className="flex items-center gap-2 text-sm" style={{ color: textColor }}>
+                          <Calendar className="w-4 h-4" style={{ color: iconColor }} />
                           Uploaded: {new Date(document.uploadDate).toLocaleDateString('en-GB')}
                         </div>
                         
@@ -136,7 +139,7 @@ export const DocumentationSection: React.FC<DocumentationSectionProps> = ({
                             onClick={() => handleView(document)}
                             className="flex-1"
                           >
-                            <ExternalLink className="w-4 h-4 mr-2" />
+                            <ExternalLink className="w-4 h-4 mr-2" style={{ color: iconColor }} />
                             View PDF
                           </Button>
                           <Button 
@@ -144,7 +147,7 @@ export const DocumentationSection: React.FC<DocumentationSectionProps> = ({
                             onClick={() => handleDownload(document)}
                             className="flex-1"
                           >
-                            <Download className="w-4 h-4 mr-2" />
+                            <Download className="w-4 h-4 mr-2" style={{ color: iconColor }} />
                             Download
                           </Button>
                         </div>
