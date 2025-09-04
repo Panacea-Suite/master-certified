@@ -996,12 +996,31 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
     
     const handleDocumentUpload = async (file: File) => {
       try {
-        const fileName = `documentation/${Date.now()}-${file.name}`;
+        // Sanitize filename - keep only alphanumeric, spaces, periods, hyphens, and underscores
+        const sanitizeFilename = (filename: string) => {
+          const name = filename.replace(/\.[^/.]+$/, ""); // Remove extension
+          const ext = filename.split('.').pop(); // Get extension
+          const sanitizedName = name
+            .replace(/[^a-zA-Z0-9\s\-_]/g, '') // Remove special chars except spaces, hyphens, underscores
+            .replace(/\s+/g, ' ') // Replace multiple spaces with single space
+            .trim()
+            .substring(0, 50); // Limit to 50 characters
+          return `${sanitizedName}.${ext}`;
+        };
+
+        const sanitizedFilename = sanitizeFilename(file.name);
+        const fileName = `documentation/${Date.now()}-${sanitizedFilename}`;
+        
+        console.log('Uploading file:', { originalName: file.name, sanitizedName: sanitizedFilename, fileName });
+        
         const { data: uploadData, error: uploadError } = await supabase.storage
           .from('flow-content')
           .upload(fileName, file, { upsert: true });
 
-        if (uploadError) throw uploadError;
+        if (uploadError) {
+          console.error('Upload error:', uploadError);
+          throw uploadError;
+        }
 
         const { data: { publicUrl } } = supabase.storage
           .from('flow-content')
@@ -1009,7 +1028,7 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
 
         const newDocument = {
           id: Date.now().toString(),
-          title: file.name.replace(/\.[^/.]+$/, ""),
+          title: file.name.replace(/\.[^/.]+$/, ""), // Use original name for title
           uploadDate: new Date().toISOString(),
           pdfUrl: publicUrl,
           description: '',
@@ -1021,7 +1040,13 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
         toast.success('Document uploaded successfully');
       } catch (error) {
         console.error('Failed to upload document:', error);
-        toast.error('Failed to upload document');
+        if (error.message?.includes('Failed to fetch')) {
+          toast.error('Upload failed. Please check your internet connection and try again.');
+        } else if (error.message?.includes('too large')) {
+          toast.error('File is too large. Please try a smaller file.');
+        } else {
+          toast.error(`Failed to upload document: ${error.message || 'Unknown error'}`);
+        }
       }
     };
 
