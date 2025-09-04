@@ -7,11 +7,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import { Slider } from '@/components/ui/slider';
-import { Trash2, Upload, Edit2, Settings, Bold, Italic, Underline, List, Link, Lock, Unlock, FileText } from 'lucide-react';
+import { Trash2, Upload, Edit2, Settings, Bold, Italic, Underline, List, Link, Lock, Unlock, FileText, Copy, Download, ExternalLink } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { ImageEditor } from '@/components/ImageEditor';
 import { BrandColorPicker } from '@/components/ui/brand-color-picker';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { Badge } from '@/components/ui/badge';
 
 interface SectionData {
   id: string;
@@ -1014,8 +1016,10 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
         };
 
         updateConfig('documents', [...documents, newDocument]);
+        toast.success('Document uploaded successfully');
       } catch (error) {
         console.error('Failed to upload document:', error);
+        toast.error('Failed to upload document');
       }
     };
 
@@ -1026,9 +1030,44 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
       updateConfig('documents', updatedDocuments);
     };
 
-    const handleDocumentDelete = (documentId: string) => {
-      const updatedDocuments = documents.filter((doc: any) => doc.id !== documentId);
-      updateConfig('documents', updatedDocuments);
+    const handleDocumentDelete = async (documentId: string) => {
+      try {
+        // Find the document to get the file path for cleanup
+        const documentToDelete = documents.find((doc: any) => doc.id === documentId);
+        
+        // Remove from config
+        const updatedDocuments = documents.filter((doc: any) => doc.id !== documentId);
+        updateConfig('documents', updatedDocuments);
+        
+        // Optional: Clean up the file from storage
+        if (documentToDelete?.pdfUrl) {
+          const fileName = documentToDelete.pdfUrl.split('/').pop();
+          if (fileName) {
+            await supabase.storage
+              .from('flow-content')
+              .remove([`documentation/${fileName}`]);
+          }
+        }
+        
+        toast.success('Document deleted successfully');
+      } catch (error) {
+        console.error('Failed to delete document:', error);
+        toast.error('Failed to delete document');
+      }
+    };
+
+    const handleDuplicateDocument = (documentId: string) => {
+      const documentToDuplicate = documents.find((doc: any) => doc.id === documentId);
+      if (documentToDuplicate) {
+        const duplicatedDocument = {
+          ...documentToDuplicate,
+          id: Date.now().toString(),
+          title: `${documentToDuplicate.title} (Copy)`,
+          uploadDate: new Date().toISOString()
+        };
+        updateConfig('documents', [...documents, duplicatedDocument]);
+        toast.success('Document duplicated successfully');
+      }
     };
 
     return (
@@ -1045,12 +1084,12 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
 
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <Label>Documents</Label>
+            <Label>Documents ({documents.length})</Label>
             <label htmlFor="documentUpload" className="cursor-pointer">
               <Button type="button" size="sm" asChild>
                 <span>
                   <Upload className="w-4 h-4 mr-2" />
-                  Upload PDF
+                  Add Document
                 </span>
               </Button>
               <input
@@ -1060,37 +1099,71 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
                 className="hidden"
                 onChange={(e) => {
                   const file = e.target.files?.[0];
-                  if (file) handleDocumentUpload(file);
+                  if (file) {
+                    handleDocumentUpload(file);
+                    // Reset input to allow uploading the same file again
+                    e.target.value = '';
+                  }
                 }}
               />
             </label>
           </div>
 
+          {documents.length === 0 && (
+            <div className="text-center py-8 border-2 border-dashed border-muted-foreground/25 rounded-lg">
+              <FileText className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+              <p className="text-sm text-muted-foreground mb-2">No documents uploaded yet</p>
+              <p className="text-xs text-muted-foreground">Click "Add Document" to upload your first PDF</p>
+            </div>
+          )}
+
           {documents.map((document: any, index: number) => (
             <Card key={document.id} className="p-4">
               <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <Input
-                    value={document.title}
-                    onChange={(e) => handleDocumentUpdate(document.id, { title: e.target.value })}
-                    placeholder="Document title"
-                    className="flex-1 mr-2"
-                  />
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleDocumentDelete(document.id)}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
+                <div className="flex items-start justify-between">
+                  <div className="flex-1 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <FileText className="w-4 h-4 text-primary" />
+                      <Badge variant="secondary" className="text-xs">PDF</Badge>
+                      <span className="text-xs text-muted-foreground">
+                        {new Date(document.uploadDate).toLocaleDateString('en-GB')}
+                      </span>
+                    </div>
+                    <Input
+                      value={document.title}
+                      onChange={(e) => handleDocumentUpdate(document.id, { title: e.target.value })}
+                      placeholder="Document title"
+                      className="font-medium"
+                    />
+                  </div>
+                  
+                  <div className="flex items-center gap-1 ml-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDuplicateDocument(document.id)}
+                      title="Duplicate document"
+                    >
+                      <Copy className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDocumentDelete(document.id)}
+                      className="text-destructive hover:text-destructive"
+                      title="Delete document"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
                 
                 <div className="space-y-2">
-                  <Label>Document Description</Label>
+                  <Label className="text-sm">Description & Write-up</Label>
                   <Textarea
                     value={document.description}
                     onChange={(e) => handleDocumentUpdate(document.id, { description: e.target.value })}
-                    placeholder="Write-up about this document..."
+                    placeholder="Write a detailed description of this document. Include key findings, test results, or any important information customers should know..."
                     rows={4}
                     className="text-sm"
                   />
@@ -1099,18 +1172,40 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
                   </div>
                 </div>
                 
-                <div className="text-xs text-muted-foreground">
-                  Uploaded: {new Date(document.uploadDate).toLocaleDateString()}
-                </div>
+                {document.pdfUrl && (
+                  <div className="flex gap-2 pt-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => window.open(document.pdfUrl, '_blank')}
+                      className="flex-1"
+                    >
+                      <ExternalLink className="w-4 h-4 mr-2" />
+                      Preview PDF
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const link = document.createElement('a');
+                        link.href = document.pdfUrl;
+                        link.download = `${document.title}.pdf`;
+                        link.click();
+                      }}
+                      className="flex-1"
+                    >
+                      <Download className="w-4 h-4 mr-2" />
+                      Download
+                    </Button>
+                  </div>
+                )}
               </div>
             </Card>
           ))}
 
-          {documents.length === 0 && (
-            <div className="text-center py-8 border-2 border-dashed border-muted-foreground/25 rounded-lg">
-              <FileText className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
-              <p className="text-sm text-muted-foreground">No documents uploaded yet</p>
-              <p className="text-xs text-muted-foreground">Upload PDF documents to display them</p>
+          {documents.length > 1 && (
+            <div className="text-xs text-muted-foreground text-center pt-2">
+              💡 Tip: Documents will appear in the order shown here. Drag to reorder coming soon!
             </div>
           )}
         </div>
@@ -1126,6 +1221,7 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
             <Settings className="h-4 w-4" />
             {section.type} Section
           </CardTitle>
+        </CardHeader>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-4">
@@ -1319,4 +1415,5 @@ onChange={(e) => {
       )}
     </div>
   );
+};
 };
