@@ -6,6 +6,7 @@ import { FileText, Download, ExternalLink, Calendar, ChevronRight } from 'lucide
 import { SectionRendererProps } from '../SectionRegistry';
 import { useTemplateStyle } from '@/components/TemplateStyleProvider';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
+import { cn } from '@/lib/utils';
 
 interface DocumentationSectionProps extends SectionRendererProps {}
 
@@ -15,6 +16,8 @@ interface Document {
   uploadDate: string;
   pdfUrl: string;
   description: string;
+  simpleDescription: string;
+  scientificDescription: string;
 }
 
 export const DocumentationSection: React.FC<DocumentationSectionProps> = ({
@@ -23,6 +26,7 @@ export const DocumentationSection: React.FC<DocumentationSectionProps> = ({
 }) => {
   const { getTemplateClasses } = useTemplateStyle();
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
+  const [descriptionType, setDescriptionType] = useState<'simple' | 'scientific'>('simple');
   
   const config = section?.config || {};
   const documents: Document[] = config.documents || [];
@@ -117,18 +121,59 @@ export const DocumentationSection: React.FC<DocumentationSectionProps> = ({
                           Uploaded: {new Date(document.uploadDate).toLocaleDateString('en-GB')}
                         </div>
                         
-                        {document.description && (
+                        {/* Description Type Toggle */}
+                        <div className="flex gap-2 p-1 bg-muted rounded-lg">
+                          <button
+                            onClick={() => setDescriptionType('simple')}
+                            className={cn(
+                              "flex-1 px-3 py-2 text-sm font-medium rounded-md transition-colors",
+                              descriptionType === 'simple' 
+                                ? "bg-white shadow-sm text-primary" 
+                                : "text-muted-foreground hover:text-foreground"
+                            )}
+                          >
+                            Simple
+                          </button>
+                          <button
+                            onClick={() => setDescriptionType('scientific')}
+                            className={cn(
+                              "flex-1 px-3 py-2 text-sm font-medium rounded-md transition-colors",
+                              descriptionType === 'scientific' 
+                                ? "bg-white shadow-sm text-primary" 
+                                : "text-muted-foreground hover:text-foreground"
+                            )}
+                          >
+                            Scientific
+                          </button>
+                        </div>
+                        
+                        {/* Description Content */}
+                        {((descriptionType === 'simple' && document.simpleDescription) || 
+                          (descriptionType === 'scientific' && document.scientificDescription) ||
+                          document.description) && (
                           <div className="prose prose-sm max-w-none">
                             <div 
+                              style={{ color: textColor }}
                               dangerouslySetInnerHTML={{ 
-                                __html: document.description
-                                  .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                                  .replace(/\*(.*?)\*/g, '<em>$1</em>')
-                                  .replace(/__(.*?)__/g, '<u>$1</u>')
-                                  .replace(/• (.*?)(?=\n|$)/g, '<li>$1</li>')
-                                  .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
-                                  .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">$1</a>')
-                                  .replace(/\n/g, '<br/>')
+                                __html: (() => {
+                                  let content = '';
+                                  if (descriptionType === 'simple' && document.simpleDescription) {
+                                    content = document.simpleDescription;
+                                  } else if (descriptionType === 'scientific' && document.scientificDescription) {
+                                    content = document.scientificDescription;
+                                  } else {
+                                    content = document.description || '';
+                                  }
+                                  
+                                  return content
+                                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                                    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                                    .replace(/__(.*?)__/g, '<u>$1</u>')
+                                    .replace(/• (.*?)(?=\n|$)/g, '<li>$1</li>')
+                                    .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
+                                    .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">$1</a>')
+                                    .replace(/\n/g, '<br/>');
+                                })()
                               }}
                             />
                           </div>

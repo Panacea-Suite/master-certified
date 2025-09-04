@@ -1012,7 +1012,9 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
           title: file.name.replace(/\.[^/.]+$/, ""),
           uploadDate: new Date().toISOString(),
           pdfUrl: publicUrl,
-          description: ''
+          description: '',
+          simpleDescription: '',
+          scientificDescription: ''
         };
 
         updateConfig('documents', [...documents, newDocument]);
@@ -1159,11 +1161,22 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
                 </div>
                 
                 <div className="space-y-2">
-                  <Label className="text-sm">Description & Write-up</Label>
+                  <Label className="text-sm">Simple Description</Label>
                   <Textarea
-                    value={document.description}
-                    onChange={(e) => handleDocumentUpdate(document.id, { description: e.target.value })}
-                    placeholder="Write a detailed description of this document. Include key findings, test results, or any important information customers should know..."
+                    value={document.simpleDescription || ''}
+                    onChange={(e) => handleDocumentUpdate(document.id, { simpleDescription: e.target.value })}
+                    placeholder="Write a simple, easy-to-understand description for general audiences. Focus on key benefits and basic information..."
+                    rows={3}
+                    className="text-sm"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label className="text-sm">Scientific Description</Label>
+                  <Textarea
+                    value={document.scientificDescription || ''}
+                    onChange={(e) => handleDocumentUpdate(document.id, { scientificDescription: e.target.value })}
+                    placeholder="Write a detailed scientific description with technical terms, methodology, results, and conclusions..."
                     rows={4}
                     className="text-sm"
                   />
