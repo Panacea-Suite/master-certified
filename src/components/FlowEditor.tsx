@@ -1652,8 +1652,8 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
             </div>
 
           {/* Right Panel - Section Properties */}
-          <div className="w-80 shrink-0 border-l bg-muted/30 flex flex-col overflow-hidden">
-            <ScrollArea className="flex-1 p-4">
+          <div className="w-80 shrink-0 border-l bg-muted/30 flex flex-col">
+            <ScrollArea className="flex-1 p-4 overflow-x-auto">
               {selectedSection ? (
                 <div className="space-y-4">
                   <ComponentEditor 
