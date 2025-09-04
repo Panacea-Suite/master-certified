@@ -1242,7 +1242,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
           <DialogHeader className="sr-only">
             <DialogTitle>Flow Builder</DialogTitle>
           </DialogHeader>
-        <div className="flex h-[98vh] min-w-0"
+        <div className="flex h-[98vh] min-w-0 min-h-0"
           style={{ '--device-width-px': '390px' } as React.CSSProperties}
         >
           {/* Left Panel - Pages & Components */}
@@ -1652,10 +1652,10 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
             </div>
 
           {/* Right Panel - Section Properties */}
-          <div className="w-80 shrink-0 border-l bg-muted/30 flex flex-col">
-            <ScrollArea className="flex-1 p-4 overflow-x-auto">
+          <div className="w-80 shrink-0 border-l bg-muted/30 flex flex-col min-h-0">
+            <ScrollArea className="flex-1 h-full p-4 overflow-x-auto">
               {selectedSection ? (
-                <div className="space-y-4">
+                <div className="space-y-4 pb-24">
                   <ComponentEditor 
                     section={selectedSection} 
                     onUpdate={config => handleUpdateSection(selectedSection.id, config)} 
@@ -1690,7 +1690,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                   )}
                 </div>
               ) : (
-                <div className="text-center py-8 text-muted-foreground">
+                <div className="text-center py-8 pb-24 text-muted-foreground">
                   <div className="space-y-2">
                     <div className="w-12 h-12 rounded-lg bg-muted mx-auto flex items-center justify-center">
                       ⚙️
