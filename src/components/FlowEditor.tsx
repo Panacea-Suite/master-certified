@@ -1127,6 +1127,11 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
         showApple: true,
         padding: 4
       },
+      documentation: {
+        title: 'Documentation & Testing Results',
+        documents: [],
+        padding: 4
+      },
     };
     return configs[sectionType as keyof typeof configs] || {
       padding: 4

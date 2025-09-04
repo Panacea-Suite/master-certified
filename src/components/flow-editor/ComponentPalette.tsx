@@ -15,7 +15,7 @@ import {
   User,
   MousePointerClick,
   Shield,
-  FileImage
+  FileText
 } from 'lucide-react';
 
 interface ComponentPaletteProps {
@@ -41,7 +41,7 @@ const sectionCategories = [
       },
       {
         type: 'documentation',
-        icon: FileImage,
+        icon: FileText,
         title: 'Documentation & Testing',
         description: 'Upload and display PDF documents'
       }

@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { FileText, Download, ExternalLink, Calendar, ChevronRight } from 'lucide-react';
 import { SectionRendererProps } from '../SectionRegistry';
 import { useTemplateStyle } from '@/components/TemplateStyleProvider';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
 
 interface DocumentationSectionProps extends SectionRendererProps {}
 
@@ -107,6 +107,7 @@ export const DocumentationSection: React.FC<DocumentationSectionProps> = ({
                           {document.title}
                         </DialogTitle>
                       </DialogHeader>
+                      <DialogDescription className="sr-only">Document details and actions</DialogDescription>
                       
                       <div className="space-y-4">
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">

@@ -20,7 +20,7 @@ import {
   CheckCircle,
   MousePointer,
   Package,
-  FileImage
+  FileText
 } from 'lucide-react';
 
 interface SectionData {
@@ -53,7 +53,7 @@ const sectionIcons = {
   cta: MousePointer,
   product_showcase: Package,
   footer: Layout,
-  documentation: FileImage
+  documentation: FileText
 };
 
 export const PageSection: React.FC<PageSectionProps> = ({
