@@ -1239,14 +1239,14 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
     flow={{ flow_config: { pages, designConfig: { backgroundColor: pageSettings?.backgroundColor } } }}
   >
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-[98vw] max-h-[98vh] overflow-hidden p-0">
+        <DialogContent className="max-w-[98vw] h-[98vh] overflow-hidden p-0">
           <DialogHeader className="sr-only">
             <DialogTitle>Flow Builder</DialogTitle>
           </DialogHeader>
-        <ResizablePanelGroup direction="horizontal" className="h-[98vh]">
+        <ResizablePanelGroup direction="horizontal" className="h-[98vh] min-h-0">
           {/* Left Panel - Pages & Components */}
-          <ResizablePanel defaultSize={25} minSize={20}>
-            <div className="h-full border-r bg-muted/30 overflow-hidden flex flex-col">
+          <ResizablePanel defaultSize={25} minSize={20} className="min-h-0">
+            <div className="h-full min-h-0 border-r bg-muted/30 overflow-hidden flex flex-col">
               <div className="flex-1 p-4 overflow-y-auto">
                 <div className="space-y-4">
               <div className="flex items-center gap-2">
@@ -1663,7 +1663,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
           <ResizableHandle withHandle />
 
           {/* Right Panel - Section Properties */}
-          <ResizablePanel defaultSize={25} minSize={20}>
+          <ResizablePanel defaultSize={25} minSize={20} className="min-h-0">
             <div className="h-full border-l bg-muted/30 overflow-hidden flex flex-col">
               <div className="flex-1 p-4 overflow-y-auto">
                 {selectedSection ? (
