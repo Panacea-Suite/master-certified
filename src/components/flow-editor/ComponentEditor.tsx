@@ -7,10 +7,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import { Slider } from '@/components/ui/slider';
-import { Trash2, Upload, Edit2, Settings, Bold, Italic, Underline, List, Link, Lock, Unlock, FileText, Copy, Download, ExternalLink } from 'lucide-react';
+import { Trash2, Upload, Edit2, Settings, Bold, Italic, Underline, List, Link, Lock, Unlock, FileText, Copy, Download, ExternalLink, Maximize2 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { ImageEditor } from '@/components/ImageEditor';
 import { BrandColorPicker } from '@/components/ui/brand-color-picker';
+import { FullScreenEditor } from '@/components/ui/full-screen-editor';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
@@ -37,6 +38,11 @@ interface ComponentEditorProps {
 export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpdate, brandColors, pages = [] }) => {
   const [showImageEditor, setShowImageEditor] = useState(false);
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
+  const [fullScreenEditor, setFullScreenEditor] = useState<{
+    isOpen: boolean;
+    type: 'simple' | 'scientific';
+    documentId: string;
+  } | null>(null);
   const [aspectRatioLocked, setAspectRatioLocked] = useState(false);
   const [paddingLocked, setPaddingLocked] = useState(false);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
@@ -1186,7 +1192,22 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
                 </div>
                 
                 <div className="space-y-2">
-                  <Label className="text-sm">Simple Description</Label>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm">Simple Description</Label>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setFullScreenEditor({
+                        isOpen: true,
+                        type: 'simple',
+                        documentId: document.id
+                      })}
+                      className="h-7 px-2"
+                    >
+                      <Maximize2 className="w-3 h-3 mr-1" />
+                      Full Screen
+                    </Button>
+                  </div>
                   <Textarea
                     value={document.simpleDescription || ''}
                     onChange={(e) => handleDocumentUpdate(document.id, { simpleDescription: e.target.value })}
@@ -1197,7 +1218,22 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
                 </div>
                 
                 <div className="space-y-2">
-                  <Label className="text-sm">Scientific Description</Label>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm">Scientific Description</Label>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setFullScreenEditor({
+                        isOpen: true,
+                        type: 'scientific',
+                        documentId: document.id
+                      })}
+                      className="h-7 px-2"
+                    >
+                      <Maximize2 className="w-3 h-3 mr-1" />
+                      Full Screen
+                    </Button>
+                  </div>
                   <Textarea
                     value={document.scientificDescription || ''}
                     onChange={(e) => handleDocumentUpdate(document.id, { scientificDescription: e.target.value })}
@@ -1314,6 +1350,45 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
           </div>
         </CardContent>
         
+        {/* Full Screen Editor Modal */}
+        {fullScreenEditor && (() => {
+          const currentDocument = (section.config.documents as any[])?.find(doc => doc.id === fullScreenEditor.documentId);
+          if (!currentDocument) return null;
+          
+          const currentValue = fullScreenEditor.type === 'simple' 
+            ? currentDocument.simpleDescription || ''
+            : currentDocument.scientificDescription || '';
+          
+          const title = fullScreenEditor.type === 'simple' 
+            ? `Simple Description - ${currentDocument.title}`
+            : `Scientific Description - ${currentDocument.title}`;
+          
+          const placeholder = fullScreenEditor.type === 'simple'
+            ? "Write a simple, easy-to-understand description for general audiences. Focus on key benefits and basic information..."
+            : "Write a detailed scientific description with technical terms, methodology, results, and conclusions...";
+          
+          return (
+            <FullScreenEditor
+              isOpen={true}
+              onClose={() => setFullScreenEditor(null)}
+              value={currentValue}
+              onChange={(value) => {
+                const updateField = fullScreenEditor.type === 'simple' 
+                  ? { simpleDescription: value }
+                  : { scientificDescription: value };
+                
+                // Update documents in the config
+                const updatedDocuments = (section.config.documents as any[])?.map((doc: any) => 
+                  doc.id === fullScreenEditor.documentId ? { ...doc, ...updateField } : doc
+                ) || [];
+                updateConfig('documents', updatedDocuments);
+              }}
+              title={title}
+              placeholder={placeholder}
+            />
+          );
+        })()}
+
         {/* Image Editor Modal */}
         {showImageEditor && selectedImageFile && (
           <ImageEditor
