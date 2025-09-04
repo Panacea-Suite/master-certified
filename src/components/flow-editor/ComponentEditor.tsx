@@ -1222,7 +1222,6 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
             {section.type} Section
           </CardTitle>
         </CardHeader>
-        </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-4">
             {section.type !== 'cta' && renderCommonSettings()}
@@ -1415,5 +1414,4 @@ onChange={(e) => {
       )}
     </div>
   );
-};
 };
