@@ -378,6 +378,19 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
           />
         </div>
         
+        {config.caption && (
+          <div className="space-y-2">
+            <BrandColorPicker
+              label="Caption Text Color"
+              value={config.textColor || '#666666'}
+              onChange={(color) => updateConfig('textColor', color)}
+              brandColors={brandColors}
+              showOpacity={true}
+              id="captionTextColor"
+            />
+          </div>
+        )}
+        
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <Label>Dimensions</Label>

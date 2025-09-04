@@ -95,7 +95,10 @@ export const ImageSection: SectionComponent = ({ section, isPreview = false, onS
           </div>
         )}
         {config.caption && (
-          <p className="text-sm text-muted-foreground text-center">
+          <p 
+            className="text-sm text-center"
+            style={{ color: config.textColor || '#666666' }}
+          >
             {config.caption}
           </p>
         )}
