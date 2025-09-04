@@ -148,36 +148,49 @@ export const DocumentationSection: React.FC<DocumentationSectionProps> = ({
                         </div>
                         
                         {/* Description Content */}
-                        {((descriptionType === 'simple' && document.simpleDescription) || 
-                          (descriptionType === 'scientific' && document.scientificDescription) ||
-                          document.description) && (
-                          <div className="prose prose-sm max-w-none">
-                            <div 
-                              style={{ color: textColor }}
-                              dangerouslySetInnerHTML={{ 
-                                __html: (() => {
-                                  let content = '';
-                                  if (descriptionType === 'simple' && document.simpleDescription) {
-                                    content = document.simpleDescription;
-                                  } else if (descriptionType === 'scientific' && document.scientificDescription) {
-                                    content = document.scientificDescription;
-                                  } else {
-                                    content = document.description || '';
+                        {(() => {
+                          let content = '';
+                          if (descriptionType === 'simple' && document.simpleDescription?.trim()) {
+                            content = document.simpleDescription;
+                          } else if (descriptionType === 'scientific' && document.scientificDescription?.trim()) {
+                            content = document.scientificDescription;
+                          } else if (document.description?.trim()) {
+                            content = document.description;
+                          }
+                          
+                          if (!content?.trim()) {
+                            return (
+                              <div className="text-center py-8 text-muted-foreground">
+                                <p className="text-sm">
+                                  {descriptionType === 'simple' 
+                                    ? 'No simple description available. Add one in the Flow Builder settings.'
+                                    : descriptionType === 'scientific'
+                                    ? 'No scientific description available. Add one in the Flow Builder settings.'
+                                    : 'No description available. Add one in the Flow Builder settings.'
                                   }
-                                  
-                                  return content
+                                </p>
+                              </div>
+                            );
+                          }
+
+                          return (
+                            <div className="prose prose-sm max-w-none">
+                              <div 
+                                style={{ color: textColor }}
+                                dangerouslySetInnerHTML={{ 
+                                  __html: content
                                     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
                                     .replace(/\*(.*?)\*/g, '<em>$1</em>')
                                     .replace(/__(.*?)__/g, '<u>$1</u>')
                                     .replace(/• (.*?)(?=\n|$)/g, '<li>$1</li>')
                                     .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
                                     .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">$1</a>')
-                                    .replace(/\n/g, '<br/>');
-                                })()
-                              }}
-                            />
-                          </div>
-                        )}
+                                    .replace(/\n/g, '<br/>')
+                                }}
+                              />
+                            </div>
+                          );
+                        })()}
                         
                         <div className="flex gap-3 pt-4">
                           <Button 
