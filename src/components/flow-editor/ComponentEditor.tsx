@@ -901,99 +901,165 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
     </div>
   );
 
-  const renderProductListingEditor = () => (
-    <div className="space-y-4">
-      <div className="space-y-2">
-        <Label>Product Image</Label>
-        <div className="flex gap-2">
-          <Input
-            type="file"
-            accept="image/*"
-            onChange={handleImageUpload}
-            className="flex-1"
-          />
+  const renderProductListingEditor = () => {
+    const handleProductImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      try {
+        // Generate unique filename
+        const typeToExt: Record<string, string> = {
+          'image/png': 'png',
+          'image/jpeg': 'jpg',
+          'image/webp': 'webp',
+          'image/svg+xml': 'svg',
+        };
+        const detectedExt = typeToExt[file.type] || (file.name.split('.').pop()?.toLowerCase() || 'png');
+        const fileName = `product-images/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${detectedExt}`;
+        
+        // Upload to Supabase storage
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('flow-content')
+          .upload(fileName, file, { upsert: true, cacheControl: '3600' });
+
+        if (uploadError) throw uploadError;
+
+        // Get public URL
+        const { data: { publicUrl } } = supabase.storage
+          .from('flow-content')
+          .getPublicUrl(fileName);
+
+        console.log('Product image uploaded successfully:', publicUrl);
+        updateConfig('productImage', publicUrl);
+        toast('Product image uploaded successfully');
+        
+      } catch (error) {
+        console.error('Failed to upload product image:', error);
+        toast('Failed to upload image. Please try again.');
+      }
+      
+      // Reset input to allow uploading the same file again
+      e.target.value = '';
+    };
+
+    return (
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <Label>Product Image</Label>
+          <div className="flex gap-2">
+            <Input
+              type="file"
+              accept="image/*"
+              onChange={handleProductImageUpload}
+              className="flex-1"
+            />
+            {config.productImage && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => updateConfig('productImage', '')}
+              >
+                Remove
+              </Button>
+            )}
+          </div>
           {config.productImage && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => updateConfig('productImage', '')}
-            >
-              Remove
-            </Button>
+            <div className="mt-2">
+              <img 
+                src={config.productImage} 
+                alt="Product preview" 
+                className="w-20 h-20 object-cover rounded border"
+              />
+            </div>
           )}
         </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="productName">Product Name</Label>
+          <Input
+            id="productName"
+            value={config.productName || ''}
+            onChange={(e) => updateConfig('productName', e.target.value)}
+            placeholder="Enter product name"
+          />
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="productDescription">Description</Label>
+          <Textarea
+            id="productDescription"
+            value={config.productDescription || ''}
+            onChange={(e) => updateConfig('productDescription', e.target.value)}
+            placeholder="Product description"
+            rows={3}
+          />
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="productPrice">Price</Label>
+          <Input
+            id="productPrice"
+            type="number"
+            step="0.01"
+            value={config.productPrice || ''}
+            onChange={(e) => updateConfig('productPrice', e.target.value)}
+            placeholder="0.00"
+          />
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="ctaText">CTA Button Text</Label>
+          <Input
+            id="ctaText"
+            value={config.ctaText || ''}
+            onChange={(e) => updateConfig('ctaText', e.target.value)}
+            placeholder="Buy Now"
+          />
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="ctaLink">CTA Link</Label>
+          <Input
+            id="ctaLink"
+            type="url"
+            value={config.ctaLink || ''}
+            onChange={(e) => updateConfig('ctaLink', e.target.value)}
+            placeholder="https://example.com/product"
+          />
+        </div>
+        
+        <div className="grid grid-cols-2 gap-2">
+          <BrandColorPicker
+            label="Title Color"
+            value={config.titleColor || '#1f2937'}
+            onChange={(color) => updateConfig('titleColor', color)}
+            brandColors={brandColors}
+          />
+          <BrandColorPicker
+            label="Price Color"
+            value={config.priceColor || '#059669'}
+            onChange={(color) => updateConfig('priceColor', color)}
+            brandColors={brandColors}
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-2">
+          <BrandColorPicker
+            label="CTA Background"
+            value={config.ctaBackgroundColor || '#3b82f6'}
+            onChange={(color) => updateConfig('ctaBackgroundColor', color)}
+            brandColors={brandColors}
+          />
+          <BrandColorPicker
+            label="CTA Text Color"
+            value={config.ctaTextColor || 'white'}
+            onChange={(color) => updateConfig('ctaTextColor', color)}
+            brandColors={brandColors}
+          />
+        </div>
       </div>
-      
-      <div className="space-y-2">
-        <Label htmlFor="productName">Product Name</Label>
-        <Input
-          id="productName"
-          value={config.productName || ''}
-          onChange={(e) => updateConfig('productName', e.target.value)}
-          placeholder="Enter product name"
-        />
-      </div>
-      
-      <div className="space-y-2">
-        <Label htmlFor="productDescription">Description</Label>
-        <Textarea
-          id="productDescription"
-          value={config.productDescription || ''}
-          onChange={(e) => updateConfig('productDescription', e.target.value)}
-          placeholder="Product description"
-          rows={3}
-        />
-      </div>
-      
-      <div className="space-y-2">
-        <Label htmlFor="productPrice">Price</Label>
-        <Input
-          id="productPrice"
-          type="number"
-          step="0.01"
-          value={config.productPrice || ''}
-          onChange={(e) => updateConfig('productPrice', e.target.value)}
-          placeholder="0.00"
-        />
-      </div>
-      
-      <div className="space-y-2">
-        <Label htmlFor="ctaText">CTA Button Text</Label>
-        <Input
-          id="ctaText"
-          value={config.ctaText || ''}
-          onChange={(e) => updateConfig('ctaText', e.target.value)}
-          placeholder="Buy Now"
-        />
-      </div>
-      
-      <div className="space-y-2">
-        <Label htmlFor="ctaLink">CTA Link</Label>
-        <Input
-          id="ctaLink"
-          type="url"
-          value={config.ctaLink || ''}
-          onChange={(e) => updateConfig('ctaLink', e.target.value)}
-          placeholder="https://example.com/product"
-        />
-      </div>
-      
-      <div className="grid grid-cols-2 gap-2">
-        <BrandColorPicker
-          label="Title Color"
-          value={config.titleColor || '#1f2937'}
-          onChange={(color) => updateConfig('titleColor', color)}
-          brandColors={brandColors}
-        />
-        <BrandColorPicker
-          label="Price Color"
-          value={config.priceColor || '#059669'}
-          onChange={(color) => updateConfig('priceColor', color)}
-          brandColors={brandColors}
-        />
-      </div>
-    </div>
-  );
+    );
+  };
 
   const renderProductShowcaseEditor = () => (
     <div className="space-y-4">
