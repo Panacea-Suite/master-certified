@@ -15,7 +15,8 @@ import {
   User,
   MousePointerClick,
   Shield,
-  FileText
+  FileText,
+  ShoppingBag
 } from 'lucide-react';
 
 interface ComponentPaletteProps {
@@ -44,6 +45,12 @@ const sectionCategories = [
         icon: FileText,
         title: 'Documentation & Testing',
         description: 'Upload and display PDF documents'
+      },
+      {
+        type: 'product_listing',
+        icon: ShoppingBag,
+        title: 'Product Listing',
+        description: 'Showcase products with image, details, and CTA'
       }
     ]
   },

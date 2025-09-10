@@ -10,6 +10,7 @@ export { DividerSection } from './DividerSection';
 export { LoginStepSection } from './LoginStepSection';
 export { FooterSection } from './FooterSection';
 export { ProductShowcaseSection } from './ProductShowcaseSection';
+export { ProductListingSection } from './ProductListingSection';
 export { ColumnSection } from './ColumnSection';
 export { AuthenticationSection } from './AuthenticationSection';
 export { DocumentationSection } from './DocumentationSection';

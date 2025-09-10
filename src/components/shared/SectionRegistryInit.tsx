@@ -11,6 +11,7 @@ import {
   LoginStepSection,
   FooterSection,
   ProductShowcaseSection,
+  ProductListingSection,
   ColumnSection,
   AuthenticationSection,
   DocumentationSection,
@@ -32,6 +33,7 @@ export function initializeSectionRegistry() {
   SectionRegistry.register('login_step', LoginStepSection);
   SectionRegistry.register('footer', FooterSection);
   SectionRegistry.register('product_showcase', ProductShowcaseSection);
+  SectionRegistry.register('product_listing', ProductListingSection);
   SectionRegistry.register('column', ColumnSection);
   SectionRegistry.register('authentication', AuthenticationSection);
   SectionRegistry.register('documentation', DocumentationSection);

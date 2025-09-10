@@ -699,6 +699,8 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
         return renderFeaturesEditor();
       case 'product-showcase':
         return renderProductShowcaseEditor();
+      case 'product_listing':
+        return renderProductListingEditor();
       case 'footer':
         return renderFooterEditor();
       default:
@@ -895,6 +897,100 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
             <SelectItem value="lg">Large</SelectItem>
           </SelectContent>
         </Select>
+      </div>
+    </div>
+  );
+
+  const renderProductListingEditor = () => (
+    <div className="space-y-4">
+      <div className="space-y-2">
+        <Label>Product Image</Label>
+        <div className="flex gap-2">
+          <Input
+            type="file"
+            accept="image/*"
+            onChange={handleImageUpload}
+            className="flex-1"
+          />
+          {config.productImage && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => updateConfig('productImage', '')}
+            >
+              Remove
+            </Button>
+          )}
+        </div>
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="productName">Product Name</Label>
+        <Input
+          id="productName"
+          value={config.productName || ''}
+          onChange={(e) => updateConfig('productName', e.target.value)}
+          placeholder="Enter product name"
+        />
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="productDescription">Description</Label>
+        <Textarea
+          id="productDescription"
+          value={config.productDescription || ''}
+          onChange={(e) => updateConfig('productDescription', e.target.value)}
+          placeholder="Product description"
+          rows={3}
+        />
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="productPrice">Price</Label>
+        <Input
+          id="productPrice"
+          type="number"
+          step="0.01"
+          value={config.productPrice || ''}
+          onChange={(e) => updateConfig('productPrice', e.target.value)}
+          placeholder="0.00"
+        />
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="ctaText">CTA Button Text</Label>
+        <Input
+          id="ctaText"
+          value={config.ctaText || ''}
+          onChange={(e) => updateConfig('ctaText', e.target.value)}
+          placeholder="Buy Now"
+        />
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="ctaLink">CTA Link</Label>
+        <Input
+          id="ctaLink"
+          type="url"
+          value={config.ctaLink || ''}
+          onChange={(e) => updateConfig('ctaLink', e.target.value)}
+          placeholder="https://example.com/product"
+        />
+      </div>
+      
+      <div className="grid grid-cols-2 gap-2">
+        <BrandColorPicker
+          label="Title Color"
+          value={config.titleColor || '#1f2937'}
+          onChange={(color) => updateConfig('titleColor', color)}
+          brandColors={brandColors}
+        />
+        <BrandColorPicker
+          label="Price Color"
+          value={config.priceColor || '#059669'}
+          onChange={(color) => updateConfig('priceColor', color)}
+          brandColors={brandColors}
+        />
       </div>
     </div>
   );

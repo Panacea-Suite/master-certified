@@ -76,6 +76,7 @@ function SectionHost({
     case 'features':
     case 'cta':
     case 'product-showcase':
+    case 'product_listing':
     case 'divider':
     case 'column':
     case 'footer':
