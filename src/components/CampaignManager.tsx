@@ -263,6 +263,7 @@ const CampaignManager = () => {
   const [showTokenManager, setShowTokenManager] = useState(false);
   const [selectedCampaignForBatches, setSelectedCampaignForBatches] = useState<Campaign | null>(null);
   const [selectedCampaignForFlows, setSelectedCampaignForFlows] = useState<Campaign | null>(null);
+  const [selectedCampaignForSettings, setSelectedCampaignForSettings] = useState<Campaign | null>(null);
   const { currentBrand, availableBrands, isLoading: brandLoading, refreshBrands } = useBrandContext();
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
@@ -409,6 +410,79 @@ const CampaignManager = () => {
     );
   }
 
+  if (selectedCampaignForSettings) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">Campaign Settings</h1>
+            <p className="text-muted-foreground mt-2">Campaign: {selectedCampaignForSettings.name}</p>
+          </div>
+          <Button variant="outline" onClick={() => setSelectedCampaignForSettings(null)}>
+            Back to Campaigns
+          </Button>
+        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Campaign Configuration</CardTitle>
+            <CardDescription>
+              Manage your campaign settings, approved stores, and access configuration.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid gap-4">
+              <div>
+                <Label htmlFor="campaign-name">Campaign Name</Label>
+                <Input 
+                  id="campaign-name"
+                  value={selectedCampaignForSettings.name}
+                  disabled
+                />
+              </div>
+              <div>
+                <Label htmlFor="campaign-description">Description</Label>
+                <Textarea 
+                  id="campaign-description"
+                  value={selectedCampaignForSettings.description || ''}
+                  disabled
+                />
+              </div>
+              <div>
+                <Label>Approved Stores</Label>
+                <div className="flex gap-2 flex-wrap mt-2">
+                  {selectedCampaignForSettings.approved_stores?.map((store, index) => (
+                    <Badge key={index} variant="secondary">
+                      {store}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <Label htmlFor="access-token">Customer Access Token</Label>
+                <Input 
+                  id="access-token"
+                  value={selectedCampaignForSettings.customer_access_token}
+                  disabled
+                />
+              </div>
+              <div>
+                <Label htmlFor="redirect-url">Final Redirect URL</Label>
+                <Input 
+                  id="redirect-url"
+                  value={selectedCampaignForSettings.final_redirect_url || 'Not set'}
+                  disabled
+                />
+              </div>
+            </div>
+            <div className="pt-4 text-sm text-muted-foreground">
+              Campaign settings editing will be available in a future update.
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   if (selectedCampaignForBatches) {
     return (
       <CampaignBatchView
@@ -544,9 +618,13 @@ const CampaignManager = () => {
                      <Settings2 className="w-4 h-4 mr-2" />
                      Manage Flows
                    </Button>
-                  <Button variant="outline">
-                    Campaign Settings
-                  </Button>
+                   <Button 
+                     variant="outline"
+                     onClick={() => setSelectedCampaignForSettings(campaign)}
+                   >
+                     <Settings2 className="w-4 h-4 mr-2" />
+                     Campaign Settings
+                   </Button>
                 </div>
               </CardContent>
             </Card>
