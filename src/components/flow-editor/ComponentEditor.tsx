@@ -902,66 +902,81 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
   );
 
   const renderProductListingEditor = () => {
-    const handleProductImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (!file) return;
-
-      try {
-        // Generate unique filename
-        const typeToExt: Record<string, string> = {
-          'image/png': 'png',
-          'image/jpeg': 'jpg',
-          'image/webp': 'webp',
-          'image/svg+xml': 'svg',
-        };
-        const detectedExt = typeToExt[file.type] || (file.name.split('.').pop()?.toLowerCase() || 'png');
-        const fileName = `product-images/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${detectedExt}`;
-        
-        // Upload to Supabase storage
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('flow-content')
-          .upload(fileName, file, { upsert: true, cacheControl: '3600' });
-
-        if (uploadError) throw uploadError;
-
-        // Get public URL
-        const { data: { publicUrl } } = supabase.storage
-          .from('flow-content')
-          .getPublicUrl(fileName);
-
-        console.log('Product image uploaded successfully:', publicUrl);
-        updateConfig('productImage', publicUrl);
-        toast('Product image uploaded successfully');
-        
-      } catch (error) {
-        console.error('Failed to upload product image:', error);
-        toast('Failed to upload image. Please try again.');
-      }
-      
-      // Reset input to allow uploading the same file again
-      e.target.value = '';
-    };
-
     return (
       <div className="space-y-4">
         <div className="space-y-2">
-          <Label>Product Image</Label>
+          <Label htmlFor="productImageUrl">Product Image URL</Label>
           <div className="flex gap-2">
             <Input
-              type="file"
-              accept="image/*"
-              onChange={handleProductImageUpload}
+              id="productImageUrl"
+              type="url"
+              value={config.productImage || ''}
+              onChange={(e) => updateConfig('productImage', e.target.value)}
+              placeholder="https://example.com/product-image.jpg"
               className="flex-1"
             />
             {config.productImage && (
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => updateConfig('productImage', '')}
+                data-edit-image={section.id}
+                onClick={() => {
+                  // Convert existing image URL to file for editing
+                  fetch(config.productImage)
+                    .then(res => res.blob())
+                    .then(blob => {
+                      const file = new File([blob], 'product-image.jpg', { type: blob.type });
+                      setSelectedImageFile(file);
+                      setShowImageEditor(true);
+                    })
+                    .catch(() => {
+                      // Fallback: open file picker
+                      const input = document.createElement('input');
+                      input.type = 'file';
+                      input.accept = 'image/*';
+                      input.onchange = (e) => {
+                        const file = (e.target as HTMLInputElement).files?.[0];
+                        if (file) {
+                          setSelectedImageFile(file);
+                          setShowImageEditor(true);
+                        }
+                      };
+                      input.click();
+                    });
+                }}
               >
-                Remove
+                <Edit2 className="h-4 w-4" />
+                Edit
               </Button>
             )}
+          </div>
+        </div>
+        
+        <div className="space-y-2">
+          <Label>Upload & Edit Product Image</Label>
+          <div className="flex items-center justify-center w-full">
+            <label htmlFor="productImageUpload" className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-muted-foreground/25 rounded-lg cursor-pointer hover:bg-muted/50">
+              <div className="flex flex-col items-center justify-center">
+                <Upload className="w-8 h-8 mb-2 text-muted-foreground" />
+                <p className="text-sm text-muted-foreground text-center">
+                  <span className="font-semibold">Click to upload & edit</span><br />
+                  PNG, JPG (MAX. 5MB)
+                </p>
+              </div>
+              <input
+                id="productImageUpload"
+                type="file"
+                className="hidden"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    setSelectedImageFile(file);
+                    setShowImageEditor(true);
+                  }
+                }}
+              />
+            </label>
           </div>
           {config.productImage && (
             <div className="mt-2">
@@ -1027,6 +1042,9 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
             placeholder="https://example.com/product"
           />
         </div>
+
+        {renderDropShadowSettings()}
+        {renderSpacingSettings()}
         
         <div className="grid grid-cols-2 gap-2">
           <BrandColorPicker
@@ -1054,6 +1072,21 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
             label="CTA Text Color"
             value={config.ctaTextColor || 'white'}
             onChange={(color) => updateConfig('ctaTextColor', color)}
+            brandColors={brandColors}
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-2">
+          <BrandColorPicker
+            label="Background Color"
+            value={config.backgroundColor || '#ffffff'}
+            onChange={(color) => updateConfig('backgroundColor', color)}
+            brandColors={brandColors}
+          />
+          <BrandColorPicker
+            label="Border Color"
+            value={config.borderColor || '#e2e8f0'}
+            onChange={(color) => updateConfig('borderColor', color)}
             brandColors={brandColors}
           />
         </div>
@@ -1598,7 +1631,11 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
                   .getPublicUrl(fileName);
 
                 console.log('Flow image uploaded successfully:', publicUrl);
-                updateConfig('imageUrl', publicUrl);
+                if (section.type === 'product_listing') {
+                  updateConfig('productImage', publicUrl);
+                } else {
+                  updateConfig('imageUrl', publicUrl);
+                }
                 
               } catch (error) {
                 console.error('Failed to upload image:', error);
@@ -1606,7 +1643,11 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
                 const reader = new FileReader();
                 reader.onload = (e) => {
                   const dataUrl = e.target?.result as string;
-                  updateConfig('imageUrl', dataUrl);
+                  if (section.type === 'product_listing') {
+                    updateConfig('productImage', dataUrl);
+                  } else {
+                    updateConfig('imageUrl', dataUrl);
+                  }
                 };
                 reader.readAsDataURL(editedFile);
               }
