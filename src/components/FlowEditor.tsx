@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, closestCenter, pointerWithin, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -657,7 +657,10 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
   }, []);
   const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
+    console.log('🔍 DragEnd:', { activeId: active.id, overId: over?.id });
+    
     if (!over) {
+      console.log('🔍 No over target, cancelling drag');
       setActiveId(null);
       return;
     }
@@ -671,7 +674,10 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
       const oldIndex = sorted.findIndex((item) => item.id === active.id);
       const newIndex = sorted.findIndex((item) => item.id === over.id);
 
+      console.log('🔍 Drag indices:', { oldIndex, newIndex, sortedLength: sorted.length });
+
       if (oldIndex === -1 || newIndex === -1) {
+        console.log('🔍 Invalid indices, cancelling');
         setActiveId(null);
         return;
       }
@@ -682,6 +688,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
         order: index,
       }));
 
+      console.log('🔍 Updating sections:', updatedSections.map(s => ({ id: s.id, order: s.order })));
       updateCurrentPageSections(updatedSections);
     }
     setActiveId(null);
@@ -1478,7 +1485,13 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                     </Button>
                   </CollapsibleTrigger>
                   <CollapsibleContent className="space-y-2 pt-2">
-                    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd} modifiers={[restrictToVerticalAxis]}>
+                    <DndContext 
+                      sensors={sensors} 
+                      collisionDetection={pointerWithin} 
+                      onDragStart={handleDragStart} 
+                      onDragEnd={handleDragEnd} 
+                      modifiers={[restrictToVerticalAxis]}
+                    >
                       <SortableContext
                         items={currentPage.sections.slice().sort((a, b) => a.order - b.order).map((s) => s.id)}
                         strategy={verticalListSortingStrategy}
