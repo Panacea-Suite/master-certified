@@ -41,7 +41,6 @@ const CampaignSettingsView: React.FC<{
   const [formData, setFormData] = useState({
     name: campaign.name,
     description: campaign.description || '',
-    final_redirect_url: campaign.final_redirect_url || '',
     approved_stores: campaign.approved_stores || []
   });
   const [newStore, setNewStore] = useState('');
@@ -55,7 +54,6 @@ const CampaignSettingsView: React.FC<{
         .update({
           name: formData.name,
           description: formData.description,
-          final_redirect_url: formData.final_redirect_url || null,
           approved_stores: formData.approved_stores,
           updated_at: new Date().toISOString()
         })
@@ -147,20 +145,6 @@ const CampaignSettingsView: React.FC<{
                 placeholder="Describe your campaign"
                 rows={3}
               />
-            </div>
-            
-            <div>
-              <Label htmlFor="redirect-url">Final Redirect URL</Label>
-              <Input 
-                id="redirect-url"
-                value={formData.final_redirect_url}
-                onChange={(e) => setFormData(prev => ({ ...prev, final_redirect_url: e.target.value }))}
-                placeholder="https://example.com/thank-you"
-                type="url"
-              />
-              <p className="text-sm text-muted-foreground mt-1">
-                URL where customers will be redirected after completing the flow
-              </p>
             </div>
             
             <div>
