@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Plus, Edit, Trash2, Eye, Store, Settings2 } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, Store, Settings2, X, Save } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useBrandContext } from '@/contexts/BrandContext';
 import CampaignWizard from './CampaignWizard';
@@ -30,6 +30,192 @@ interface Campaign {
     name: string;
   };
 }
+
+// Campaign Settings View Component
+const CampaignSettingsView: React.FC<{ 
+  campaign: Campaign; 
+  onBack: () => void;
+  onUpdate: (campaign: Campaign) => void;
+}> = ({ campaign, onBack, onUpdate }) => {
+  const { toast } = useToast();
+  const [formData, setFormData] = useState({
+    name: campaign.name,
+    description: campaign.description || '',
+    final_redirect_url: campaign.final_redirect_url || '',
+    approved_stores: campaign.approved_stores || []
+  });
+  const [newStore, setNewStore] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSave = async () => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('campaigns')
+        .update({
+          name: formData.name,
+          description: formData.description,
+          final_redirect_url: formData.final_redirect_url || null,
+          approved_stores: formData.approved_stores,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', campaign.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      const updatedCampaign = { ...campaign, ...data };
+      onUpdate(updatedCampaign);
+      
+      toast({
+        title: "Success",
+        description: "Campaign settings updated successfully",
+      });
+    } catch (error) {
+      console.error('Error updating campaign:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update campaign settings",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const addStore = () => {
+    if (newStore.trim() && !formData.approved_stores.includes(newStore.trim())) {
+      setFormData(prev => ({
+        ...prev,
+        approved_stores: [...prev.approved_stores, newStore.trim()]
+      }));
+      setNewStore('');
+    }
+  };
+
+  const removeStore = (storeToRemove: string) => {
+    setFormData(prev => ({
+      ...prev,
+      approved_stores: prev.approved_stores.filter(store => store !== storeToRemove)
+    }));
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Campaign Settings</h1>
+          <p className="text-muted-foreground mt-2">Campaign: {campaign.name}</p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={onBack}>
+            Back to Campaigns
+          </Button>
+          <Button onClick={handleSave} disabled={isLoading}>
+            <Save className="w-4 h-4 mr-2" />
+            {isLoading ? 'Saving...' : 'Save Changes'}
+          </Button>
+        </div>
+      </div>
+      
+      <Card>
+        <CardHeader>
+          <CardTitle>Campaign Configuration</CardTitle>
+          <CardDescription>
+            Manage your campaign settings, approved stores, and access configuration.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="grid gap-4">
+            <div>
+              <Label htmlFor="campaign-name">Campaign Name</Label>
+              <Input 
+                id="campaign-name"
+                value={formData.name}
+                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                placeholder="Enter campaign name"
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="campaign-description">Description</Label>
+              <Textarea 
+                id="campaign-description"
+                value={formData.description}
+                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="Describe your campaign"
+                rows={3}
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="redirect-url">Final Redirect URL</Label>
+              <Input 
+                id="redirect-url"
+                value={formData.final_redirect_url}
+                onChange={(e) => setFormData(prev => ({ ...prev, final_redirect_url: e.target.value }))}
+                placeholder="https://example.com/thank-you"
+                type="url"
+              />
+              <p className="text-sm text-muted-foreground mt-1">
+                URL where customers will be redirected after completing the flow
+              </p>
+            </div>
+            
+            <div>
+              <Label>Approved Stores</Label>
+              <div className="space-y-3">
+                <div className="flex gap-2">
+                  <Input 
+                    value={newStore}
+                    onChange={(e) => setNewStore(e.target.value)}
+                    placeholder="Add a store name"
+                    onKeyPress={(e) => e.key === 'Enter' && addStore()}
+                  />
+                  <Button type="button" onClick={addStore} variant="outline">
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </div>
+                
+                <div className="flex gap-2 flex-wrap">
+                  {formData.approved_stores.map((store, index) => (
+                    <Badge key={index} variant="secondary" className="flex items-center gap-1">
+                      {store}
+                      <X 
+                        className="w-3 h-3 cursor-pointer hover:text-destructive" 
+                        onClick={() => removeStore(store)}
+                      />
+                    </Badge>
+                  ))}
+                </div>
+                
+                {formData.approved_stores.length === 0 && (
+                  <p className="text-sm text-muted-foreground">
+                    No approved stores added yet. Add stores where this campaign can be used.
+                  </p>
+                )}
+              </div>
+            </div>
+            
+            <div>
+              <Label htmlFor="access-token">Customer Access Token</Label>
+              <Input 
+                id="access-token"
+                value={campaign.customer_access_token}
+                disabled
+                className="bg-muted"
+              />
+              <p className="text-sm text-muted-foreground mt-1">
+                This token is auto-generated and cannot be edited directly. Use the Access Token Manager to regenerate.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
 
 // Focused view to manage the flow attached to a specific campaign
 const CampaignFlowsView: React.FC<{ campaign: Campaign; onBack: () => void }> = ({ campaign, onBack }) => {
@@ -412,74 +598,16 @@ const CampaignManager = () => {
 
   if (selectedCampaignForSettings) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">Campaign Settings</h1>
-            <p className="text-muted-foreground mt-2">Campaign: {selectedCampaignForSettings.name}</p>
-          </div>
-          <Button variant="outline" onClick={() => setSelectedCampaignForSettings(null)}>
-            Back to Campaigns
-          </Button>
-        </div>
-        <Card>
-          <CardHeader>
-            <CardTitle>Campaign Configuration</CardTitle>
-            <CardDescription>
-              Manage your campaign settings, approved stores, and access configuration.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-4">
-              <div>
-                <Label htmlFor="campaign-name">Campaign Name</Label>
-                <Input 
-                  id="campaign-name"
-                  value={selectedCampaignForSettings.name}
-                  disabled
-                />
-              </div>
-              <div>
-                <Label htmlFor="campaign-description">Description</Label>
-                <Textarea 
-                  id="campaign-description"
-                  value={selectedCampaignForSettings.description || ''}
-                  disabled
-                />
-              </div>
-              <div>
-                <Label>Approved Stores</Label>
-                <div className="flex gap-2 flex-wrap mt-2">
-                  {selectedCampaignForSettings.approved_stores?.map((store, index) => (
-                    <Badge key={index} variant="secondary">
-                      {store}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <Label htmlFor="access-token">Customer Access Token</Label>
-                <Input 
-                  id="access-token"
-                  value={selectedCampaignForSettings.customer_access_token}
-                  disabled
-                />
-              </div>
-              <div>
-                <Label htmlFor="redirect-url">Final Redirect URL</Label>
-                <Input 
-                  id="redirect-url"
-                  value={selectedCampaignForSettings.final_redirect_url || 'Not set'}
-                  disabled
-                />
-              </div>
-            </div>
-            <div className="pt-4 text-sm text-muted-foreground">
-              Campaign settings editing will be available in a future update.
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <CampaignSettingsView
+        campaign={selectedCampaignForSettings}
+        onBack={() => setSelectedCampaignForSettings(null)}
+        onUpdate={(updatedCampaign) => {
+          setCampaigns(prev => 
+            prev.map(c => c.id === updatedCampaign.id ? updatedCampaign : c)
+          );
+          setSelectedCampaignForSettings(updatedCampaign);
+        }}
+      />
     );
   }
 
