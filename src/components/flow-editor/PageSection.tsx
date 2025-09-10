@@ -52,6 +52,7 @@ const sectionIcons = {
   features: CheckCircle,
   cta: MousePointer,
   product_showcase: Package,
+  product_listing: Package,
   footer: Layout,
   documentation: FileText
 };
@@ -315,6 +316,7 @@ export const PageSection: React.FC<PageSectionProps> = ({
             {section.type === 'features' && `${config.items?.length || 0} features`}
             {section.type === 'cta' && (config.text || 'CTA button')}
             {section.type === 'product_showcase' && (config.caption || 'Product showcase')}
+            {section.type === 'product_listing' && (config.productName || 'Product listing')}
             {section.type === 'text' && (config.content ? `"${config.content.substring(0, 30)}..."` : 'No content')}
             {section.type === 'image' && (config.imageUrl ? 'Image set' : 'No image')}
             {section.type === 'store_selector' && (config.label || 'Store selector')}

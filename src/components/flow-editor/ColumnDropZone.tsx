@@ -98,6 +98,34 @@ export const ColumnDropZone: React.FC<ColumnDropZoneProps> = ({
           </div>
         );
         
+      case 'product_listing':
+        return (
+          <div className={`product-listing-section ${paddingClass}`}>
+            <div className="space-y-2">
+              {config.imageUrl ? (
+                <img 
+                  src={config.imageUrl} 
+                  alt={config.productName || 'Product image'}
+                  className="w-full h-auto rounded"
+                  style={{ maxHeight: '200px' }}
+                />
+              ) : (
+                <div className="w-full h-20 bg-muted rounded flex items-center justify-center">
+                  <div className="text-center text-muted-foreground">
+                    <Plus className="h-4 w-4 mx-auto mb-1" />
+                    <p className="text-xs">Product image</p>
+                  </div>
+                </div>
+              )}
+              <div className="space-y-1">
+                <h3 className="font-semibold text-sm">{config.productName || 'Product Name'}</h3>
+                <p className="text-xs text-muted-foreground">{config.description || 'Product description'}</p>
+                <p className="font-medium text-sm">${config.price || '0.00'}</p>
+              </div>
+            </div>
+          </div>
+        );
+        
       case 'divider':
         return (
           <div className={`divider-section ${paddingClass}`} style={{ backgroundColor: config.backgroundColor || 'transparent' }}>
