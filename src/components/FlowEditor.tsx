@@ -1142,6 +1142,22 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
         documents: [],
         padding: 4
       },
+      product_listing: {
+        productName: 'Product Name',
+        productDescription: 'Product description goes here...',
+        productPrice: '29.99',
+        productImage: '',
+        ctaText: 'Buy Now',
+        ctaLink: '',
+        ctaBackgroundColor: brandData?.brand_colors?.primary || '#3b82f6',
+        ctaTextColor: '#ffffff',
+        titleColor: '#1f2937',
+        descriptionColor: '#6b7280',
+        priceColor: '#059669',
+        backgroundColor: '#ffffff',
+        borderColor: '#e2e8f0',
+        padding: 4
+      }
     };
     return configs[sectionType as keyof typeof configs] || {
       padding: 4
