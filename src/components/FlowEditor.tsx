@@ -656,23 +656,32 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
     setActiveId(event.active.id as string);
   }, []);
   const handleDragEnd = useCallback((event: DragEndEvent) => {
-    const {
-      active,
-      over
-    } = event;
-    if (active.id !== over?.id) {
+    const { active, over } = event;
+    if (!over) {
+      setActiveId(null);
+      return;
+    }
+
+    if (active.id !== over.id) {
       const currentPage = getCurrentPage();
       if (!currentPage) return;
-      const sections = currentPage.sections;
-      const oldIndex = sections.findIndex(item => item.id === active.id);
-      const newIndex = sections.findIndex(item => item.id === over?.id);
-      const reorderedItems = arrayMove(sections, oldIndex, newIndex);
 
-      // Update order indices and update the current page
+      // Always compute indices based on the same sorted order used for rendering
+      const sorted = [...currentPage.sections].sort((a, b) => a.order - b.order);
+      const oldIndex = sorted.findIndex((item) => item.id === active.id);
+      const newIndex = sorted.findIndex((item) => item.id === over.id);
+
+      if (oldIndex === -1 || newIndex === -1) {
+        setActiveId(null);
+        return;
+      }
+
+      const reorderedItems = arrayMove(sorted, oldIndex, newIndex);
       const updatedSections = reorderedItems.map((item, index) => ({
         ...item,
-        order: index
+        order: index,
       }));
+
       updateCurrentPageSections(updatedSections);
     }
     setActiveId(null);
@@ -1454,7 +1463,10 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                   </CollapsibleTrigger>
                   <CollapsibleContent className="space-y-2 pt-2">
                     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd} modifiers={[restrictToVerticalAxis]}>
-                      <SortableContext items={currentPage.sections.map(s => s.id)} strategy={verticalListSortingStrategy}>
+                      <SortableContext
+                        items={currentPage.sections.slice().sort((a, b) => a.order - b.order).map((s) => s.id)}
+                        strategy={verticalListSortingStrategy}
+                      >
                         <div className="space-y-1">
                           {currentPage.sections.sort((a, b) => a.order - b.order).map(section => <PageSection key={section.id} section={section} isSelected={selectedSection?.id === section.id} onSelect={() => setSelectedSection(section)} onDelete={() => handleDeleteSection(section.id)} onAddSection={handleAddSection} />)}
                         </div>
