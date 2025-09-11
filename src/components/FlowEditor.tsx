@@ -1632,7 +1632,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                           <ChevronDown className="h-4 w-4 ml-2" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent>
+                      <DropdownMenuContent className="bg-white dark:bg-gray-800 border shadow-lg z-50">
                         <DropdownMenuItem onClick={handleSave} disabled={isSaving}>
                           <Save className="h-4 w-4 mr-2" />
                           Save & Publish Live
