@@ -14,6 +14,7 @@ const BrandSettings = () => {
   const { currentBrand, availableBrands, isLoading: brandLoading, setSelectedBrand, refreshBrands } = useBrandContext();
   const [isUploading, setIsUploading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [brandName, setBrandName] = useState('');
   const [primaryColor, setPrimaryColor] = useState('#3B82F6');
   const [secondaryColor, setSecondaryColor] = useState('#6B7280');
   const [accentColor, setAccentColor] = useState('#10B981');
@@ -26,6 +27,8 @@ const BrandSettings = () => {
 
   useEffect(() => {
     if (currentBrand) {
+      // Load existing brand name
+      setBrandName(currentBrand.name || '');
       // Load existing colors if available
       if (currentBrand.brand_colors && typeof currentBrand.brand_colors === 'object') {
         const colors = currentBrand.brand_colors as { primary?: string; secondary?: string; accent?: string };
@@ -321,6 +324,36 @@ const BrandSettings = () => {
     }
   };
 
+  const saveBrandName = async () => {
+    if (!currentBrand || !brandName.trim()) return;
+
+    setIsSaving(true);
+    try {
+      const { error } = await supabase
+        .from('brands')
+        .update({ name: brandName.trim() })
+        .eq('id', currentBrand.id);
+
+      if (error) throw error;
+
+      // Refresh brands to get updated data
+      await refreshBrands();
+      toast({
+        title: "Success",
+        description: "Brand name saved successfully",
+      });
+    } catch (error) {
+      console.error('Error saving brand name:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save brand name",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   if (brandLoading) {
     return <div className="text-center py-8">Loading brand settings...</div>;
   }
@@ -355,6 +388,41 @@ const BrandSettings = () => {
           </div>
         )}
       </div>
+
+      {/* Brand Name */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Edit className="w-5 h-5" />
+            Brand Name
+          </CardTitle>
+          <CardDescription>
+            Update your brand name
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex gap-4 items-end">
+            <div className="flex-1">
+              <Label htmlFor="brand-name">Brand Name</Label>
+              <Input
+                id="brand-name"
+                value={brandName}
+                onChange={(e) => setBrandName(e.target.value)}
+                placeholder="Enter brand name"
+                disabled={isSaving}
+              />
+            </div>
+            <Button 
+              onClick={saveBrandName} 
+              disabled={isSaving || !brandName.trim() || brandName === currentBrand?.name}
+              className="flex items-center gap-2"
+            >
+              <Save className="w-4 h-4" />
+              {isSaving ? "Saving..." : "Save"}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid gap-6 md:grid-cols-2">
         {/* Logo Upload */}
