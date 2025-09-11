@@ -39,7 +39,7 @@ const AdminIndex = () => {
       case 'dashboard':
         return <Dashboard />;
       case 'brands':
-        return <BrandManager />;
+        return <BrandManager onTabChange={setActiveTab} />;
       case 'system-templates':
         return <SystemTemplateManager />;
       case 'brand-settings':

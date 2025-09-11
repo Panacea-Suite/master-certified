@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useBrandContext } from '@/contexts/BrandContext';
 import { Plus, Edit, Trash2 } from 'lucide-react';
 
 interface Brand {
@@ -15,11 +16,16 @@ interface Brand {
   created_at: string;
 }
 
-const BrandManager = () => {
+interface BrandManagerProps {
+  onTabChange: (tab: string) => void;
+}
+
+const BrandManager: React.FC<BrandManagerProps> = ({ onTabChange }) => {
   const [brands, setBrands] = useState<Brand[]>([]);
   const [newBrandName, setNewBrandName] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+  const { setSelectedBrand } = useBrandContext();
 
   useEffect(() => {
     fetchBrands();
@@ -185,7 +191,13 @@ const BrandManager = () => {
                   <Button variant="default">
                     View Campaigns
                   </Button>
-                  <Button variant="outline">
+                  <Button 
+                    variant="outline"
+                    onClick={() => {
+                      setSelectedBrand(brand.id);
+                      onTabChange('brand-settings');
+                    }}
+                  >
                     Brand Settings
                   </Button>
                 </div>
