@@ -1568,6 +1568,7 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
             {section.type === 'features' && renderFeaturesEditor()}
             {section.type === 'cta' && renderCTAEditor()}
             {section.type === 'product_showcase' && renderProductShowcaseEditor()}
+            {section.type === 'product_listing' && renderProductListingEditor()}
             {section.type === 'store_selector' && renderStoreSelector()}
             {section.type === 'login_step' && renderLoginStepEditor()}
             {section.type === 'divider' && renderDividerEditor()}
