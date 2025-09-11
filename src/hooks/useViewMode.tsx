@@ -6,6 +6,9 @@ interface Brand {
   id: string;
   name: string;
   logo_url?: string;
+  brand_colors?: any;
+  approved_stores?: string[];
+  updated_at?: string;
 }
 
 interface ViewModeContextType {
@@ -48,7 +51,7 @@ export function ViewModeProvider({ children }: { children: ReactNode }) {
     try {
       const { data: brandsData, error } = await supabase
         .from('brands')
-        .select('id, name, logo_url')
+        .select('id, name, logo_url, brand_colors, approved_stores, updated_at')
         .order('name');
 
       if (error) throw error;
