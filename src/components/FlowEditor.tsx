@@ -9,6 +9,7 @@ import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Slider } from '@/components/ui/slider';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
@@ -1621,10 +1622,34 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                     {selectedDevice.width} × {selectedDevice.height}px
                   </div>
 
-                   <Button onClick={handleSave} disabled={isSaving} size="sm">
-                    <Save className="h-4 w-4 mr-2" />
-                    {isSaving ? 'Saving...' : templateToEdit?.campaign_id ? 'Save & Publish Live' : (templateToEdit ? 'Save Draft' : 'Save Flow')}
-                  </Button>
+                  {/* Combined Save dropdown for campaign flows */}
+                  {templateToEdit?.campaign_id ? (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button disabled={isSaving} size="sm">
+                          <Save className="h-4 w-4 mr-2" />
+                          {isSaving ? 'Saving...' : 'Save Options'}
+                          <ChevronDown className="h-4 w-4 ml-2" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <DropdownMenuItem onClick={handleSave} disabled={isSaving}>
+                          <Save className="h-4 w-4 mr-2" />
+                          Save & Publish Live
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleSaveAsTemplate} disabled={isSaving}>
+                          <Copy className="h-4 w-4 mr-2" />
+                          Save as Template
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  ) : (
+                    /* Single save button for templates and new flows */
+                    <Button onClick={handleSave} disabled={isSaving} size="sm">
+                      <Save className="h-4 w-4 mr-2" />
+                      {isSaving ? 'Saving...' : (templateToEdit ? 'Save Draft' : 'Save Flow')}
+                    </Button>
+                  )}
 
                   {/* Publish button only for templates - campaign flows auto-publish on save */}
                   {!templateToEdit?.campaign_id && (
@@ -1635,18 +1660,6 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                       size="sm"
                     >
                       {isPublishing ? 'Publishing...' : 'Publish Version'}
-                    </Button>
-                  )}
-
-                  {/* Save as Template button for campaign flows */}
-                  {templateToEdit?.campaign_id && (
-                    <Button
-                      onClick={handleSaveAsTemplate}
-                      variant="outline"
-                      size="sm"
-                    >
-                      <Copy className="h-4 w-4 mr-2" />
-                      Save as Template
                     </Button>
                   )}
 
