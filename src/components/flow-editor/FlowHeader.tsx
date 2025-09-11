@@ -11,9 +11,10 @@ interface FlowHeaderProps {
 }
 
 const getLogoSize = (size: string) => {
-  // Always return the numeric value as pixels, regardless of format
+  // Always return the numeric value as pixels, reduced by 65%
   const numericValue = parseInt(size) || 60; // Default to 60 if invalid
-  return `${numericValue}px`;
+  const reducedSize = Math.round(numericValue * 0.35); // Reduce by 65% (keep 35%)
+  return `${reducedSize}px`;
 };
 
 export const FlowHeader: React.FC<FlowHeaderProps> = ({ globalHeader }) => {
