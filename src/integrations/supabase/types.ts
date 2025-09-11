@@ -934,6 +934,14 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_brand_owner_for_team: {
+        Args: { p_team_id: string }
+        Returns: boolean
+      }
+      is_master_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       link_user_to_flow: {
         Args:
           | {
