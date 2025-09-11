@@ -92,6 +92,28 @@ const BrandManager: React.FC<BrandManagerProps> = ({ onTabChange }) => {
 
   const deleteBrand = async (brandId: string) => {
     try {
+      // First, check if there are any templates associated with this brand
+      const { data: templates, error: templatesError } = await supabase
+        .from('templates')
+        .select('id, name')
+        .eq('brand_id', brandId);
+
+      if (templatesError) throw templatesError;
+
+      // If there are templates, delete them first or set brand_id to null
+      if (templates && templates.length > 0) {
+        console.log(`Found ${templates.length} templates associated with brand ${brandId}, cleaning up...`);
+        
+        // Set brand_id to null for associated templates instead of deleting them
+        const { error: updateError } = await supabase
+          .from('templates')
+          .update({ brand_id: null })
+          .eq('brand_id', brandId);
+
+        if (updateError) throw updateError;
+      }
+
+      // Now delete the brand
       const { error } = await supabase
         .from('brands')
         .delete()
@@ -102,13 +124,15 @@ const BrandManager: React.FC<BrandManagerProps> = ({ onTabChange }) => {
       setBrands(brands.filter(brand => brand.id !== brandId));
       toast({
         title: "Success",
-        description: "Brand deleted successfully",
+        description: templates && templates.length > 0 
+          ? `Brand deleted successfully. ${templates.length} associated templates were unlinked.`
+          : "Brand deleted successfully",
       });
     } catch (error) {
       console.error('Error deleting brand:', error);
       toast({
         title: "Error",
-        description: "Failed to delete brand",
+        description: "Failed to delete brand. It may have associated data that needs to be removed first.",
         variant: "destructive",
       });
     }
