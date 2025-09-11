@@ -36,6 +36,7 @@ interface ComponentEditorProps {
 }
 
 export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpdate, brandColors, pages = [] }) => {
+  console.log('🚀 ComponentEditor rendered for section:', section.type, 'with config keys:', Object.keys(section.config || {}));
   const [showImageEditor, setShowImageEditor] = useState(false);
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
   const [fullScreenEditor, setFullScreenEditor] = useState<{
@@ -680,6 +681,8 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
   );
 
   const renderEditor = () => {
+    console.log('🔧 ComponentEditor - Section type:', section.type, 'Config:', config);
+    
     switch (section.type) {
       case 'text':
         return renderTextEditor();
@@ -700,7 +703,13 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
       case 'product-showcase':
         return renderProductShowcaseEditor();
       case 'product_listing':
-        return renderProductListingEditor();
+        console.log('🎯 About to render product listing editor');
+        try {
+          return renderProductListingEditor();
+        } catch(error) {
+          console.error('❌ Error rendering product listing editor:', error);
+          return <div className="text-red-500">Error rendering product listing editor: {error.message}</div>;
+        }
       case 'footer':
         return renderFooterEditor();
       default:
