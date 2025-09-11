@@ -381,9 +381,16 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
 
     // Always fetch fresh brand data when editor opens
     const fetchBrandData = async () => {
-      const {
-        data: freshBrandData
-      } = await supabase.from('brands').select('*').eq('user_id', user.id).maybeSingle();
+      let freshBrandData: any = brandData;
+      if (!freshBrandData) {
+        const { data: brandList } = await supabase
+          .from('brands')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('updated_at', { ascending: false })
+          .limit(1);
+        freshBrandData = brandList?.[0] || null;
+      }
 
       // Update global header with fresh brand data (always use brand logo_url as source of truth)
       if (freshBrandData) {

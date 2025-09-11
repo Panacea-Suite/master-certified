@@ -12,6 +12,7 @@ import { FLOW_TEMPLATES } from '@/data/flowTemplates';
 import { useFlowManager } from '@/hooks/useFlowManager';
 import { useAuth } from '@/hooks/useAuth';
 import { TestLinkModal } from './TestLinkModal';
+import { useBrandContext } from '@/contexts/BrandContext';
 
 interface SystemTemplate {
   id: string;
@@ -50,6 +51,7 @@ const TemplateManager: React.FC = () => {
   const { toast } = useToast();
   const { profile } = useAuth();
   const { createFlowAtomic, deleteFlow, fetchFlows } = useFlowManager();
+  const { currentBrand } = useBrandContext();
 
   useEffect(() => {
     loadTemplates();
@@ -200,14 +202,19 @@ const TemplateManager: React.FC = () => {
           return;
         }
 
-        const { data: brandData } = await supabase
-          .from('brands')
-          .select('id')
-          .eq('user_id', user.id)
-          .limit(1)
-          .single();
+        let targetBrandId = currentBrand?.id;
+        if (!targetBrandId) {
+          const { data: list } = await supabase
+            .from('brands')
+            .select('id')
+            .eq('user_id', user.id)
+            .order('updated_at', { ascending: false })
+            .limit(1);
+          targetBrandId = list?.[0]?.id;
+        }
 
-        if (!brandData) {
+
+        if (!targetBrandId) {
           toast({
             title: "No Brand Found",
             description: "Please create a brand first before editing system templates",
@@ -225,7 +232,7 @@ const TemplateManager: React.FC = () => {
             name: `${template.name} (Copy)`,
             description: template.description,
             created_by: user.id,
-            brand_id: brandData.id,
+            brand_id: targetBrandId,
             base_template_id: template.id,
             schema: { pages: template.pages, designConfig: template.designConfig },
             content: { pages: template.pages, designConfig: template.designConfig }
@@ -256,13 +263,19 @@ const TemplateManager: React.FC = () => {
         return;
       }
 
-      const { data: brandData } = await supabase
-        .from('brands')
-        .select('id, name, logo_url, brand_colors')
-        .eq('user_id', user.id)
-        .maybeSingle();
+      // Choose active brand: prefer currentBrand, else most recently updated brand for user
+      let activeBrand: any = currentBrand;
+      if (!activeBrand) {
+        const { data: list } = await supabase
+          .from('brands')
+          .select('id, name, logo_url, brand_colors, updated_at')
+          .eq('user_id', user.id)
+          .order('updated_at', { ascending: false })
+          .limit(1);
+        activeBrand = list?.[0] || null;
+      }
 
-      console.log('Brand data fetched for edit as new:', brandData);
+      console.log('Brand data fetched for edit as new:', activeBrand);
 
       // Import and process template data using unified processor
       const { processTemplateData } = await import('@/utils/templateProcessor');
