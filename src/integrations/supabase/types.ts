@@ -563,6 +563,47 @@ export type Database = {
           },
         ]
       }
+      team_users: {
+        Row: {
+          created_at: string
+          id: string
+          invited_by: string | null
+          joined_at: string | null
+          role: string
+          team_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          invited_by?: string | null
+          joined_at?: string | null
+          role?: string
+          team_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          invited_by?: string | null
+          joined_at?: string | null
+          role?: string
+          team_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_users_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       teams: {
         Row: {
           brand_id: string
@@ -657,6 +698,63 @@ export type Database = {
             columns: ["brand_id"]
             isOneToOne: false
             referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_invites: {
+        Row: {
+          accepted_at: string | null
+          brand_id: string
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          invite_token: string
+          invited_by: string
+          role: string
+          team_id: string
+          updated_at: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          brand_id: string
+          created_at?: string
+          email: string
+          expires_at?: string
+          id?: string
+          invite_token?: string
+          invited_by: string
+          role?: string
+          team_id: string
+          updated_at?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          brand_id?: string
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          invite_token?: string
+          invited_by?: string
+          role?: string
+          team_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_invites_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_invites_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
             referencedColumns: ["id"]
           },
         ]
