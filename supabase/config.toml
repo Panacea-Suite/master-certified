@@ -64,6 +64,9 @@ verify_jwt = false
 [functions.purge-ephemeral-campaigns]
 verify_jwt = false
 
+[functions.cleanup-archived-records]
+verify_jwt = false
+
 [edge-runtime]
 enabled = true
 ip_version = "ipv4"

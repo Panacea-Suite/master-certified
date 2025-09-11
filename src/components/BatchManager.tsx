@@ -69,6 +69,7 @@ const BatchManager = () => {
             )
           )
         `)
+        .eq('is_archived', false)
         .order('created_at', { ascending: false });
 
       if (batchesError) throw batchesError;
@@ -272,23 +273,32 @@ const BatchManager = () => {
 
   const deleteBatch = async (batchId: string) => {
     try {
-      const { error } = await supabase
-        .from('batches')
-        .delete()
-        .eq('id', batchId);
+      // Get current user for archiving
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      const { data, error } = await supabase.rpc('archive_record', {
+        p_table_name: 'batches',
+        p_record_id: batchId,
+        p_user_id: user?.id
+      });
 
       if (error) throw error;
 
-      setBatches(batches.filter(batch => batch.id !== batchId));
-      toast({
-        title: "Success",
-        description: "Batch deleted successfully",
-      });
+      const result = data as { success: boolean; error?: string };
+      if (result.success) {
+        toast({
+          title: "Archived",
+          description: "Batch moved to archive. It will be permanently deleted in 30 days.",
+        });
+        fetchData(); 
+      } else {
+        throw new Error(result.error || 'Failed to archive batch');
+      }
     } catch (error) {
-      console.error('Error deleting batch:', error);
+      console.error('Error archiving batch:', error);
       toast({
         title: "Error",
-        description: "Failed to delete batch",
+        description: "Failed to archive batch",
         variant: "destructive",
       });
     }

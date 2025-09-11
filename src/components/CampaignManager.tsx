@@ -503,23 +503,32 @@ const CampaignManager = () => {
 
   const deleteCampaign = async (campaignId: string) => {
     try {
-      const { error } = await supabase
-        .from('campaigns')
-        .delete()
-        .eq('id', campaignId);
+      // Get current user for archiving
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      const { data, error } = await supabase.rpc('archive_record', {
+        p_table_name: 'campaigns',
+        p_record_id: campaignId,
+        p_user_id: user?.id
+      });
 
       if (error) throw error;
 
-      setCampaigns(campaigns.filter(campaign => campaign.id !== campaignId));
-      toast({
-        title: "Success",
-        description: "Campaign deleted successfully",
-      });
+      const result = data as { success: boolean; error?: string };
+      if (result.success) {
+        toast({
+          title: "Archived",
+          description: "Campaign moved to archive. It will be permanently deleted in 30 days.",
+        });
+        fetchCampaigns();
+      } else {
+        throw new Error(result.error || 'Failed to archive campaign');
+      }
     } catch (error) {
-      console.error('Error deleting campaign:', error);
+      console.error('Error archiving campaign:', error);
       toast({
         title: "Error",
-        description: "Failed to delete campaign",
+        description: "Failed to archive campaign",
         variant: "destructive",
       });
     }

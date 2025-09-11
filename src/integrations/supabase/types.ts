@@ -46,10 +46,13 @@ export type Database = {
       }
       batches: {
         Row: {
+          archived_at: string | null
+          archived_by: string | null
           campaign_id: string
           created_at: string
           generated_at: string | null
           id: string
+          is_archived: boolean
           is_test: boolean
           name: string
           qr_code_count: number
@@ -57,10 +60,13 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          archived_at?: string | null
+          archived_by?: string | null
           campaign_id: string
           created_at?: string
           generated_at?: string | null
           id?: string
+          is_archived?: boolean
           is_test?: boolean
           name: string
           qr_code_count?: number
@@ -68,10 +74,13 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          archived_at?: string | null
+          archived_by?: string | null
           campaign_id?: string
           created_at?: string
           generated_at?: string | null
           id?: string
+          is_archived?: boolean
           is_test?: boolean
           name?: string
           qr_code_count?: number
@@ -172,6 +181,8 @@ export type Database = {
       campaigns: {
         Row: {
           approved_stores: string[] | null
+          archived_at: string | null
+          archived_by: string | null
           brand_id: string
           created_at: string
           customer_access_token: string
@@ -179,6 +190,7 @@ export type Database = {
           final_redirect_url: string | null
           flow_settings: Json | null
           id: string
+          is_archived: boolean
           is_test: boolean
           locked_design_tokens: Json | null
           locked_template: Json | null
@@ -189,6 +201,8 @@ export type Database = {
         }
         Insert: {
           approved_stores?: string[] | null
+          archived_at?: string | null
+          archived_by?: string | null
           brand_id: string
           created_at?: string
           customer_access_token: string
@@ -196,6 +210,7 @@ export type Database = {
           final_redirect_url?: string | null
           flow_settings?: Json | null
           id?: string
+          is_archived?: boolean
           is_test?: boolean
           locked_design_tokens?: Json | null
           locked_template?: Json | null
@@ -206,6 +221,8 @@ export type Database = {
         }
         Update: {
           approved_stores?: string[] | null
+          archived_at?: string | null
+          archived_by?: string | null
           brand_id?: string
           created_at?: string
           customer_access_token?: string
@@ -213,6 +230,7 @@ export type Database = {
           final_redirect_url?: string | null
           flow_settings?: Json | null
           id?: string
+          is_archived?: boolean
           is_test?: boolean
           locked_design_tokens?: Json | null
           locked_template?: Json | null
@@ -518,10 +536,13 @@ export type Database = {
       }
       qr_codes: {
         Row: {
+          archived_at: string | null
+          archived_by: string | null
           batch_id: string
           created_at: string
           flow_id: string | null
           id: string
+          is_archived: boolean
           is_test: boolean
           qr_url: string
           scans: number
@@ -530,10 +551,13 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          archived_at?: string | null
+          archived_by?: string | null
           batch_id: string
           created_at?: string
           flow_id?: string | null
           id?: string
+          is_archived?: boolean
           is_test?: boolean
           qr_url: string
           scans?: number
@@ -542,10 +566,13 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          archived_at?: string | null
+          archived_by?: string | null
           batch_id?: string
           created_at?: string
           flow_id?: string | null
           id?: string
+          is_archived?: boolean
           is_test?: boolean
           qr_url?: string
           scans?: number
@@ -849,6 +876,10 @@ export type Database = {
         }
         Returns: Json
       }
+      archive_record: {
+        Args: { p_record_id: string; p_table_name: string; p_user_id: string }
+        Returns: Json
+      }
       brand_fork_system_template: {
         Args: { system_tpl_id: string; target_brand_id: string }
         Returns: Json
@@ -864,6 +895,10 @@ export type Database = {
       }
       cleanup_ephemeral_campaigns: {
         Args: { days_old?: number }
+        Returns: Json
+      }
+      cleanup_old_archived_records: {
+        Args: Record<PropertyKey, never>
         Returns: Json
       }
       create_campaign_from_template: {
@@ -892,6 +927,10 @@ export type Database = {
           flow_id: string
           flow_name: string
         }[]
+      }
+      days_until_permanent_deletion: {
+        Args: { archived_at: string }
+        Returns: number
       }
       gen_compact_uuid: {
         Args: Record<PropertyKey, never>
@@ -969,6 +1008,10 @@ export type Database = {
           p_flow_id: string
           p_flow_snapshot: Json
         }
+        Returns: Json
+      }
+      restore_record: {
+        Args: { p_record_id: string; p_table_name: string; p_user_id: string }
         Returns: Json
       }
       run_verification: {

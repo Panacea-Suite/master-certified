@@ -9,6 +9,7 @@ import CampaignManager from '@/components/CampaignManager';
 import BatchManager from '@/components/BatchManager';
 import TemplateManager from '@/components/TemplateManager';
 import { SystemTemplateManager } from '@/components/SystemTemplateManager';
+import { ArchiveManager } from '@/components/ArchiveManager';
 
 import { Button } from '@/components/ui/button';
 import { Shield } from 'lucide-react';
@@ -50,6 +51,8 @@ const AdminIndex = () => {
         return <BatchManager />;
       case 'templates':
         return <TemplateManager />;
+      case 'archive':
+        return <ArchiveManager />;
       default:
         return <Dashboard />;
     }
