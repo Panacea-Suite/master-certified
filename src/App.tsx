@@ -46,8 +46,8 @@ const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <BrandProvider>
-          <ViewModeProvider>
+        <ViewModeProvider>
+          <BrandProvider>
             <TooltipProvider>
               <Toaster />
               <Sonner />
@@ -79,8 +79,8 @@ const App = () => {
                 </Routes>
               </HashRouter>
             </TooltipProvider>
-          </ViewModeProvider>
-        </BrandProvider>
+          </BrandProvider>
+        </ViewModeProvider>
       </AuthProvider>
     </QueryClientProvider>
   );
