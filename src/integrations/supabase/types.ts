@@ -569,7 +569,7 @@ export type Database = {
           id: string
           invited_by: string | null
           joined_at: string | null
-          role: string
+          role: Database["public"]["Enums"]["team_role"]
           team_id: string
           updated_at: string
           user_id: string
@@ -579,7 +579,7 @@ export type Database = {
           id?: string
           invited_by?: string | null
           joined_at?: string | null
-          role?: string
+          role?: Database["public"]["Enums"]["team_role"]
           team_id: string
           updated_at?: string
           user_id: string
@@ -589,7 +589,7 @@ export type Database = {
           id?: string
           invited_by?: string | null
           joined_at?: string | null
-          role?: string
+          role?: Database["public"]["Enums"]["team_role"]
           team_id?: string
           updated_at?: string
           user_id?: string
@@ -882,6 +882,10 @@ export type Database = {
         Args: { p_bytes?: number }
         Returns: string
       }
+      get_effective_role: {
+        Args: { p_brand_id?: string; p_user_id: string }
+        Returns: Json
+      }
       get_flow_session: {
         Args: { p_session_id: string }
         Returns: Json
@@ -977,6 +981,7 @@ export type Database = {
         | "authentication"
         | "content_display"
         | "thank_you"
+      team_role: "admin" | "member" | "viewer"
       template_kind: "system" | "brand"
       template_status: "draft" | "published" | "deprecated"
       user_role: "master_admin" | "brand_admin" | "customer"
@@ -1118,6 +1123,7 @@ export const Constants = {
         "content_display",
         "thank_you",
       ],
+      team_role: ["admin", "member", "viewer"],
       template_kind: ["system", "brand"],
       template_status: ["draft", "published", "deprecated"],
       user_role: ["master_admin", "brand_admin", "customer"],
