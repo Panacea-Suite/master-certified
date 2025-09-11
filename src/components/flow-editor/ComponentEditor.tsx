@@ -902,6 +902,7 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
   );
 
   const renderProductListingEditor = () => {
+    console.log('🎯 Rendering Product Listing Editor with config:', config);
     return (
       <div className="space-y-4">
         <div className="space-y-2">
@@ -1053,6 +1054,15 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
             onChange={(color) => updateConfig('titleColor', color)}
             brandColors={brandColors}
           />
+          <BrandColorPicker
+            label="Description Color"
+            value={config.descriptionColor || '#6b7280'}
+            onChange={(color) => updateConfig('descriptionColor', color)}
+            brandColors={brandColors}
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-2">
           <BrandColorPicker
             label="Price Color"
             value={config.priceColor || '#059669'}
