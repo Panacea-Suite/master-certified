@@ -645,7 +645,7 @@ const CampaignManager = () => {
 
       {/* Campaigns List */}
       <div className="grid gap-4">
-        {availableBrands.length === 0 ? (
+        {(!currentBrand && availableBrands.length === 0) ? (
           <Card>
             <CardContent className="text-center py-12">
               <div className="flex flex-col items-center space-y-4">
