@@ -482,6 +482,7 @@ const CampaignManager = () => {
           )
         `)
         .eq('brand_id', currentBrand.id)
+        .eq('is_archived', false)
         .order('created_at', { ascending: false });
 
       if (campaignsError) throw campaignsError;
@@ -515,10 +516,12 @@ const CampaignManager = () => {
       if (error) throw error;
 
       const result = data as { success: boolean; error?: string };
-      if (result.success) {
+      if (result.success || result.error === 'Record not found or already archived') {
         toast({
-          title: "Archived",
-          description: "Campaign moved to archive. It will be permanently deleted in 30 days.",
+          title: result.success ? "Archived" : "Already archived",
+          description: result.success
+            ? "Campaign moved to archive. It will be permanently deleted in 30 days."
+            : "This campaign is already in the archive.",
         });
         fetchCampaigns();
       } else {
