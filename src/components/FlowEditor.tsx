@@ -23,7 +23,7 @@ import { FlowHeader } from './flow-editor/FlowHeader';
 import { FlowStyleShell, useEditorTokens } from '@/components/FlowStyleShell';
 import { SectionRenderer } from '@/components/shared/SectionRenderer';
 import { PanaceaFooter } from '@/components/PanaceaFooter';
-import { Smartphone, Save, ChevronDown, ChevronRight, ArrowLeft, TestTube2 } from 'lucide-react';
+import { Smartphone, Save, ChevronDown, ChevronRight, ArrowLeft, TestTube2, Copy } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -1014,6 +1014,76 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
     }
   };
 
+  const handleSaveAsTemplate = async () => {
+    if (!templateToEdit?.campaign_id) return;
+    
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error('You must be logged in to save templates');
+        return;
+      }
+
+      if (!flowName.trim()) {
+        toast.error('Please enter a flow name');
+        return;
+      }
+      if (pages.length === 0) {
+        toast.error('Flow must have at least one page');
+        return;
+      }
+
+      // Create flow configuration with multi-page structure (same as handleSave)
+      const flowConfig = {
+        pages: pages.map(page => ({
+          ...page,
+          sections: page.sections.sort((a, b) => a.order - b.order)
+        })),
+        globalHeader,
+        footerConfig,
+        design_template_id: selectedTemplateId,
+        theme: {
+          primaryColor: '#3b82f6',
+          backgroundColor: pageSettings.backgroundColor,
+          fontFamily: 'Inter'
+        },
+        settings: templateToEdit?.flow_config?.settings || {
+          showProgress: true,
+          allowBack: true,
+          autoSave: true
+        }
+      };
+
+      // Create a template copy of the current campaign flow
+      const templateData = {
+        name: `${flowName} Template`,
+        flow_config: flowConfig as any,
+        is_template: true,
+        is_system_template: false,
+        template_category: 'custom',
+        template_description: `Template created from campaign flow: ${flowName}`,
+        created_by: user.id,
+        campaign_id: null // Templates don't belong to campaigns
+      };
+
+      const { data: newTemplate, error: insertError } = await supabase
+        .from('flows')
+        .insert([templateData])
+        .select()
+        .single();
+
+      if (insertError) {
+        throw insertError;
+      }
+
+      toast.success('Flow saved as template successfully! Find it in "My Templates".');
+      
+    } catch (error) {
+      console.error('Error saving as template:', error);
+      toast.error('Failed to save as template');
+    }
+  };
+
   const handlePublish = async () => {
     if (!templateToEdit?.id) {
       toast.error('No flow to publish');
@@ -1565,6 +1635,18 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
                       size="sm"
                     >
                       {isPublishing ? 'Publishing...' : 'Publish Version'}
+                    </Button>
+                  )}
+
+                  {/* Save as Template button for campaign flows */}
+                  {templateToEdit?.campaign_id && (
+                    <Button
+                      onClick={handleSaveAsTemplate}
+                      variant="outline"
+                      size="sm"
+                    >
+                      <Copy className="h-4 w-4 mr-2" />
+                      Save as Template
                     </Button>
                   )}
 
