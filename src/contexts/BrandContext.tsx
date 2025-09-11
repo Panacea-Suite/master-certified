@@ -40,9 +40,8 @@ export const BrandProvider: React.FC<BrandProviderProps> = ({ children }) => {
   const { isViewingAsBrand, selectedBrandForView } = useViewMode();
 
   const fetchBrands = async () => {
-    // Don't fetch user's own brands when in view mode
+    // When in view mode, don't fetch user's own brands but keep the view state
     if (isViewingAsBrand) {
-      setCurrentBrand(null);
       setAvailableBrands([]);
       setIsLoading(false);
       return;
@@ -103,6 +102,16 @@ export const BrandProvider: React.FC<BrandProviderProps> = ({ children }) => {
   useEffect(() => {
     fetchBrands();
   }, [isViewingAsBrand]); // Re-fetch when view mode changes
+
+  // Update current brand when selectedBrandForView changes in view mode
+  useEffect(() => {
+    if (isViewingAsBrand && selectedBrandForView) {
+      // Don't clear currentBrand when switching to view mode - let effectiveCurrentBrand handle it
+    } else if (!isViewingAsBrand) {
+      // When exiting view mode, refresh brands to restore user's own brands
+      fetchBrands();
+    }
+  }, [selectedBrandForView, isViewingAsBrand]);
 
   // Use selected brand for view when in view mode, otherwise use actual current brand
   const effectiveCurrentBrand = isViewingAsBrand && selectedBrandForView ? selectedBrandForView : currentBrand;
