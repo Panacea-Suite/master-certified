@@ -387,6 +387,7 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
 
       // Update global header with fresh brand data (always use brand logo_url as source of truth)
       if (freshBrandData) {
+        console.log('🔍 FlowEditor: Updating header with fresh brand logo:', freshBrandData.logo_url);
         setGlobalHeader(prev => ({
           ...prev,
           brandName: freshBrandData.name || prev.brandName,
@@ -410,6 +411,8 @@ export const FlowEditor: React.FC<FlowEditorProps> = ({
             return section;
           })
         })));
+      } else {
+        console.log('🔍 FlowEditor: No brand data found for user');
       }
 
       // Process template if needed
