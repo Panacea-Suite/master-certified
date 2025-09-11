@@ -102,6 +102,26 @@ serve(async (req) => {
       throw new Error(`Failed to create default team: ${teamError.message}`)
     }
 
+    // Add the brand owner as team admin
+    const { data: teamUser, error: teamUserError } = await supabase
+      .from('team_users')
+      .insert({
+        team_id: team.id,
+        user_id: created_by_user_id,
+        role: 'admin',
+        invited_by: user.id
+      })
+      .select('id')
+      .single()
+
+    if (teamUserError) {
+      console.error('Team user creation error:', teamUserError)
+      // Clean up brand and team if team user creation fails
+      await supabase.from('teams').delete().eq('id', team.id)
+      await supabase.from('brands').delete().eq('id', brand.id)
+      throw new Error(`Failed to add brand owner to team: ${teamUserError.message}`)
+    }
+
     // Log the action
     await supabase
       .from('audit_log')
@@ -114,6 +134,8 @@ serve(async (req) => {
           brand_name,
           team_name: defaultTeamName,
           team_id: team.id,
+          team_user_id: teamUser.id,
+          owner_role: 'admin',
           target_user_id: created_by_user_id,
           target_user_email: targetUser.email
         }
@@ -127,7 +149,9 @@ serve(async (req) => {
         brand_id: brand.id,
         name: brand.name,
         team_id: team.id,
-        team_name: team.name
+        team_name: team.name,
+        team_user_id: teamUser.id,
+        owner_role: 'admin'
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

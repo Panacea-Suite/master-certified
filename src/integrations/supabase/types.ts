@@ -811,7 +811,17 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      role_constants: {
+        Row: {
+          brand_admin: string | null
+          customer: string | null
+          master_admin: string | null
+          team_admin: string | null
+          team_member: string | null
+          team_viewer: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       admin_get_all_brands: {
@@ -842,6 +852,15 @@ export type Database = {
       brand_fork_system_template: {
         Args: { system_tpl_id: string; target_brand_id: string }
         Returns: Json
+      }
+      can_access_resource: {
+        Args: {
+          p_action?: string
+          p_resource_id: string
+          p_resource_type: string
+          p_user_id: string
+        }
+        Returns: boolean
       }
       cleanup_ephemeral_campaigns: {
         Args: { days_old?: number }
