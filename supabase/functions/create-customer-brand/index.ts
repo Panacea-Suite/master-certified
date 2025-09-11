@@ -45,7 +45,7 @@ serve(async (req) => {
     }
 
     // Parse request body
-    const { brand_name, logo_url, created_by_user_id } = await req.json()
+    const { brand_name, logo_url, created_by_user_id, team_name } = await req.json()
 
     if (!brand_name) {
       throw new Error('brand_name is required')
@@ -83,6 +83,25 @@ serve(async (req) => {
       throw new Error(`Failed to create brand: ${brandError.message}`)
     }
 
+    // Create default team for the brand
+    const defaultTeamName = team_name || 'Main Team'
+    const { data: team, error: teamError } = await supabase
+      .from('teams')
+      .insert({
+        name: defaultTeamName,
+        brand_id: brand.id,
+        created_by: created_by_user_id
+      })
+      .select('id, name')
+      .single()
+
+    if (teamError) {
+      console.error('Team creation error:', teamError)
+      // If team creation fails, we should clean up the brand
+      await supabase.from('brands').delete().eq('id', brand.id)
+      throw new Error(`Failed to create default team: ${teamError.message}`)
+    }
+
     // Log the action
     await supabase
       .from('audit_log')
@@ -93,18 +112,22 @@ serve(async (req) => {
         object_id: brand.id,
         meta: {
           brand_name,
+          team_name: defaultTeamName,
+          team_id: team.id,
           target_user_id: created_by_user_id,
           target_user_email: targetUser.email
         }
       })
 
-    console.log(`Brand created successfully: ${brand.id} for user ${created_by_user_id}`)
+    console.log(`Brand and team created successfully: Brand ${brand.id}, Team ${team.id} for user ${created_by_user_id}`)
 
     return new Response(
       JSON.stringify({
         success: true,
         brand_id: brand.id,
-        name: brand.name
+        name: brand.name,
+        team_id: team.id,
+        team_name: team.name
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
