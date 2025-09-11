@@ -69,7 +69,7 @@ export const ProductListingSection: SectionComponent = ({ section, isPreview = f
             <img 
               src={config.productImage} 
               alt={config.productName || 'Product image'}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain"
             />
           ) : (
             <div className="w-full h-full bg-muted flex items-center justify-center">
