@@ -416,7 +416,10 @@ const CampaignFlowsView: React.FC<{ campaign: Campaign; onBack: () => void }> = 
           
           <FlowEditor
             isOpen={editorOpen}
-            onClose={() => setEditorOpen(false)}
+            onClose={() => {
+              setEditorOpen(false);
+              onBack();
+            }}
             onSave={handleSave}
             templateToEdit={flow}
             brandData={brandData}
