@@ -3,7 +3,8 @@ import { useViewMode } from '@/hooks/useViewMode';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Shield, Building, Users, LogOut, Eye, EyeOff } from 'lucide-react';
+import { Shield, Building, Users, LogOut } from 'lucide-react';
+import { BrandViewModeSelector } from '@/components/BrandViewModeSelector';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,7 +16,7 @@ import {
 
 export const Header = () => {
   const { user, profile, signOut } = useAuth();
-  const { isViewingAsBrand, toggleViewMode, effectiveRole, canViewAsBrand } = useViewMode();
+  const { isViewingAsBrand, effectiveRole, canViewAsBrand, selectedBrandForView } = useViewMode();
 
   const getRoleIcon = () => {
     switch (effectiveRole) {
@@ -75,21 +76,14 @@ export const Header = () => {
           </div>
 
           <div className="flex items-center space-x-4">
-            {canViewAsBrand && (
-              <Button
-                variant={isViewingAsBrand ? "default" : "outline"}
-                size="sm"
-                onClick={toggleViewMode}
-                className="flex items-center space-x-2"
-              >
-                {isViewingAsBrand ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                <span>{isViewingAsBrand ? 'Exit Brand View' : 'View as Brand'}</span>
-              </Button>
-            )}
+            <BrandViewModeSelector />
             
             <Badge variant={getRoleBadgeVariant()} className="flex items-center space-x-1">
               {getRoleIcon()}
-              <span>{getRoleLabel()}{isViewingAsBrand && ' (Brand View)'}</span>
+              <span>
+                {getRoleLabel()}
+                {isViewingAsBrand && selectedBrandForView && ` (${selectedBrandForView.name})`}
+              </span>
             </Badge>
 
             <DropdownMenu>

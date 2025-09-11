@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useViewMode } from '@/hooks/useViewMode';
 
 interface Brand {
   id: string;
@@ -36,8 +37,17 @@ export const BrandProvider: React.FC<BrandProviderProps> = ({ children }) => {
   const [currentBrand, setCurrentBrand] = useState<Brand | null>(null);
   const [availableBrands, setAvailableBrands] = useState<Brand[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { isViewingAsBrand, selectedBrandForView } = useViewMode();
 
   const fetchBrands = async () => {
+    // Don't fetch user's own brands when in view mode
+    if (isViewingAsBrand) {
+      setCurrentBrand(null);
+      setAvailableBrands([]);
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
@@ -92,10 +102,13 @@ export const BrandProvider: React.FC<BrandProviderProps> = ({ children }) => {
 
   useEffect(() => {
     fetchBrands();
-  }, []);
+  }, [isViewingAsBrand]); // Re-fetch when view mode changes
+
+  // Use selected brand for view when in view mode, otherwise use actual current brand
+  const effectiveCurrentBrand = isViewingAsBrand && selectedBrandForView ? selectedBrandForView : currentBrand;
 
   const value: BrandContextType = {
-    currentBrand,
+    currentBrand: effectiveCurrentBrand,
     availableBrands,
     isLoading,
     setSelectedBrand,
