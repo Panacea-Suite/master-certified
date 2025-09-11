@@ -16,6 +16,7 @@ import AdminIndex from "./pages/AdminIndex";
 import Auth from "./pages/Auth";
 import AuthCallback from "./pages/AuthCallback";
 import NotFound from "./pages/NotFound";
+import AcceptInvite from "./pages/AcceptInvite";
 
 const queryClient = new QueryClient();
 
@@ -63,6 +64,7 @@ const App = () => {
                   <Route path="/" element={<AdminShell><AdminIndex /></AdminShell>} />
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/auth/callback" element={<AuthCallback />} />
+                  <Route path="/accept-invite" element={<AcceptInvite />} />
                   
                   {/* Catch-all route - check if customer or admin */}
                   <Route path="*" element={
