@@ -54,7 +54,10 @@ export const ProductListingSection: SectionComponent = ({ section, isPreview = f
   return (
     <div 
       className={`product-listing-section ${getSectionClassName()}`}
-      style={getPaddingStyle()}
+      style={{
+        ...getPaddingStyle(),
+        backgroundColor: config.outerBackgroundColor || 'transparent'
+      }}
     >
       <div 
         className={`rounded-lg border ${getBorderRadius()} overflow-hidden`}

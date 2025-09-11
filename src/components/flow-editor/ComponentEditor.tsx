@@ -1095,13 +1095,26 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ section, onUpd
           />
         </div>
 
+        <div className="space-y-3">
+          <Label className="text-xs font-medium text-muted-foreground">BACKGROUND COLORS</Label>
+          
+          <div className="grid grid-cols-2 gap-2">
+            <BrandColorPicker
+              label="Outer Background"
+              value={config.outerBackgroundColor || '#059669'}
+              onChange={(color) => updateConfig('outerBackgroundColor', color)}
+              brandColors={brandColors}
+            />
+            <BrandColorPicker
+              label="Card Background"
+              value={config.backgroundColor || '#ffffff'}
+              onChange={(color) => updateConfig('backgroundColor', color)}
+              brandColors={brandColors}
+            />
+          </div>
+        </div>
+
         <div className="grid grid-cols-2 gap-2">
-          <BrandColorPicker
-            label="Background Color"
-            value={config.backgroundColor || '#ffffff'}
-            onChange={(color) => updateConfig('backgroundColor', color)}
-            brandColors={brandColors}
-          />
           <BrandColorPicker
             label="Border Color"
             value={config.borderColor || '#e2e8f0'}
