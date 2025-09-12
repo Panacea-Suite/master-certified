@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import { toast } from '@/hooks/use-toast';
-import { Mail, Save, Eye, Edit, Plus, Palette, X } from 'lucide-react';
+import { Mail, Save, Eye, Edit, Plus, Palette, X, Send } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { EmailComponentPalette } from './email-editor/EmailComponentPalette';
 import { EmailPreview } from './email-editor/EmailPreview';
@@ -69,6 +69,9 @@ export const EmailTemplateManager: React.FC = () => {
   });
 
   const [isPaletteCollapsed, setIsPaletteCollapsed] = useState(false);
+  const [showTestEmailDialog, setShowTestEmailDialog] = useState(false);
+  const [testEmailRecipient, setTestEmailRecipient] = useState('');
+  const [isSendingTestEmail, setIsSendingTestEmail] = useState(false);
 
   useEffect(() => {
     loadTemplates();
@@ -219,6 +222,46 @@ export const EmailTemplateManager: React.FC = () => {
     }
   };
 
+  const sendTestEmail = async () => {
+    if (!selectedTemplate || !testEmailRecipient.trim()) {
+      toast({
+        title: "Error",
+        description: "Please select a template and enter a recipient email",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSendingTestEmail(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('send-test-email', {
+        body: {
+          templateId: selectedTemplate.id,
+          recipientEmail: testEmailRecipient.trim(),
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: `Test email sent to ${testEmailRecipient}`,
+      });
+
+      setShowTestEmailDialog(false);
+      setTestEmailRecipient('');
+    } catch (error) {
+      console.error('Error sending test email:', error);
+      toast({
+        title: "Error",
+        description: "Failed to send test email. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSendingTestEmail(false);
+    }
+  };
+
   const handleEditTemplate = (template: EmailTemplate) => {
     setSelectedTemplate(template);
     setEmailComponents(template.email_components || []);
@@ -330,6 +373,52 @@ export const EmailTemplateManager: React.FC = () => {
                 <Save className="w-4 h-4" />
                 Save Template
               </Button>
+              <Dialog open={showTestEmailDialog} onOpenChange={setShowTestEmailDialog}>
+                <DialogTrigger asChild>
+                  <Button 
+                    variant="outline" 
+                    className="flex items-center gap-2"
+                    disabled={!selectedTemplate}
+                  >
+                    <Send className="w-4 h-4" />
+                    Test Email
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Send Test Email</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="recipient-email">Recipient Email</Label>
+                      <Input
+                        id="recipient-email"
+                        type="email"
+                        placeholder="Enter email address"
+                        value={testEmailRecipient}
+                        onChange={(e) => setTestEmailRecipient(e.target.value)}
+                        className="mt-1"
+                      />
+                    </div>
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        variant="outline"
+                        onClick={() => setShowTestEmailDialog(false)}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        onClick={sendTestEmail}
+                        disabled={isSendingTestEmail || !testEmailRecipient.trim()}
+                        className="flex items-center gap-2"
+                      >
+                        <Send className="w-4 h-4" />
+                        {isSendingTestEmail ? 'Sending...' : 'Send Test'}
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
               <Button
                 variant="outline"
                 onClick={() => {
