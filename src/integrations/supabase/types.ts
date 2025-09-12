@@ -294,6 +294,7 @@ export type Database = {
           button_text: string
           created_at: string | null
           created_by: string | null
+          email_components: Json | null
           footer_text: string | null
           from_email: string | null
           from_name: string | null
@@ -311,6 +312,7 @@ export type Database = {
           button_text: string
           created_at?: string | null
           created_by?: string | null
+          email_components?: Json | null
           footer_text?: string | null
           from_email?: string | null
           from_name?: string | null
@@ -328,6 +330,7 @@ export type Database = {
           button_text?: string
           created_at?: string | null
           created_by?: string | null
+          email_components?: Json | null
           footer_text?: string | null
           from_email?: string | null
           from_name?: string | null
