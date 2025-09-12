@@ -310,6 +310,143 @@ export const EmailTemplateManager: React.FC = () => {
     );
   }
 
+  // Fullscreen editor view
+  if (isEditing) {
+    return (
+      <div className="fixed inset-0 bg-background z-50 flex flex-col">
+        {/* Header */}
+        <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <div className="flex h-14 items-center px-4">
+            <div className="flex items-center gap-2 flex-1">
+              <Palette className="w-5 h-5" />
+              <span className="font-semibold">
+                {selectedTemplate ? 'Edit Email Template' : 'Create New Email Template'}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button onClick={saveTemplate} className="flex items-center gap-2">
+                <Save className="w-4 h-4" />
+                Save Template
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setIsEditing(false);
+                  setSelectedTemplate(null);
+                  setEmailComponents([]);
+                  setSelectedComponent(null);
+                }}
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Template Configuration */}
+        <div className="border-b bg-muted/30 p-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+              <Label htmlFor="template_type">Template Type</Label>
+              <select
+                id="template_type"
+                className="w-full p-2 border rounded"
+                value={templateForm.template_type}
+                onChange={(e) => setTemplateForm({ ...templateForm, template_type: e.target.value })}
+              >
+                <option value="">Select Template Type</option>
+                {templateTypes.map((type) => (
+                  <option key={type.value} value={type.value}>
+                    {type.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <Label htmlFor="subject">Subject</Label>
+              <Input
+                id="subject"
+                value={templateForm.subject}
+                onChange={(e) => setTemplateForm({ ...templateForm, subject: e.target.value })}
+                placeholder="Email subject"
+              />
+            </div>
+            <div>
+              <Label htmlFor="heading">Heading</Label>
+              <Input
+                id="heading"
+                value={templateForm.heading}
+                onChange={(e) => setTemplateForm({ ...templateForm, heading: e.target.value })}
+                placeholder="Email heading"
+              />
+            </div>
+            <div>
+              <Label htmlFor="preview_text">Preview Text</Label>
+              <Input
+                id="preview_text"
+                value={templateForm.preview_text}
+                onChange={(e) => setTemplateForm({ ...templateForm, preview_text: e.target.value })}
+                placeholder="Preview text (optional)"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Main Editor Area */}
+        <div className="flex-1 overflow-hidden">
+          <ResizablePanelGroup direction="horizontal" className="h-full">
+            {/* Component Palette */}
+            <ResizablePanel defaultSize={20} minSize={15} maxSize={30}>
+              <EmailComponentPalette onAddComponent={addEmailComponent} />
+            </ResizablePanel>
+            
+            <ResizableHandle withHandle />
+            
+            {/* Email Preview */}
+            <ResizablePanel defaultSize={50} minSize={30}>
+              <EmailPreview
+                components={emailComponents}
+                darkMode={darkMode}
+                onToggleDarkMode={() => setDarkMode(!darkMode)}
+                onSelectComponent={setSelectedComponent}
+                onComponentsChange={setEmailComponents}
+                onAddComponent={addEmailComponent}
+                selectedComponentId={selectedComponent?.id}
+                templateConfig={{
+                  subject: templateForm.subject,
+                  previewText: templateForm.preview_text,
+                  from_name: templateForm.from_name,
+                  from_email: templateForm.from_email,
+                }}
+              />
+            </ResizablePanel>
+            
+            <ResizableHandle withHandle />
+            
+            {/* Component Editor */}
+            <ResizablePanel defaultSize={30} minSize={20} maxSize={40}>
+              {selectedComponent ? (
+                <EmailComponentEditor
+                  component={selectedComponent}
+                  onUpdate={updateEmailComponent}
+                />
+              ) : (
+                <div className="p-6 h-full flex items-center justify-center text-center">
+                  <div className="space-y-2">
+                    <Palette className="w-12 h-12 mx-auto text-muted-foreground/50" />
+                    <p className="text-muted-foreground">
+                      Select a component to edit its properties
+                    </p>
+                  </div>
+                </div>
+              )}
+            </ResizablePanel>
+          </ResizablePanelGroup>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -420,118 +557,6 @@ export const EmailTemplateManager: React.FC = () => {
           );
         })}
       </Tabs>
-
-      {/* Drag-and-Drop Email Editor Dialog */}
-      <Dialog open={isEditing} onOpenChange={setIsEditing}>
-        <DialogContent className="max-w-7xl max-h-[90vh] overflow-hidden">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Palette className="w-5 h-5" />
-              {selectedTemplate ? 'Edit Email Template' : 'Create New Email Template'}
-            </DialogTitle>
-          </DialogHeader>
-          
-          <div className="space-y-4 mb-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <Label htmlFor="template_type">Template Type</Label>
-                <select
-                  id="template_type"
-                  className="w-full p-2 border rounded"
-                  value={templateForm.template_type}
-                  onChange={(e) => setTemplateForm({ ...templateForm, template_type: e.target.value })}
-                >
-                  <option value="">Select Template Type</option>
-                  {templateTypes.map((type) => (
-                    <option key={type.value} value={type.value}>
-                      {type.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <Label htmlFor="subject">Subject</Label>
-                <Input
-                  id="subject"
-                  value={templateForm.subject}
-                  onChange={(e) => setTemplateForm({ ...templateForm, subject: e.target.value })}
-                  placeholder="Email subject"
-                />
-              </div>
-              <div>
-                <Label htmlFor="heading">Heading</Label>
-                <Input
-                  id="heading"
-                  value={templateForm.heading}
-                  onChange={(e) => setTemplateForm({ ...templateForm, heading: e.target.value })}
-                  placeholder="Email heading"
-                />
-              </div>
-            </div>
-            <div className="flex justify-end">
-              <Button onClick={saveTemplate} className="flex items-center gap-2">
-                <Save className="w-4 h-4" />
-                Save Template
-              </Button>
-            </div>
-          </div>
-          
-          <ResizablePanelGroup direction="horizontal" className="min-h-[70vh]">
-            {/* Component Palette */}
-            <ResizablePanel defaultSize={25} minSize={20}>
-              <div className="h-full p-2">
-                <EmailComponentPalette onAddComponent={addEmailComponent} />
-              </div>
-            </ResizablePanel>
-            
-            <ResizableHandle />
-            
-            {/* Preview with Drag & Drop */}
-            <ResizablePanel defaultSize={50} minSize={40}>
-              <div className="h-full p-2">
-                <EmailPreview
-                  components={emailComponents}
-                  darkMode={darkMode}
-                  onToggleDarkMode={() => setDarkMode(!darkMode)}
-                  onSelectComponent={setSelectedComponent}
-                  onComponentsChange={setEmailComponents}
-                  onAddComponent={addEmailComponent}
-                  selectedComponentId={selectedComponent?.id}
-                  templateConfig={{
-                    subject: templateForm.subject || 'Your Email Subject',
-                    previewText: templateForm.preview_text || undefined,
-                    from_name: templateForm.from_name,
-                    from_email: templateForm.from_email
-                  }}
-                />
-              </div>
-            </ResizablePanel>
-            
-            <ResizableHandle />
-            
-            {/* Component Editor */}
-            <ResizablePanel defaultSize={25} minSize={20}>
-              <div className="h-full p-2">
-                {selectedComponent ? (
-                  <EmailComponentEditor
-                    component={selectedComponent}
-                    onUpdate={updateEmailComponent}
-                  />
-                ) : (
-                  <Card className="h-full">
-                    <CardHeader>
-                      <CardTitle>Component Editor</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-muted-foreground">Select a component to edit its properties</p>
-                    </CardContent>
-                  </Card>
-                )}
-              </div>
-            </ResizablePanel>
-          </ResizablePanelGroup>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
