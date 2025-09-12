@@ -74,7 +74,7 @@ serve(async (req) => {
 
     // Send email via Resend
     const { error } = await resend.emails.send({
-      from: "noreply@yourdomain.com", // Replace with your verified domain
+      from: "onboarding@resend.dev", // Update this to your verified domain when ready
       to: [user.email],
       subject,
       html,
