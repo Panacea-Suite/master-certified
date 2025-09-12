@@ -621,17 +621,6 @@ const CampaignManager = () => {
 
   return (
     <div className="space-y-6">
-      {/* Debug Banner */}
-      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm">
-        <div className="font-medium text-yellow-800 mb-1">🔍 Debug Info (temp):</div>
-        <div className="text-yellow-700 space-y-1">
-          <div>Current Brand: {currentBrand?.id || 'None'} ({currentBrand?.name || 'No name'})</div>
-          <div>Storage Brand ID: {localStorage.getItem('selectedBrandId') || 'None'}</div>
-          <div>Available Brands: {availableBrands.length}</div>
-          <div>Campaigns Shown: {campaigns.length}</div>
-        </div>
-      </div>
-
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Campaign Management</h1>
         <div className="flex gap-2">
