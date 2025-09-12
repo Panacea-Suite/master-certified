@@ -407,7 +407,7 @@ export const EmailTemplateManager: React.FC = () => {
                   className="h-8 w-8"
                   title="Expand components"
                 >
-                  <X className="h-4 w-4" />
+                  <Plus className="h-4 w-4" />
                 </Button>
               </div>
             )}
@@ -418,7 +418,7 @@ export const EmailTemplateManager: React.FC = () => {
                   {/* Component Palette */}
                   <ResizablePanel defaultSize={20} minSize={15} maxSize={30}>
                     <div className="h-full pr-2 relative">
-                      <div className="absolute right-0 top-2 -mr-3 z-10">
+                      <div className="absolute right-2 top-2 z-10">
                         <Button
                           variant="ghost"
                           size="icon"
