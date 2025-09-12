@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
@@ -300,10 +301,28 @@ interface ArchivedItemsListProps {
 }
 
 const ArchivedItemsList: React.FC<ArchivedItemsListProps> = ({ items, onRestore, onPermanentDelete }) => {
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{ [key: string]: string }>({});
+  const [dialogOpen, setDialogOpen] = useState<{ [key: string]: boolean }>({});
+
   const getDeletionBadgeVariant = (days: number) => {
     if (days <= 3) return 'destructive';
     if (days <= 7) return 'secondary';
     return 'outline';
+  };
+
+  const handleDeleteConfirm = (item: ArchivedItem) => {
+    const itemKey = `${item.type}-${item.id}`;
+    if (deleteConfirmation[itemKey] === 'delete') {
+      onPermanentDelete(item);
+      setDeleteConfirmation(prev => ({ ...prev, [itemKey]: '' }));
+      setDialogOpen(prev => ({ ...prev, [itemKey]: false }));
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent, item: ArchivedItem) => {
+    if (e.key === 'Enter') {
+      handleDeleteConfirm(item);
+    }
   };
 
   return (
@@ -338,7 +357,16 @@ const ArchivedItemsList: React.FC<ArchivedItemsListProps> = ({ items, onRestore,
               Restore
             </Button>
             
-            <AlertDialog>
+            <AlertDialog 
+              open={dialogOpen[`${item.type}-${item.id}`]} 
+              onOpenChange={(open) => {
+                const itemKey = `${item.type}-${item.id}`;
+                setDialogOpen(prev => ({ ...prev, [itemKey]: open }));
+                if (!open) {
+                  setDeleteConfirmation(prev => ({ ...prev, [itemKey]: '' }));
+                }
+              }}
+            >
               <AlertDialogTrigger asChild>
                 <Button variant="destructive" size="sm" className="flex items-center gap-1">
                   <Trash2 className="h-3 w-3" />
@@ -350,13 +378,33 @@ const ArchivedItemsList: React.FC<ArchivedItemsListProps> = ({ items, onRestore,
                   <AlertDialogTitle>Permanently Delete {item.type.replace('_', ' ')}</AlertDialogTitle>
                   <AlertDialogDescription>
                     This will permanently delete "{item.name}" immediately. This action cannot be undone.
+                    <br /><br />
+                    Type <strong>delete</strong> to confirm:
                   </AlertDialogDescription>
                 </AlertDialogHeader>
+                <div className="py-4">
+                  <Input
+                    placeholder="Type 'delete' to confirm"
+                    value={deleteConfirmation[`${item.type}-${item.id}`] || ''}
+                    onChange={(e) => {
+                      const itemKey = `${item.type}-${item.id}`;
+                      setDeleteConfirmation(prev => ({ ...prev, [itemKey]: e.target.value }));
+                    }}
+                    onKeyPress={(e) => handleKeyPress(e, item)}
+                    autoFocus
+                  />
+                </div>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogCancel onClick={() => {
+                    const itemKey = `${item.type}-${item.id}`;
+                    setDeleteConfirmation(prev => ({ ...prev, [itemKey]: '' }));
+                  }}>
+                    Cancel
+                  </AlertDialogCancel>
                   <AlertDialogAction 
-                    onClick={() => onPermanentDelete(item)}
-                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    onClick={() => handleDeleteConfirm(item)}
+                    disabled={deleteConfirmation[`${item.type}-${item.id}`] !== 'delete'}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90 disabled:opacity-50"
                   >
                     Delete Permanently
                   </AlertDialogAction>
