@@ -393,53 +393,59 @@ export const EmailTemplateManager: React.FC = () => {
         </div>
 
         {/* Main Editor Area */}
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 overflow-hidden p-4">
           <ResizablePanelGroup direction="horizontal" className="h-full">
             {/* Component Palette */}
             <ResizablePanel defaultSize={20} minSize={15} maxSize={30}>
-              <EmailComponentPalette onAddComponent={addEmailComponent} />
+              <div className="h-full pr-2">
+                <EmailComponentPalette onAddComponent={addEmailComponent} />
+              </div>
             </ResizablePanel>
             
             <ResizableHandle withHandle />
             
             {/* Email Preview */}
             <ResizablePanel defaultSize={50} minSize={30}>
-              <EmailPreview
-                components={emailComponents}
-                darkMode={darkMode}
-                onToggleDarkMode={() => setDarkMode(!darkMode)}
-                onSelectComponent={setSelectedComponent}
-                onComponentsChange={setEmailComponents}
-                onAddComponent={addEmailComponent}
-                selectedComponentId={selectedComponent?.id}
-                templateConfig={{
-                  subject: templateForm.subject,
-                  previewText: templateForm.preview_text,
-                  from_name: templateForm.from_name,
-                  from_email: templateForm.from_email,
-                }}
-              />
+              <div className="h-full px-2">
+                <EmailPreview
+                  components={emailComponents}
+                  darkMode={darkMode}
+                  onToggleDarkMode={() => setDarkMode(!darkMode)}
+                  onSelectComponent={setSelectedComponent}
+                  onComponentsChange={setEmailComponents}
+                  onAddComponent={addEmailComponent}
+                  selectedComponentId={selectedComponent?.id}
+                  templateConfig={{
+                    subject: templateForm.subject,
+                    previewText: templateForm.preview_text,
+                    from_name: templateForm.from_name,
+                    from_email: templateForm.from_email,
+                  }}
+                />
+              </div>
             </ResizablePanel>
             
             <ResizableHandle withHandle />
             
             {/* Component Editor */}
             <ResizablePanel defaultSize={30} minSize={20} maxSize={40}>
-              {selectedComponent ? (
-                <EmailComponentEditor
-                  component={selectedComponent}
-                  onUpdate={updateEmailComponent}
-                />
-              ) : (
-                <div className="p-6 h-full flex items-center justify-center text-center">
-                  <div className="space-y-2">
-                    <Palette className="w-12 h-12 mx-auto text-muted-foreground/50" />
-                    <p className="text-muted-foreground">
-                      Select a component to edit its properties
-                    </p>
+              <div className="h-full pl-2">
+                {selectedComponent ? (
+                  <EmailComponentEditor
+                    component={selectedComponent}
+                    onUpdate={updateEmailComponent}
+                  />
+                ) : (
+                  <div className="p-6 h-full flex items-center justify-center text-center">
+                    <div className="space-y-2">
+                      <Palette className="w-12 h-12 mx-auto text-muted-foreground/50" />
+                      <p className="text-muted-foreground">
+                        Select a component to edit its properties
+                      </p>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </ResizablePanel>
           </ResizablePanelGroup>
         </div>
