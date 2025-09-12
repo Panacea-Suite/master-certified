@@ -1,7 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, closestCenter } from '@dnd-kit/core';
 import { arrayMove, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -569,7 +568,7 @@ export const EmailPreview: React.FC<EmailPreviewProps> = ({
               <DndContext
                 onDragStart={handleDragStart}
                 onDragEnd={handleDragEnd}
-                modifiers={[restrictToVerticalAxis]}
+                collisionDetection={closestCenter}
               >
                 <SortableContext items={sortedComponents.map(c => c.id)} strategy={verticalListSortingStrategy}>
                   {sortedComponents.map((component) => (
