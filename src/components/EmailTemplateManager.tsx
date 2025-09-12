@@ -6,9 +6,21 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import { toast } from '@/hooks/use-toast';
-import { Mail, Save, Eye, Edit, Plus } from 'lucide-react';
+import { Mail, Save, Eye, Edit, Plus, Palette } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { EmailComponentPalette } from './email-editor/EmailComponentPalette';
+import { EmailEditor } from './email-editor/EmailEditor';
+import { EmailPreview } from './email-editor/EmailPreview';
+import { EmailComponentEditor } from './email-editor/EmailComponentEditor';
+
+interface EmailComponent {
+  id: string;
+  type: string;
+  config: any;
+  order: number;
+}
 
 interface EmailTemplate {
   id: string;
@@ -25,6 +37,7 @@ interface EmailTemplate {
   is_active: boolean;
   created_at: string;
   updated_at: string;
+  email_components?: EmailComponent[];
 }
 
 const templateTypes = [
@@ -40,6 +53,81 @@ export const EmailTemplateManager: React.FC = () => {
   const [selectedTemplate, setSelectedTemplate] = useState<EmailTemplate | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
+  const [selectedComponent, setSelectedComponent] = useState<EmailComponent | null>(null);
+  const [emailComponents, setEmailComponents] = useState<EmailComponent[]>([]);
+
+  useEffect(() => {
+    loadTemplates();
+  }, []);
+
+  const loadTemplates = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('email_templates')
+        .select('*')
+        .eq('is_active', true)
+        .order('template_type');
+
+      if (error) throw error;
+      
+      const templatesWithComponents = (data || []).map(template => ({
+        ...template,
+        email_components: template.email_components || []
+      })) as EmailTemplate[];
+      
+      setTemplates(templatesWithComponents);
+    } catch (error) {
+      console.error('Error loading templates:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load email templates",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const generateNextId = () => {
+    return `component_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  };
+
+  const addEmailComponent = (componentType: string) => {
+    const defaultConfigs: Record<string, any> = {
+      email_header: { title: 'Your Brand', padding: 20, backgroundColor: '#ffffff' },
+      email_heading: { text: 'Welcome!', fontSize: '24', fontWeight: 'bold', textAlign: 'center', textColor: '#333333', padding: 16 },
+      email_text: { text: 'Thank you for signing up. We\'re excited to have you on board!', fontSize: '16', textAlign: 'left', textColor: '#333333', padding: 16 },
+      email_button: { buttonText: 'Get Started', buttonUrl: '#', buttonBgColor: '#5F57FF', buttonTextColor: '#ffffff', buttonAlign: 'center', borderRadius: 6, padding: 20 },
+      email_image: { imageUrl: '', altText: 'Image', imageAlign: 'center', maxWidth: 600, padding: 16 },
+      email_divider: { padding: 16, backgroundColor: '#ffffff' },
+      email_spacer: { height: 40, padding: 0, backgroundColor: '#ffffff' },
+      email_footer: { footerText: 'If you no longer wish to receive these emails, you can unsubscribe here.', padding: 20, backgroundColor: '#f8f9fa' }
+    };
+
+    const newComponent: EmailComponent = {
+      id: generateNextId(),
+      type: componentType,
+      config: defaultConfigs[componentType] || {},
+      order: emailComponents.length
+    };
+
+    setEmailComponents([...emailComponents, newComponent]);
+    setSelectedComponent(newComponent);
+  };
+
+  const updateEmailComponent = (config: any) => {
+    if (!selectedComponent) return;
+    
+    const updatedComponents = emailComponents.map(comp =>
+      comp.id === selectedComponent.id ? { ...comp, config } : comp
+    );
+    
+    setEmailComponents(updatedComponents);
+    setSelectedComponent({ ...selectedComponent, config });
+  };
+
+  const saveTemplate = async (templateData: Partial<EmailTemplate>) => {
 
   useEffect(() => {
     loadTemplates();
@@ -67,14 +155,14 @@ export const EmailTemplateManager: React.FC = () => {
     }
   };
 
-  const saveTemplate = async (template: Partial<EmailTemplate>) => {
     try {
       if (selectedTemplate) {
-        // Update existing template
+        // Update existing template with email components
         const { error } = await supabase
           .from('email_templates')
           .update({
-            ...template,
+            ...templateData,
+            email_components: emailComponents,
             updated_at: new Date().toISOString(),
           })
           .eq('id', selectedTemplate.id);
@@ -86,26 +174,27 @@ export const EmailTemplateManager: React.FC = () => {
         });
       } else {
         // Create new template - deactivate existing first
-        if (template.template_type) {
+        if (templateData.template_type) {
           await supabase
             .from('email_templates')
             .update({ is_active: false })
-            .eq('template_type', template.template_type);
+            .eq('template_type', templateData.template_type);
         }
 
         const { error } = await supabase
           .from('email_templates')
           .insert({
-            template_type: template.template_type!,
-            subject: template.subject!,
-            preview_text: template.preview_text || null,
-            heading: template.heading!,
-            message: template.message!,
-            button_text: template.button_text!,
-            footer_text: template.footer_text || null,
-            from_name: template.from_name || 'Panacea Certified',
-            from_email: template.from_email || 'noreply@certified.panaceasuite.io',
-            reply_to_email: template.reply_to_email || 'support@panaceasuite.io',
+            template_type: templateData.template_type!,
+            subject: templateData.subject!,
+            preview_text: templateData.preview_text || null,
+            heading: templateData.heading!,
+            message: templateData.message!,
+            button_text: templateData.button_text!,
+            footer_text: templateData.footer_text || null,
+            from_name: templateData.from_name || 'Panacea Certified',
+            from_email: templateData.from_email || 'noreply@certified.panaceasuite.io',
+            reply_to_email: templateData.reply_to_email || 'support@panaceasuite.io',
+            email_components: emailComponents,
             is_active: true,
             created_by: (await supabase.auth.getUser()).data.user?.id,
           });
@@ -120,6 +209,8 @@ export const EmailTemplateManager: React.FC = () => {
       loadTemplates();
       setIsEditing(false);
       setSelectedTemplate(null);
+      setEmailComponents([]);
+      setSelectedComponent(null);
     } catch (error) {
       console.error('Error saving template:', error);
       toast({
@@ -128,6 +219,20 @@ export const EmailTemplateManager: React.FC = () => {
         variant: "destructive",
       });
     }
+  };
+
+  const handleEditTemplate = (template: EmailTemplate) => {
+    setSelectedTemplate(template);
+    setEmailComponents(template.email_components || []);
+    setSelectedComponent(null);
+    setIsEditing(true);
+  };
+
+  const handleCreateNew = () => {
+    setSelectedTemplate(null);
+    setEmailComponents([]);
+    setSelectedComponent(null);
+    setIsEditing(true);
   };
 
   const generatePreview = (template: EmailTemplate) => {
@@ -193,10 +298,7 @@ export const EmailTemplateManager: React.FC = () => {
           <p className="text-muted-foreground">Customize authentication email templates</p>
         </div>
         <Button
-          onClick={() => {
-            setSelectedTemplate(null);
-            setIsEditing(true);
-          }}
+          onClick={handleCreateNew}
           className="flex items-center gap-2"
         >
           <Plus className="w-4 h-4" />
@@ -250,10 +352,7 @@ export const EmailTemplateManager: React.FC = () => {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => {
-                            setSelectedTemplate(template);
-                            setIsEditing(true);
-                          }}
+                          onClick={() => handleEditTemplate(template)}
                         >
                           <Edit className="w-4 h-4 mr-2" />
                           Edit
@@ -271,13 +370,11 @@ export const EmailTemplateManager: React.FC = () => {
                           <p className="text-sm text-muted-foreground">{template.subject}</p>
                         </div>
                         <div>
-                          <Label className="text-sm font-medium">Button Text</Label>
-                          <p className="text-sm text-muted-foreground">{template.button_text}</p>
+                          <Label className="text-sm font-medium">Components</Label>
+                          <p className="text-sm text-muted-foreground">
+                            {template.email_components?.length || 0} email components
+                          </p>
                         </div>
-                      </div>
-                      <div>
-                        <Label className="text-sm font-medium">Message</Label>
-                        <p className="text-sm text-muted-foreground">{template.message}</p>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-muted-foreground">
                         <div>From: {template.from_name} &lt;{template.from_email}&gt;</div>
@@ -291,10 +388,7 @@ export const EmailTemplateManager: React.FC = () => {
                       <Button
                         variant="outline"
                         className="mt-4"
-                        onClick={() => {
-                          setSelectedTemplate(null);
-                          setIsEditing(true);
-                        }}
+                        onClick={handleCreateNew}
                       >
                         Create Template
                       </Button>
@@ -307,177 +401,238 @@ export const EmailTemplateManager: React.FC = () => {
         })}
       </Tabs>
 
-      {/* Edit Dialog */}
+      {/* Drag-and-Drop Email Editor Dialog */}
       <Dialog open={isEditing} onOpenChange={setIsEditing}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-7xl max-h-[90vh] overflow-hidden">
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <Palette className="w-5 h-5" />
               {selectedTemplate ? 'Edit Email Template' : 'Create New Email Template'}
             </DialogTitle>
           </DialogHeader>
-          <TemplateEditor
-            template={selectedTemplate}
-            onSave={saveTemplate}
-            onCancel={() => setIsEditing(false)}
-          />
+          
+          <ResizablePanelGroup direction="horizontal" className="min-h-[70vh]">
+            {/* Component Palette */}
+            <ResizablePanel defaultSize={20} minSize={15}>
+              <div className="h-full p-2">
+                <EmailComponentPalette onAddComponent={addEmailComponent} />
+              </div>
+            </ResizablePanel>
+            
+            <ResizableHandle />
+            
+            {/* Email Builder */}
+            <ResizablePanel defaultSize={35} minSize={25}>
+              <div className="h-full p-2">
+                <EmailEditor
+                  components={emailComponents}
+                  onComponentsChange={setEmailComponents}
+                  onSelectComponent={setSelectedComponent}
+                  onAddComponent={addEmailComponent}
+                  selectedComponentId={selectedComponent?.id}
+                  darkMode={darkMode}
+                />
+              </div>
+            </ResizablePanel>
+            
+            <ResizableHandle />
+            
+            {/* Preview */}
+            <ResizablePanel defaultSize={35} minSize={25}>
+              <div className="h-full p-2">
+                <EmailPreview
+                  components={emailComponents}
+                  darkMode={darkMode}
+                  onToggleDarkMode={() => setDarkMode(!darkMode)}
+                  onSelectComponent={setSelectedComponent}
+                  selectedComponentId={selectedComponent?.id}
+                  templateConfig={{
+                    subject: selectedTemplate?.subject || 'Your Email Subject',
+                    previewText: selectedTemplate?.preview_text || undefined,
+                    from_name: selectedTemplate?.from_name || 'Panacea Certified',
+                    from_email: selectedTemplate?.from_email || 'noreply@certified.panaceasuite.io'
+                  }}
+                />
+              </div>
+            </ResizablePanel>
+            
+            <ResizableHandle />
+            
+            {/* Component Editor */}
+            <ResizablePanel defaultSize={10} minSize={8}>
+              <div className="h-full p-2">
+                <EmailComponentEditor
+                  component={selectedComponent}
+                  onUpdate={updateEmailComponent}
+                />
+              </div>
+            </ResizablePanel>
+          </ResizablePanelGroup>
+          
+          <div className="flex justify-between items-center pt-4 border-t">
+            <Button variant="outline" onClick={() => setIsEditing(false)}>
+              Cancel
+            </Button>
+            <TemplateSettingsForm
+              template={selectedTemplate}
+              onSave={saveTemplate}
+              emailComponents={emailComponents}
+            />
+          </div>
         </DialogContent>
       </Dialog>
     </div>
   );
 };
 
-interface TemplateEditorProps {
+interface TemplateSettingsFormProps {
   template: EmailTemplate | null;
   onSave: (template: Partial<EmailTemplate>) => void;
-  onCancel: () => void;
+  emailComponents: EmailComponent[];
 }
 
-const TemplateEditor: React.FC<TemplateEditorProps> = ({ template, onSave, onCancel }) => {
+const TemplateSettingsForm: React.FC<TemplateSettingsFormProps> = ({ template, onSave, emailComponents }) => {
   const [formData, setFormData] = useState({
     template_type: template?.template_type || 'signup' as const,
     subject: template?.subject || '',
     preview_text: template?.preview_text || '',
-    heading: template?.heading || '',
-    message: template?.message || '',
-    button_text: template?.button_text || '',
-    footer_text: template?.footer_text || '',
     from_name: template?.from_name || 'Panacea Certified',
     from_email: template?.from_email || 'noreply@certified.panaceasuite.io',
     reply_to_email: template?.reply_to_email || 'support@panaceasuite.io',
   });
 
+  const [showSettings, setShowSettings] = useState(false);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (emailComponents.length === 0) {
+      toast({
+        title: "Error", 
+        description: "Please add at least one email component",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     onSave(formData);
   };
 
-  return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="template_type">Template Type</Label>
-          <select
-            id="template_type"
-            value={formData.template_type}
-            onChange={(e) => setFormData({ ...formData, template_type: e.target.value as any })}
-            className="w-full px-3 py-2 border border-border rounded-md"
-            disabled={!!template}
-          >
-            {templateTypes.map((type) => (
-              <option key={type.value} value={type.value}>
-                {type.label}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <Label htmlFor="subject">Subject</Label>
-          <Input
-            id="subject"
-            value={formData.subject}
-            onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-            placeholder="Confirm your email address"
-            required
-          />
-        </div>
-      </div>
-
-      <div>
-        <Label htmlFor="preview_text">Preview Text</Label>
-        <Input
-          id="preview_text"
-          value={formData.preview_text}
-          onChange={(e) => setFormData({ ...formData, preview_text: e.target.value })}
-          placeholder="This appears in email previews"
-        />
-      </div>
-
-      <div>
-        <Label htmlFor="heading">Email Heading</Label>
-        <Input
-          id="heading"
-          value={formData.heading}
-          onChange={(e) => setFormData({ ...formData, heading: e.target.value })}
-          placeholder="Confirm your email"
-          required
-        />
-      </div>
-
-      <div>
-        <Label htmlFor="message">Message</Label>
-        <Textarea
-          id="message"
-          value={formData.message}
-          onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-          placeholder="Click the button below to confirm your email address..."
-          rows={4}
-          required
-        />
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="button_text">Button Text</Label>
-          <Input
-            id="button_text"
-            value={formData.button_text}
-            onChange={(e) => setFormData({ ...formData, button_text: e.target.value })}
-            placeholder="Confirm Email"
-            required
-          />
-        </div>
-        <div>
-          <Label htmlFor="footer_text">Footer Text</Label>
-          <Input
-            id="footer_text"
-            value={formData.footer_text}
-            onChange={(e) => setFormData({ ...formData, footer_text: e.target.value })}
-            placeholder="If you didn't create an account..."
-          />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div>
-          <Label htmlFor="from_name">From Name</Label>
-          <Input
-            id="from_name"
-            value={formData.from_name}
-            onChange={(e) => setFormData({ ...formData, from_name: e.target.value })}
-            placeholder="Panacea Certified"
-          />
-        </div>
-        <div>
-          <Label htmlFor="from_email">From Email</Label>
-          <Input
-            id="from_email"
-            value={formData.from_email}
-            onChange={(e) => setFormData({ ...formData, from_email: e.target.value })}
-            placeholder="noreply@certified.panaceasuite.io"
-            type="email"
-          />
-        </div>
-        <div>
-          <Label htmlFor="reply_to_email">Reply-To Email</Label>
-          <Input
-            id="reply_to_email"
-            value={formData.reply_to_email}
-            onChange={(e) => setFormData({ ...formData, reply_to_email: e.target.value })}
-            placeholder="support@panaceasuite.io"
-            type="email"
-          />
-        </div>
-      </div>
-
-      <div className="flex justify-end gap-2 pt-4">
-        <Button type="button" variant="outline" onClick={onCancel}>
-          Cancel
+  if (!showSettings) {
+    return (
+      <div className="flex gap-2">
+        <Button variant="outline" onClick={() => setShowSettings(true)}>
+          Settings
         </Button>
-        <Button type="submit">
+        <Button 
+          onClick={() => {
+            if (emailComponents.length === 0) {
+              toast({
+                title: "Error",
+                description: "Please add at least one email component", 
+                variant: "destructive",
+              });
+              return;
+            }
+            onSave(formData);
+          }}
+        >
           <Save className="w-4 h-4 mr-2" />
           Save Template
         </Button>
       </div>
-    </form>
+    );
+  }
+
+  return (
+    <Dialog open={showSettings} onOpenChange={setShowSettings}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Template Settings</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="template_type">Template Type</Label>
+              <select
+                id="template_type"
+                value={formData.template_type}
+                onChange={(e) => setFormData({ ...formData, template_type: e.target.value as any })}
+                className="w-full px-3 py-2 border border-border rounded-md"
+                disabled={!!template}
+              >
+                {templateTypes.map((type) => (
+                  <option key={type.value} value={type.value}>
+                    {type.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <Label htmlFor="subject">Subject</Label>
+              <Input
+                id="subject"
+                value={formData.subject}
+                onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                placeholder="Confirm your email address"
+                required
+              />
+            </div>
+          </div>
+
+          <div>
+            <Label htmlFor="preview_text">Preview Text</Label>
+            <Input
+              id="preview_text"
+              value={formData.preview_text}
+              onChange={(e) => setFormData({ ...formData, preview_text: e.target.value })}
+              placeholder="This appears in email previews"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <Label htmlFor="from_name">From Name</Label>
+              <Input
+                id="from_name"
+                value={formData.from_name}
+                onChange={(e) => setFormData({ ...formData, from_name: e.target.value })}
+                placeholder="Panacea Certified"
+              />
+            </div>
+            <div>
+              <Label htmlFor="from_email">From Email</Label>
+              <Input
+                id="from_email"
+                value={formData.from_email}
+                onChange={(e) => setFormData({ ...formData, from_email: e.target.value })}
+                placeholder="noreply@certified.panaceasuite.io"
+                type="email"
+              />
+            </div>
+            <div>
+              <Label htmlFor="reply_to_email">Reply-To Email</Label>
+              <Input
+                id="reply_to_email"
+                value={formData.reply_to_email}
+                onChange={(e) => setFormData({ ...formData, reply_to_email: e.target.value })}
+                placeholder="support@panaceasuite.io"
+                type="email"
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-2 pt-4">
+            <Button type="button" variant="outline" onClick={() => setShowSettings(false)}>
+              Cancel
+            </Button>
+            <Button type="submit">
+              <Save className="w-4 h-4 mr-2" />
+              Save Template
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 };
