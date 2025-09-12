@@ -289,6 +289,60 @@ export type Database = {
         }
         Relationships: []
       }
+      email_templates: {
+        Row: {
+          button_text: string
+          created_at: string | null
+          created_by: string | null
+          footer_text: string | null
+          from_email: string | null
+          from_name: string | null
+          heading: string
+          id: string
+          is_active: boolean | null
+          message: string
+          preview_text: string | null
+          reply_to_email: string | null
+          subject: string
+          template_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          button_text: string
+          created_at?: string | null
+          created_by?: string | null
+          footer_text?: string | null
+          from_email?: string | null
+          from_name?: string | null
+          heading: string
+          id?: string
+          is_active?: boolean | null
+          message: string
+          preview_text?: string | null
+          reply_to_email?: string | null
+          subject: string
+          template_type: string
+          updated_at?: string | null
+        }
+        Update: {
+          button_text?: string
+          created_at?: string | null
+          created_by?: string | null
+          footer_text?: string | null
+          from_email?: string | null
+          from_name?: string | null
+          heading?: string
+          id?: string
+          is_active?: boolean | null
+          message?: string
+          preview_text?: string | null
+          reply_to_email?: string | null
+          subject?: string
+          template_type?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       flow_content: {
         Row: {
           content: Json

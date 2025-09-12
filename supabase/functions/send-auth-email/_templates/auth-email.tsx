@@ -18,6 +18,13 @@ interface AuthEmailProps {
   token_hash: string;
   token: string;
   email_type: string;
+  template_config?: {
+    heading?: string;
+    message?: string;
+    button_text?: string;
+    footer_text?: string;
+    preview_text?: string;
+  } | null;
 }
 
 export const AuthEmail = ({
@@ -27,6 +34,7 @@ export const AuthEmail = ({
   redirect_to,
   token_hash,
   email_type,
+  template_config,
 }: AuthEmailProps) => {
   const actionUrl = `${supabase_url}/auth/v1/verify?token=${token_hash}&type=${email_action_type}&redirect_to=${redirect_to}`;
   
@@ -76,18 +84,27 @@ export const AuthEmail = ({
   };
 
   const content = getContent();
+  
+  // Override with custom template config if provided
+  const finalContent = template_config ? {
+    preview: template_config.preview_text || content.preview,
+    heading: template_config.heading || content.heading,
+    message: template_config.message || content.message,
+    buttonText: template_config.button_text || content.buttonText,
+    footerText: template_config.footer_text || content.footerText,
+  } : content;
 
   return (
     <Html>
       <Head />
-      <Preview>{content.preview}</Preview>
+      <Preview>{finalContent.preview}</Preview>
       <Body style={main}>
         <Container style={container}>
-          <Heading style={h1}>{content.heading}</Heading>
-          <Text style={text}>{content.message}</Text>
+          <Heading style={h1}>{finalContent.heading}</Heading>
+          <Text style={text}>{finalContent.message}</Text>
           
           <Button href={actionUrl} style={button}>
-            {content.buttonText}
+            {finalContent.buttonText}
           </Button>
           
           <Text style={codeText}>
@@ -96,7 +113,7 @@ export const AuthEmail = ({
           <Text style={code}>{actionUrl}</Text>
           
           <Text style={footer}>
-            {content.footerText}
+            {finalContent.footerText}
           </Text>
         </Container>
       </Body>

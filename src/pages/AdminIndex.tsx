@@ -9,6 +9,7 @@ import CampaignManager from '@/components/CampaignManager';
 import BatchManager from '@/components/BatchManager';
 import TemplateManager from '@/components/TemplateManager';
 import { SystemTemplateManager } from '@/components/SystemTemplateManager';
+import { EmailTemplateManager } from '@/components/EmailTemplateManager';
 import { ArchiveManager } from '@/components/ArchiveManager';
 
 import { Button } from '@/components/ui/button';
@@ -43,6 +44,8 @@ const AdminIndex = () => {
         return <BrandManager onTabChange={setActiveTab} />;
       case 'system-templates':
         return <SystemTemplateManager />;
+      case 'email-templates':
+        return <EmailTemplateManager />;
       case 'brand-settings':
         return <BrandSettings />;
       case 'campaigns':
