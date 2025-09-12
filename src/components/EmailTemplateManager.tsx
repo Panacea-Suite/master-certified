@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import { toast } from '@/hooks/use-toast';
-import { Mail, Save, Eye, Edit, Plus, Palette, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { Mail, Save, Eye, Edit, Plus, Palette, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { EmailComponentPalette } from './email-editor/EmailComponentPalette';
 import { EmailPreview } from './email-editor/EmailPreview';
@@ -407,7 +407,7 @@ export const EmailTemplateManager: React.FC = () => {
                   className="h-8 w-8"
                   title="Expand components"
                 >
-                  <ChevronsRight className="h-4 w-4" />
+                  <X className="h-4 w-4" />
                 </Button>
               </div>
             )}
@@ -427,7 +427,7 @@ export const EmailTemplateManager: React.FC = () => {
                           className="h-8 w-8"
                           title="Collapse components"
                         >
-                          <ChevronsLeft className="h-4 w-4" />
+                          <X className="h-4 w-4" />
                         </Button>
                       </div>
                       <EmailComponentPalette onAddComponent={addEmailComponent} />
