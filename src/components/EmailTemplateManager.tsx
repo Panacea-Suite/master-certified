@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import { toast } from '@/hooks/use-toast';
-import { Mail, Save, Eye, Edit, Plus, Palette } from 'lucide-react';
+import { Mail, Save, Eye, Edit, Plus, Palette, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { EmailComponentPalette } from './email-editor/EmailComponentPalette';
 import { EmailPreview } from './email-editor/EmailPreview';
@@ -67,6 +67,8 @@ export const EmailTemplateManager: React.FC = () => {
     from_email: 'noreply@certified.panaceasuite.io',
     reply_to_email: 'support@panaceasuite.io',
   });
+
+  const [isPaletteCollapsed, setIsPaletteCollapsed] = useState(false);
 
   useEffect(() => {
     loadTemplates();
@@ -394,60 +396,93 @@ export const EmailTemplateManager: React.FC = () => {
 
         {/* Main Editor Area */}
         <div className="flex-1 overflow-hidden p-4">
-          <ResizablePanelGroup direction="horizontal" className="h-full">
-            {/* Component Palette */}
-            <ResizablePanel defaultSize={20} minSize={15} maxSize={30}>
-              <div className="h-full pr-2">
-                <EmailComponentPalette onAddComponent={addEmailComponent} />
+          <div className="h-full flex">
+            {isPaletteCollapsed && (
+              <div className="w-8 flex items-center justify-center border-r bg-background/60">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Expand components palette"
+                  onClick={() => setIsPaletteCollapsed(false)}
+                  className="h-8 w-8"
+                  title="Expand components"
+                >
+                  <ChevronsRight className="h-4 w-4" />
+                </Button>
               </div>
-            </ResizablePanel>
-            
-            <ResizableHandle withHandle />
-            
-            {/* Email Preview */}
-            <ResizablePanel defaultSize={50} minSize={30}>
-              <div className="h-full px-2">
-                <EmailPreview
-                  components={emailComponents}
-                  darkMode={darkMode}
-                  onToggleDarkMode={() => setDarkMode(!darkMode)}
-                  onSelectComponent={setSelectedComponent}
-                  onComponentsChange={setEmailComponents}
-                  onAddComponent={addEmailComponent}
-                  selectedComponentId={selectedComponent?.id}
-                  templateConfig={{
-                    subject: templateForm.subject,
-                    previewText: templateForm.preview_text,
-                    from_name: templateForm.from_name,
-                    from_email: templateForm.from_email,
-                  }}
-                />
-              </div>
-            </ResizablePanel>
-            
-            <ResizableHandle withHandle />
-            
-            {/* Component Editor */}
-            <ResizablePanel defaultSize={30} minSize={20} maxSize={40}>
-              <div className="h-full pl-2">
-                {selectedComponent ? (
-                  <EmailComponentEditor
-                    component={selectedComponent}
-                    onUpdate={updateEmailComponent}
-                  />
-                ) : (
-                  <div className="p-6 h-full flex items-center justify-center text-center">
-                    <div className="space-y-2">
-                      <Palette className="w-12 h-12 mx-auto text-muted-foreground/50" />
-                      <p className="text-muted-foreground">
-                        Select a component to edit its properties
-                      </p>
+            )}
+
+            <ResizablePanelGroup direction="horizontal" className="h-full flex-1">
+              {!isPaletteCollapsed && (
+                <>
+                  {/* Component Palette */}
+                  <ResizablePanel defaultSize={20} minSize={15} maxSize={30}>
+                    <div className="h-full pr-2 relative">
+                      <div className="absolute right-0 top-2 -mr-3 z-10">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          aria-label="Collapse palette"
+                          onClick={() => setIsPaletteCollapsed(true)}
+                          className="h-8 w-8"
+                          title="Collapse components"
+                        >
+                          <ChevronsLeft className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <EmailComponentPalette onAddComponent={addEmailComponent} />
                     </div>
-                  </div>
-                )}
-              </div>
-            </ResizablePanel>
-          </ResizablePanelGroup>
+                  </ResizablePanel>
+
+                  <ResizableHandle withHandle />
+                </>
+              )}
+
+              {/* Email Preview */}
+              <ResizablePanel defaultSize={50} minSize={30}>
+                <div className="h-full px-2">
+                  <EmailPreview
+                    components={emailComponents}
+                    darkMode={darkMode}
+                    onToggleDarkMode={() => setDarkMode(!darkMode)}
+                    onSelectComponent={setSelectedComponent}
+                    onComponentsChange={setEmailComponents}
+                    onAddComponent={addEmailComponent}
+                    selectedComponentId={selectedComponent?.id}
+                    templateConfig={{
+                      subject: templateForm.subject,
+                      previewText: templateForm.preview_text,
+                      from_name: templateForm.from_name,
+                      from_email: templateForm.from_email,
+                    }}
+                  />
+                </div>
+              </ResizablePanel>
+
+              <ResizableHandle withHandle />
+
+              {/* Component Editor */}
+              <ResizablePanel defaultSize={30} minSize={20} maxSize={40}>
+                <div className="h-full pl-2">
+                  {selectedComponent ? (
+                    <EmailComponentEditor
+                      component={selectedComponent}
+                      onUpdate={updateEmailComponent}
+                    />
+                  ) : (
+                    <div className="p-6 h-full flex items-center justify-center text-center">
+                      <div className="space-y-2">
+                        <Palette className="w-12 h-12 mx-auto text-muted-foreground/50" />
+                        <p className="text-muted-foreground">
+                          Select a component to edit its properties
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </ResizablePanel>
+            </ResizablePanelGroup>
+          </div>
         </div>
       </div>
     );
