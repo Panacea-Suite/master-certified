@@ -122,7 +122,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Get email template
     const { data: template, error: templateError } = await supabase
       .from("email_templates")
-      .select("*, email_components(*)")
+      .select("*")
       .eq("id", templateId)
       .single();
 
@@ -144,7 +144,43 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Sort components and render HTML
     const components = template.email_components || [];
-    const html = renderEmailFromComponents(components, templateConfig, false);
+    
+    // If no components, create a basic email from template fields
+    let html;
+    if (components.length === 0) {
+      html = `
+        <html>
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>${templateConfig.subject}</title>
+          </head>
+          <body style="margin: 0; padding: 0; background-color: #f4f4f4; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+            <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; padding: 40px;">
+              <h1 style="font-size: 24px; font-weight: bold; color: #333333; margin: 0 0 20px 0; text-align: center;">
+                ${templateConfig.from_name}
+              </h1>
+              <h2 style="font-size: 20px; font-weight: bold; color: #333333; margin: 0 0 16px 0;">
+                ${template.heading}
+              </h2>
+              <p style="font-size: 16px; color: #333333; line-height: 1.5; margin: 0 0 24px 0;">
+                ${template.message}
+              </p>
+              <div style="text-align: center; margin: 32px 0;">
+                <a href="#" style="background-color: #5F57FF; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-size: 16px; font-weight: bold; display: inline-block;">
+                  ${template.button_text}
+                </a>
+              </div>
+              ${template.footer_text ? `<p style="font-size: 12px; color: #666666; margin: 32px 0 0 0; text-align: center;">
+                ${template.footer_text}
+              </p>` : ''}
+            </div>
+          </body>
+        </html>
+      `;
+    } else {
+      html = renderEmailFromComponents(components, templateConfig, false);
+    }
 
     console.log(`Sending test email for template ${templateId} to ${recipientEmail}`);
 
