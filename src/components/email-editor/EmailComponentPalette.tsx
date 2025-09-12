@@ -102,8 +102,6 @@ export const EmailComponentPalette: React.FC<EmailComponentPaletteProps> = ({ on
     'Layout': true
   });
 
-  const [isPaletteOpen, setIsPaletteOpen] = useState(true);
-
   const toggleCategory = (category: string) => {
     setOpenCategories(prev => ({
       ...prev,
@@ -113,90 +111,76 @@ export const EmailComponentPalette: React.FC<EmailComponentPaletteProps> = ({ on
 
   return (
     <div className="space-y-4">
-      <Collapsible open={isPaletteOpen} onOpenChange={setIsPaletteOpen}>
-        <CollapsibleTrigger asChild>
-          <Button 
-            variant="ghost" 
-            className="w-full justify-between text-sm font-medium p-2 h-auto hover:bg-accent"
-          >
-            <div className="flex items-center gap-2">
-              <Palette className="h-4 w-4" />
-              Email Components
-            </div>
-            {isPaletteOpen ? (
-              <ChevronDown className="h-4 w-4 transition-transform" />
-            ) : (
-              <ChevronRight className="h-4 w-4 transition-transform" />
-            )}
-          </Button>
-        </CollapsibleTrigger>
-        
-        <CollapsibleContent className="space-y-3 pt-2">
-          {emailComponentCategories.map((category) => {
-            const CategoryIcon = category.icon;
-            const isOpen = openCategories[category.category];
-            
-            return (
-              <Collapsible 
-                key={category.category}
-                open={isOpen}
-                onOpenChange={() => toggleCategory(category.category)}
-              >
-                <CollapsibleTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    className="w-full justify-between text-sm font-medium p-2 h-auto hover:bg-accent"
-                  >
-                    <div className="flex items-center gap-2">
-                      <CategoryIcon className="h-4 w-4" />
-                      {category.category}
-                    </div>
-                    {isOpen ? (
-                      <ChevronDown className="h-4 w-4 transition-transform" />
-                    ) : (
-                      <ChevronRight className="h-4 w-4 transition-transform" />
-                    )}
-                  </Button>
-                </CollapsibleTrigger>
-                
-                <CollapsibleContent className="space-y-2 pt-2">
-                  {category.components.map((component) => {
-                    const Icon = component.icon;
-                    return (
-                      <Card 
-                        key={component.type}
-                        className="cursor-grab active:cursor-grabbing hover:shadow-md transition-shadow"
-                        draggable
-                        onDragStart={(e) => {
-                          e.dataTransfer.setData('text/plain', component.type);
-                        }}
-                      >
-                        <CardContent className="p-3">
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                              <Icon className="h-4 w-4 text-primary" />
-                            </div>
-                            <div className="text-left min-w-0">
-                              <div className="font-medium text-sm">{component.title}</div>
-                              <div className="text-xs text-muted-foreground truncate">
-                                {component.description}
-                              </div>
+      <div className="flex items-center gap-2 text-sm font-medium p-2">
+        <Palette className="h-4 w-4" />
+        Email Components
+      </div>
+      
+      <div className="space-y-3">
+        {emailComponentCategories.map((category) => {
+          const CategoryIcon = category.icon;
+          const isOpen = openCategories[category.category];
+          
+          return (
+            <Collapsible 
+              key={category.category}
+              open={isOpen}
+              onOpenChange={() => toggleCategory(category.category)}
+            >
+              <CollapsibleTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  className="w-full justify-between text-sm font-medium p-2 h-auto hover:bg-accent"
+                >
+                  <div className="flex items-center gap-2">
+                    <CategoryIcon className="h-4 w-4" />
+                    {category.category}
+                  </div>
+                  {isOpen ? (
+                    <ChevronDown className="h-4 w-4 transition-transform" />
+                  ) : (
+                    <ChevronRight className="h-4 w-4 transition-transform" />
+                  )}
+                </Button>
+              </CollapsibleTrigger>
+              
+              <CollapsibleContent className="space-y-2 pt-2">
+                {category.components.map((component) => {
+                  const Icon = component.icon;
+                  return (
+                    <Card 
+                      key={component.type}
+                      className="cursor-grab active:cursor-grabbing hover:shadow-md transition-shadow"
+                      draggable
+                      onDragStart={(e) => {
+                        e.dataTransfer.setData('text/plain', component.type);
+                      }}
+                    >
+                      <CardContent className="p-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <Icon className="h-4 w-4 text-primary" />
+                          </div>
+                          <div className="text-left min-w-0">
+                            <div className="font-medium text-sm">{component.title}</div>
+                            <div className="text-xs text-muted-foreground truncate">
+                              {component.description}
                             </div>
                           </div>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
-                </CollapsibleContent>
-              </Collapsible>
-            );
-          })}
-          
-          <div className="text-xs text-muted-foreground p-2 bg-muted/50 rounded">
-            💡 Drag components to build your email template
-          </div>
-        </CollapsibleContent>
-      </Collapsible>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </CollapsibleContent>
+            </Collapsible>
+          );
+        })}
+        
+        <div className="text-xs text-muted-foreground p-2 bg-muted/50 rounded">
+          💡 Drag components to build your email template
+        </div>
+      </div>
     </div>
   );
 };
