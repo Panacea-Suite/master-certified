@@ -5,7 +5,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Monitor, Sun, Moon, GripVertical, Trash2 } from 'lucide-react';
+import { Monitor, Sun, Moon, Trash2 } from 'lucide-react';
 
 interface EmailComponent {
   id: string;
@@ -99,13 +99,7 @@ const SortableEmailComponent: React.FC<SortableEmailComponentProps> = ({
               </h1>
             </div>
             {isSelected && (
-              <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button
-                  {...listeners}
-                  className="p-1 bg-primary text-primary-foreground rounded cursor-grab active:cursor-grabbing"
-                >
-                  <GripVertical className="w-3 h-3" />
-                </button>
+              <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -138,13 +132,7 @@ const SortableEmailComponent: React.FC<SortableEmailComponentProps> = ({
               {config.text || 'Heading Text'}
             </h2>
             {isSelected && (
-              <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button
-                  {...listeners}
-                  className="p-1 bg-primary text-primary-foreground rounded cursor-grab active:cursor-grabbing"
-                >
-                  <GripVertical className="w-3 h-3" />
-                </button>
+              <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -178,13 +166,7 @@ const SortableEmailComponent: React.FC<SortableEmailComponentProps> = ({
               {config.text || 'This is your email text content. Click to edit this text and customize it for your email template.'}
             </p>
             {isSelected && (
-              <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button
-                  {...listeners}
-                  className="p-1 bg-primary text-primary-foreground rounded cursor-grab active:cursor-grabbing"
-                >
-                  <GripVertical className="w-3 h-3" />
-                </button>
+              <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -225,13 +207,7 @@ const SortableEmailComponent: React.FC<SortableEmailComponentProps> = ({
               </a>
             </div>
             {isSelected && (
-              <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button
-                  {...listeners}
-                  className="p-1 bg-primary text-primary-foreground rounded cursor-grab active:cursor-grabbing"
-                >
-                  <GripVertical className="w-3 h-3" />
-                </button>
+              <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -284,13 +260,7 @@ const SortableEmailComponent: React.FC<SortableEmailComponentProps> = ({
               )}
             </div>
             {isSelected && (
-              <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button
-                  {...listeners}
-                  className="p-1 bg-primary text-primary-foreground rounded cursor-grab active:cursor-grabbing"
-                >
-                  <GripVertical className="w-3 h-3" />
-                </button>
+              <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -318,13 +288,7 @@ const SortableEmailComponent: React.FC<SortableEmailComponentProps> = ({
               margin: '0'
             }} />
             {isSelected && (
-              <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button
-                  {...listeners}
-                  className="p-1 bg-primary text-primary-foreground rounded cursor-grab active:cursor-grabbing"
-                >
-                  <GripVertical className="w-3 h-3" />
-                </button>
+              <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -350,13 +314,7 @@ const SortableEmailComponent: React.FC<SortableEmailComponentProps> = ({
             className="group cursor-pointer transition-all hover:shadow-sm"
           >
             {isSelected && (
-              <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button
-                  {...listeners}
-                  className="p-1 bg-primary text-primary-foreground rounded cursor-grab active:cursor-grabbing"
-                >
-                  <GripVertical className="w-3 h-3" />
-                </button>
+              <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -389,13 +347,7 @@ const SortableEmailComponent: React.FC<SortableEmailComponentProps> = ({
               </p>
             </div>
             {isSelected && (
-              <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button
-                  {...listeners}
-                  className="p-1 bg-primary text-primary-foreground rounded cursor-grab active:cursor-grabbing"
-                >
-                  <GripVertical className="w-3 h-3" />
-                </button>
+              <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -431,6 +383,8 @@ const SortableEmailComponent: React.FC<SortableEmailComponentProps> = ({
       ref={setNodeRef}
       style={style}
       {...attributes}
+      {...listeners}
+      className="cursor-grab active:cursor-grabbing"
     >
       {renderComponent(component)}
     </div>
