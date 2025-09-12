@@ -1,7 +1,12 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
+import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, closestCenter } from '@dnd-kit/core';
+import { arrayMove, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Monitor, Sun, Moon } from 'lucide-react';
+import { Monitor, Sun, Moon, GripVertical, Trash2 } from 'lucide-react';
 
 interface EmailComponent {
   id: string;
@@ -15,6 +20,8 @@ interface EmailPreviewProps {
   darkMode: boolean;
   onToggleDarkMode: () => void;
   onSelectComponent: (component: EmailComponent) => void;
+  onComponentsChange: (components: EmailComponent[]) => void;
+  onAddComponent: (componentType: string) => void;
   selectedComponentId?: string;
   templateConfig: {
     subject: string;
@@ -24,14 +31,36 @@ interface EmailPreviewProps {
   };
 }
 
-export const EmailPreview: React.FC<EmailPreviewProps> = ({
-  components,
+interface SortableEmailComponentProps {
+  component: EmailComponent;
+  darkMode: boolean;
+  onSelectComponent: (component: EmailComponent) => void;
+  onDeleteComponent: (id: string) => void;
+  selectedComponentId?: string;
+}
+
+const SortableEmailComponent: React.FC<SortableEmailComponentProps> = ({
+  component,
   darkMode,
-  onToggleDarkMode,
   onSelectComponent,
-  selectedComponentId,
-  templateConfig
+  onDeleteComponent,
+  selectedComponentId
 }) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: component.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.8 : 1,
+  };
+
   const renderComponent = (component: EmailComponent) => {
     const { config } = component;
     const isSelected = selectedComponentId === component.id;
@@ -39,6 +68,7 @@ export const EmailPreview: React.FC<EmailPreviewProps> = ({
     const baseStyle = {
       padding: `${config.padding || 20}px`,
       backgroundColor: config.backgroundColor || (darkMode ? '#1a1a1a' : '#ffffff'),
+      position: 'relative' as const,
       ...(isSelected && {
         outline: '2px solid #5F57FF',
         outlineOffset: '2px'
@@ -54,10 +84,9 @@ export const EmailPreview: React.FC<EmailPreviewProps> = ({
       case 'email_header':
         return (
           <div
-            key={component.id}
             style={baseStyle}
             onClick={handleClick}
-            className="cursor-pointer transition-all"
+            className="group cursor-pointer transition-all hover:shadow-sm"
           >
             <div style={{ textAlign: 'center' }}>
               <h1 style={{
@@ -70,16 +99,34 @@ export const EmailPreview: React.FC<EmailPreviewProps> = ({
                 {config.title || 'Your Brand'}
               </h1>
             </div>
+            {isSelected && (
+              <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button
+                  {...listeners}
+                  className="p-1 bg-primary text-primary-foreground rounded cursor-grab active:cursor-grabbing"
+                >
+                  <GripVertical className="w-3 h-3" />
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDeleteComponent(component.id);
+                  }}
+                  className="p-1 bg-destructive text-destructive-foreground rounded"
+                >
+                  <Trash2 className="w-3 h-3" />
+                </button>
+              </div>
+            )}
           </div>
         );
 
       case 'email_heading':
         return (
           <div
-            key={component.id}
             style={baseStyle}
             onClick={handleClick}
-            className="cursor-pointer transition-all"
+            className="group cursor-pointer transition-all hover:shadow-sm"
           >
             <h2 style={{
               fontSize: `${config.fontSize || '20'}px`,
@@ -91,16 +138,34 @@ export const EmailPreview: React.FC<EmailPreviewProps> = ({
             }}>
               {config.text || 'Heading Text'}
             </h2>
+            {isSelected && (
+              <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button
+                  {...listeners}
+                  className="p-1 bg-primary text-primary-foreground rounded cursor-grab active:cursor-grabbing"
+                >
+                  <GripVertical className="w-3 h-3" />
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDeleteComponent(component.id);
+                  }}
+                  className="p-1 bg-destructive text-destructive-foreground rounded"
+                >
+                  <Trash2 className="w-3 h-3" />
+                </button>
+              </div>
+            )}
           </div>
         );
 
       case 'email_text':
         return (
           <div
-            key={component.id}
             style={baseStyle}
             onClick={handleClick}
-            className="cursor-pointer transition-all"
+            className="group cursor-pointer transition-all hover:shadow-sm"
           >
             <p style={{
               fontSize: `${config.fontSize || '16'}px`,
@@ -113,16 +178,34 @@ export const EmailPreview: React.FC<EmailPreviewProps> = ({
             }}>
               {config.text || 'This is your email text content. Click to edit this text and customize it for your email template.'}
             </p>
+            {isSelected && (
+              <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button
+                  {...listeners}
+                  className="p-1 bg-primary text-primary-foreground rounded cursor-grab active:cursor-grabbing"
+                >
+                  <GripVertical className="w-3 h-3" />
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDeleteComponent(component.id);
+                  }}
+                  className="p-1 bg-destructive text-destructive-foreground rounded"
+                >
+                  <Trash2 className="w-3 h-3" />
+                </button>
+              </div>
+            )}
           </div>
         );
 
       case 'email_button':
         return (
           <div
-            key={component.id}
             style={baseStyle}
             onClick={handleClick}
-            className="cursor-pointer transition-all"
+            className="group cursor-pointer transition-all hover:shadow-sm"
           >
             <div style={{ textAlign: config.buttonAlign || 'center' }}>
               <a
@@ -142,16 +225,34 @@ export const EmailPreview: React.FC<EmailPreviewProps> = ({
                 {config.buttonText || 'Click Here'}
               </a>
             </div>
+            {isSelected && (
+              <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button
+                  {...listeners}
+                  className="p-1 bg-primary text-primary-foreground rounded cursor-grab active:cursor-grabbing"
+                >
+                  <GripVertical className="w-3 h-3" />
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDeleteComponent(component.id);
+                  }}
+                  className="p-1 bg-destructive text-destructive-foreground rounded"
+                >
+                  <Trash2 className="w-3 h-3" />
+                </button>
+              </div>
+            )}
           </div>
         );
 
       case 'email_image':
         return (
           <div
-            key={component.id}
             style={baseStyle}
             onClick={handleClick}
-            className="cursor-pointer transition-all"
+            className="group cursor-pointer transition-all hover:shadow-sm"
           >
             <div style={{ textAlign: config.imageAlign || 'center' }}>
               {config.imageUrl ? (
@@ -183,45 +284,100 @@ export const EmailPreview: React.FC<EmailPreviewProps> = ({
                 </div>
               )}
             </div>
+            {isSelected && (
+              <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button
+                  {...listeners}
+                  className="p-1 bg-primary text-primary-foreground rounded cursor-grab active:cursor-grabbing"
+                >
+                  <GripVertical className="w-3 h-3" />
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDeleteComponent(component.id);
+                  }}
+                  className="p-1 bg-destructive text-destructive-foreground rounded"
+                >
+                  <Trash2 className="w-3 h-3" />
+                </button>
+              </div>
+            )}
           </div>
         );
 
       case 'email_divider':
         return (
           <div
-            key={component.id}
             style={baseStyle}
             onClick={handleClick}
-            className="cursor-pointer transition-all"
+            className="group cursor-pointer transition-all hover:shadow-sm"
           >
             <hr style={{
               border: 'none',
               borderTop: `1px solid ${darkMode ? '#444444' : '#e5e5e5'}`,
               margin: '0'
             }} />
+            {isSelected && (
+              <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button
+                  {...listeners}
+                  className="p-1 bg-primary text-primary-foreground rounded cursor-grab active:cursor-grabbing"
+                >
+                  <GripVertical className="w-3 h-3" />
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDeleteComponent(component.id);
+                  }}
+                  className="p-1 bg-destructive text-destructive-foreground rounded"
+                >
+                  <Trash2 className="w-3 h-3" />
+                </button>
+              </div>
+            )}
           </div>
         );
 
       case 'email_spacer':
         return (
           <div
-            key={component.id}
             style={{
               ...baseStyle,
               minHeight: `${config.height || 40}px`
             }}
             onClick={handleClick}
-            className="cursor-pointer transition-all"
-          />
+            className="group cursor-pointer transition-all hover:shadow-sm"
+          >
+            {isSelected && (
+              <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button
+                  {...listeners}
+                  className="p-1 bg-primary text-primary-foreground rounded cursor-grab active:cursor-grabbing"
+                >
+                  <GripVertical className="w-3 h-3" />
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDeleteComponent(component.id);
+                  }}
+                  className="p-1 bg-destructive text-destructive-foreground rounded"
+                >
+                  <Trash2 className="w-3 h-3" />
+                </button>
+              </div>
+            )}
+          </div>
         );
 
       case 'email_footer':
         return (
           <div
-            key={component.id}
             style={baseStyle}
             onClick={handleClick}
-            className="cursor-pointer transition-all"
+            className="group cursor-pointer transition-all hover:shadow-sm"
           >
             <div style={{ textAlign: 'center' }}>
               <p style={{
@@ -233,6 +389,25 @@ export const EmailPreview: React.FC<EmailPreviewProps> = ({
                 {config.footerText || 'If you no longer wish to receive these emails, you can unsubscribe here.'}
               </p>
             </div>
+            {isSelected && (
+              <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button
+                  {...listeners}
+                  className="p-1 bg-primary text-primary-foreground rounded cursor-grab active:cursor-grabbing"
+                >
+                  <GripVertical className="w-3 h-3" />
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDeleteComponent(component.id);
+                  }}
+                  className="p-1 bg-destructive text-destructive-foreground rounded"
+                >
+                  <Trash2 className="w-3 h-3" />
+                </button>
+              </div>
+            )}
           </div>
         );
 
@@ -250,6 +425,71 @@ export const EmailPreview: React.FC<EmailPreviewProps> = ({
           </div>
         );
     }
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+    >
+      {renderComponent(component)}
+    </div>
+  );
+};
+
+export const EmailPreview: React.FC<EmailPreviewProps> = ({
+  components,
+  darkMode,
+  onToggleDarkMode,
+  onSelectComponent,
+  onComponentsChange,
+  onAddComponent,
+  selectedComponentId,
+  templateConfig
+}) => {
+  const [activeId, setActiveId] = useState<string | null>(null);
+
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(event.active.id as string);
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    setActiveId(null);
+
+    if (!over) return;
+
+    if (active.id !== over.id) {
+      const oldIndex = components.findIndex((item) => item.id === active.id);
+      const newIndex = components.findIndex((item) => item.id === over.id);
+
+      const newComponents = arrayMove(components, oldIndex, newIndex).map((comp, index) => ({
+        ...comp,
+        order: index
+      }));
+
+      onComponentsChange(newComponents);
+    }
+  };
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    const componentType = e.dataTransfer.getData('text/plain');
+    if (componentType && componentType.startsWith('email_')) {
+      onAddComponent(componentType);
+    }
+  }, [onAddComponent]);
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+  }, []);
+
+  const handleDeleteComponent = (id: string) => {
+    const newComponents = components
+      .filter(comp => comp.id !== id)
+      .map((comp, index) => ({ ...comp, order: index }));
+    onComponentsChange(newComponents);
   };
 
   const sortedComponents = [...components].sort((a, b) => a.order - b.order);
@@ -312,7 +552,11 @@ export const EmailPreview: React.FC<EmailPreviewProps> = ({
           </div>
 
           {/* Email Content */}
-          <div style={{ maxWidth: '600px', margin: '0 auto', backgroundColor: darkMode ? '#1a1a1a' : '#ffffff' }}>
+          <div 
+            style={{ maxWidth: '600px', margin: '0 auto', backgroundColor: darkMode ? '#1a1a1a' : '#ffffff' }}
+            onDrop={handleDrop}
+            onDragOver={handleDragOver}
+          >
             {sortedComponents.length === 0 ? (
               <div style={{
                 padding: '60px 20px',
@@ -322,7 +566,38 @@ export const EmailPreview: React.FC<EmailPreviewProps> = ({
                 <p>Drag components here to build your email template</p>
               </div>
             ) : (
-              sortedComponents.map(renderComponent)
+              <DndContext
+                onDragStart={handleDragStart}
+                onDragEnd={handleDragEnd}
+                modifiers={[restrictToVerticalAxis]}
+              >
+                <SortableContext items={sortedComponents.map(c => c.id)} strategy={verticalListSortingStrategy}>
+                  {sortedComponents.map((component) => (
+                    <SortableEmailComponent
+                      key={component.id}
+                      component={component}
+                      darkMode={darkMode}
+                      onSelectComponent={onSelectComponent}
+                      onDeleteComponent={handleDeleteComponent}
+                      selectedComponentId={selectedComponentId}
+                    />
+                  ))}
+                </SortableContext>
+                
+                <DragOverlay>
+                  {activeId ? (
+                    <div style={{
+                      padding: '20px',
+                      backgroundColor: darkMode ? '#2a2a2a' : '#f5f5f5',
+                      border: '2px dashed #5F57FF',
+                      borderRadius: '4px',
+                      opacity: 0.8
+                    }}>
+                      Moving component...
+                    </div>
+                  ) : null}
+                </DragOverlay>
+              </DndContext>
             )}
           </div>
         </div>

@@ -11,7 +11,6 @@ import { toast } from '@/hooks/use-toast';
 import { Mail, Save, Eye, Edit, Plus, Palette } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { EmailComponentPalette } from './email-editor/EmailComponentPalette';
-import { EmailEditor } from './email-editor/EmailEditor';
 import { EmailPreview } from './email-editor/EmailPreview';
 import { EmailComponentEditor } from './email-editor/EmailComponentEditor';
 
@@ -479,7 +478,7 @@ export const EmailTemplateManager: React.FC = () => {
           
           <ResizablePanelGroup direction="horizontal" className="min-h-[70vh]">
             {/* Component Palette */}
-            <ResizablePanel defaultSize={20} minSize={15}>
+            <ResizablePanel defaultSize={25} minSize={20}>
               <div className="h-full p-2">
                 <EmailComponentPalette onAddComponent={addEmailComponent} />
               </div>
@@ -487,30 +486,16 @@ export const EmailTemplateManager: React.FC = () => {
             
             <ResizableHandle />
             
-            {/* Email Builder */}
-            <ResizablePanel defaultSize={35} minSize={25}>
-              <div className="h-full p-2">
-                <EmailEditor
-                  components={emailComponents}
-                  onComponentsChange={setEmailComponents}
-                  onSelectComponent={setSelectedComponent}
-                  onAddComponent={addEmailComponent}
-                  selectedComponentId={selectedComponent?.id}
-                  darkMode={darkMode}
-                />
-              </div>
-            </ResizablePanel>
-            
-            <ResizableHandle />
-            
-            {/* Preview */}
-            <ResizablePanel defaultSize={35} minSize={25}>
+            {/* Preview with Drag & Drop */}
+            <ResizablePanel defaultSize={50} minSize={40}>
               <div className="h-full p-2">
                 <EmailPreview
                   components={emailComponents}
                   darkMode={darkMode}
                   onToggleDarkMode={() => setDarkMode(!darkMode)}
                   onSelectComponent={setSelectedComponent}
+                  onComponentsChange={setEmailComponents}
+                  onAddComponent={addEmailComponent}
                   selectedComponentId={selectedComponent?.id}
                   templateConfig={{
                     subject: templateForm.subject || 'Your Email Subject',
@@ -525,13 +510,22 @@ export const EmailTemplateManager: React.FC = () => {
             <ResizableHandle />
             
             {/* Component Editor */}
-            <ResizablePanel defaultSize={10} minSize={10}>
+            <ResizablePanel defaultSize={25} minSize={20}>
               <div className="h-full p-2">
-                {selectedComponent && (
+                {selectedComponent ? (
                   <EmailComponentEditor
                     component={selectedComponent}
                     onUpdate={updateEmailComponent}
                   />
+                ) : (
+                  <Card className="h-full">
+                    <CardHeader>
+                      <CardTitle>Component Editor</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-muted-foreground">Select a component to edit its properties</p>
+                    </CardContent>
+                  </Card>
                 )}
               </div>
             </ResizablePanel>
