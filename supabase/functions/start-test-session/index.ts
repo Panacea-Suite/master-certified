@@ -106,16 +106,9 @@ Deno.serve(async (req) => {
       );
     }
 
-    if (!payload.qr_id) {
-      console.error('Missing qr_id in token');
-      return new Response(
-        JSON.stringify({ error: 'Test token missing qr_id' }),
-        { 
-          status: 400, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
-    }
+    // For test flows, qr_id can be null - generate a temporary one if needed
+    const testQrId = payload.qr_id || `test_${crypto.randomUUID()}`;
+    console.log('Using QR ID for test session:', testQrId);
 
     // Verify campaign exists
     console.log('Verifying campaign exists:', payload.campaign_id);
@@ -143,7 +136,7 @@ Deno.serve(async (req) => {
     const { data: session, error: sessionError } = await supabase
       .from('flow_sessions')
       .insert({
-        qr_id: payload.qr_id,
+        qr_id: testQrId,
         campaign_id: payload.campaign_id,
         brand_id: campaign.brand_id,
         status: 'active',
@@ -175,7 +168,7 @@ Deno.serve(async (req) => {
       session_id: session.id,
       campaign_id: payload.campaign_id,
       brand_id: campaign.brand_id,
-      qr_id: payload.qr_id,
+      qr_id: testQrId,
       is_test: true
     };
 
