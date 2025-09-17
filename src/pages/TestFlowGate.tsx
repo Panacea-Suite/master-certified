@@ -36,14 +36,14 @@ export const TestFlowGate: React.FC = () => {
         return;
       }
 
-      if (!data?.session_id || !data?.qr_id) {
+      if (!data?.session_id || !data?.campaign_id) {
         setError('Invalid response from test session service');
         setLoading(false);
         return;
       }
 
-      // Navigate to the flow run page with the session ID and qr id
-      navigate(`/flow/run/${data.qr_id}?session=${data.session_id}&test=true`, { replace: true });
+      // Navigate to the flow run page with the campaign ID, session ID and test flag
+      navigate(`/flow/run?cid=${data.campaign_id}&session=${data.session_id}&test=true`, { replace: true });
       
     } catch (error) {
       console.error('Error in verifyAndStartTestFlow:', error);
