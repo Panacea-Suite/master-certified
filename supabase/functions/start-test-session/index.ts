@@ -107,7 +107,7 @@ Deno.serve(async (req) => {
     }
 
     // For test flows, qr_id can be null - generate a temporary one if needed
-    const testQrId = payload.qr_id || `test_${crypto.randomUUID()}`;
+    const testQrId = payload.qr_id || crypto.randomUUID();
     console.log('Using QR ID for test session:', testQrId);
 
     // Verify campaign exists
