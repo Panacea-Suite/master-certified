@@ -149,8 +149,8 @@ const CampaignBatchView: React.FC<CampaignBatchViewProps> = ({ campaign, onBack 
         const qrCodes = [] as any[];
         for (let i = 0; i < batch.qr_code_count; i++) {
           const uniqueCode = `${batchId.substring(0, 8)}-${Date.now()}-${String(i).padStart(3, '0')}`;
-          const fnBase = "https://jgoejcgdmayjjjldpnur.supabase.co/functions/v1";
-          const managedUrl = `${fnBase}/qr-redirect/${encodeURIComponent(uniqueCode)}`;
+          const deployedAppUrl = 'https://certified.panaceasuite.io';
+          const managedUrl = `${deployedAppUrl}/#/qr/${uniqueCode}`;
           const qrPng = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(managedUrl)}`;
           
           qrCodes.push({
