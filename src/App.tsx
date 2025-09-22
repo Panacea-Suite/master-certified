@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { HashRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
+import { HashRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ViewModeProvider } from "@/hooks/useViewMode";
 import { BrandProvider } from "@/contexts/BrandContext";
@@ -30,31 +30,6 @@ const LocationLogger = () => {
     state: location.state
   });
   return null;
-};
-
-// Protective wrapper for admin routes
-const ProtectedAdminRoute = ({ children }: { children: React.ReactNode }) => {
-  const location = useLocation();
-  
-  // Never protect customer routes
-  const isCustomerRoute = 
-    location.pathname.includes('/flow') ||
-    location.pathname.includes('/qr') ||
-    location.hash.includes('/flow') ||
-    location.hash.includes('/qr');
-    
-  console.log('ProtectedAdminRoute: Route check', { 
-    pathname: location.pathname,
-    hash: location.hash,
-    isCustomerRoute
-  });
-    
-  if (isCustomerRoute) {
-    console.log('ProtectedAdminRoute: Redirecting customer route');
-    return <Navigate to={location.pathname + location.search + location.hash} replace />;
-  }
-  
-  return <AdminShell>{children}</AdminShell>;
 };
 
 const App = () => {
@@ -86,7 +61,7 @@ const App = () => {
                   <Route path="/not-found" element={<CustomerShell><NotFound /></CustomerShell>} />
                   
                   {/* Admin routes - require auth, use admin shell */}
-                  <Route path="/" element={<ProtectedAdminRoute><AdminIndex /></ProtectedAdminRoute>} />
+                  <Route path="/" element={<AdminShell><AdminIndex /></AdminShell>} />
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/auth/callback" element={<AuthCallback />} />
                   <Route path="/accept-invite" element={<AcceptInvite />} />
