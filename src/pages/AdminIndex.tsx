@@ -21,17 +21,33 @@ const AdminIndex = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
 
   useEffect(() => {
-    // Early return for customer routes - never redirect to auth
-    const currentPath = window.location.hash.slice(1);
-    const isCustomerRoute = currentPath.startsWith('/flow') || 
-                            currentPath.startsWith('/qr') ||
-                            currentPath === '/not-found';
+    // More robust customer route detection
+    const currentHash = window.location.hash;
+    const currentPath = window.location.pathname;
+    
+    // Check both hash and pathname for customer routes
+    const isCustomerRoute = 
+      currentHash.includes('/flow') || 
+      currentHash.includes('/qr') ||
+      currentHash.includes('/not-found') ||
+      currentPath.includes('/flow') ||
+      currentPath.includes('/qr');
+    
+    console.log('AdminIndex: Route check', { 
+      currentHash, 
+      currentPath, 
+      isCustomerRoute,
+      user: !!user,
+      loading 
+    });
     
     if (isCustomerRoute) {
-      return; // Never redirect customer routes to auth
+      console.log('AdminIndex: Skipping auth redirect for customer route');
+      return;
     }
     
     if (!loading && !user) {
+      console.log('AdminIndex: Redirecting to auth');
       navigate('/auth');
     }
   }, [user, loading, navigate]);
