@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { HashRouter, Routes, Route, useLocation } from "react-router-dom";
+import { useEffect } from "react";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ViewModeProvider } from "@/hooks/useViewMode";
 import { BrandProvider } from "@/contexts/BrandContext";
@@ -20,15 +21,21 @@ import AcceptInvite from "./pages/AcceptInvite";
 
 const queryClient = new QueryClient();
 
-// Debug component to log location changes
+// Enhanced LocationLogger with comprehensive debugging
 const LocationLogger = () => {
   const location = useLocation();
-  console.log('Current location:', { 
-    pathname: location.pathname, 
-    search: location.search, 
-    hash: location.hash,
-    state: location.state
-  });
+  
+  useEffect(() => {
+    console.log('🔍 ROUTE DEBUG:', {
+      timestamp: new Date().toISOString(),
+      pathname: location.pathname,
+      search: location.search,
+      hash: location.hash,
+      fullURL: window.location.href,
+      userAgent: navigator.userAgent.substring(0, 50)
+    });
+  }, [location]);
+  
   return null;
 };
 

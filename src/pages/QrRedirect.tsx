@@ -5,10 +5,21 @@ import { supabase } from '@/integrations/supabase/client';
 export const QrRedirect: React.FC = () => {
   const { uniqueCode } = useParams<{ uniqueCode: string }>();
   const navigate = useNavigate();
+  
+  console.log('🎯 QrRedirect COMPONENT LOADED:', { 
+    uniqueCode, 
+    timestamp: new Date().toISOString(),
+    fullURL: window.location.href
+  });
 
   useEffect(() => {
+    console.log('🚀 QrRedirect useEffect STARTING:', { uniqueCode });
+    
     const redirectToFlow = async () => {
+      console.log('🔄 QrRedirect: Starting redirect flow for:', uniqueCode);
+      
       if (!uniqueCode) {
+        console.log('❌ QrRedirect: No unique code, navigating to not-found');
         navigate('/not-found?error=missing-code');
         return;
       }

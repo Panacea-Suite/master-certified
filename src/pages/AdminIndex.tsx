@@ -33,21 +33,27 @@ const AdminIndex = () => {
       currentPath.includes('/flow') ||
       currentPath.includes('/qr');
     
-    console.log('AdminIndex: Route check', { 
+    console.log('🏛️ AdminIndex: Route check', { 
+      timestamp: new Date().toISOString(),
       currentHash, 
       currentPath, 
       isCustomerRoute,
       user: !!user,
-      loading 
+      loading,
+      fullURL: window.location.href,
+      userAgent: navigator.userAgent.substring(0, 30)
     });
     
     if (isCustomerRoute) {
-      console.log('AdminIndex: Skipping auth redirect for customer route');
+      console.log('✅ AdminIndex: Skipping auth redirect for customer route');
       return;
     }
     
     if (!loading && !user) {
-      console.log('AdminIndex: Redirecting to auth');
+      console.log('🔄 AdminIndex: Redirecting to auth', {
+        timestamp: new Date().toISOString(),
+        reason: 'No user found'
+      });
       navigate('/auth');
     }
   }, [user, loading, navigate]);
