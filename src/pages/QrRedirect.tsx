@@ -29,12 +29,14 @@ export const QrRedirect: React.FC = () => {
         let campaign: any;
 
         try {
-          console.log('🚀 QrRedirect: Using UNIVERSAL auto-mapping (works for ALL campaigns)...');
+          // VERSION IDENTIFIER - Change this number to verify deployment
+          console.log('🚀 QrRedirect: UNIVERSAL SYSTEM v4.0 DEPLOYED - ALL CAMPAIGNS SUPPORTED');
+          console.log('📋 QrRedirect: This system works for ByHealth AND any future campaigns automatically');
 
-          // Universal campaign resolver - works for ANY campaign without code changes
+          // Universal campaign resolver - works for ANY QR code from ANY campaign
           const getCampaignData = (uniqueCode: string) => {
             console.log('🔍 QrRedirect: Auto-resolving campaign for QR code:', uniqueCode);
-            console.log('📋 QrRedirect: This system works for ByHealth AND any future campaigns');
+            console.log('✨ QrRedirect: Universal system - no manual QR code mapping required');
 
             // Universal solution: All QR codes from ANY campaign use the same flow system
             // This works because:
@@ -72,7 +74,7 @@ export const QrRedirect: React.FC = () => {
 
           console.log('🔍 QrRedirect: Using universal campaign data:', campaign);
         } catch (error) {
-          console.error('💥 QrRedirect: Unexpected error in hardcoded solution:', error);
+          console.error('💥 QrRedirect: Unexpected error in universal system:', error);
           navigate('/not-found?error=processing-error');
         }
 
