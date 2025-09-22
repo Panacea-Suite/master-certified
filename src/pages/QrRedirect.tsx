@@ -52,15 +52,30 @@ export const QrRedirect: React.FC = () => {
           return;
         }
 
+        // ADD DATA STRUCTURE LOGGING
+        console.log('🔍 QrRedirect: Raw data structure:', qrData);
+        console.log('🔍 QrRedirect: Batches data:', qrData.batches);
+        console.log('🔍 QrRedirect: Campaign data:', qrData.batches?.campaigns);
+
         // Increment scan count
         await supabase
           .from('qr_codes')
           .update({ scans: qrData.scans + 1 })
           .eq('id', qrData.id);
 
-        // Get campaign data
-        const campaign = qrData.batches?.campaigns;
-        
+        // Get campaign data with proper extraction and logging
+        let campaign = null;
+        // Try different extraction methods based on data structure
+        if (qrData.batches) {
+          if (Array.isArray(qrData.batches) && qrData.batches.length > 0) {
+            campaign = qrData.batches[0].campaigns;
+          } else if (qrData.batches.campaigns) {
+            campaign = qrData.batches.campaigns;
+          }
+        }
+
+        console.log('🔍 QrRedirect: Extracted campaign:', campaign);
+
         if (campaign) {
           // Navigate to customer flow with the campaign ID and access token
           const params = new URLSearchParams();
@@ -71,10 +86,12 @@ export const QrRedirect: React.FC = () => {
           params.set('qr', uniqueCode);
           
           const flowUrl = `/flow/run?${params.toString()}`;
-          console.log(`Redirecting to customer flow: ${flowUrl}`);
+          console.log(`✅ QrRedirect: Redirecting to customer flow: ${flowUrl}`);
           navigate(flowUrl);
           return;
         }
+
+        console.log('❌ QrRedirect: No campaign found in data structure');
 
         // Fallback to final redirect URL if configured
         const finalRedirectUrl = campaign?.final_redirect_url;
@@ -84,9 +101,9 @@ export const QrRedirect: React.FC = () => {
           return;
         }
 
-        // Ultimate fallback - redirect to app home
-        console.log('No redirect URL found, using app home');
-        navigate('/');
+        // Ultimate fallback - redirect to not-found instead of home
+        console.log('❌ QrRedirect: No redirect options found, going to not-found');
+        navigate('/not-found?error=no-campaign-data');
 
       } catch (error) {
         console.error('Error processing QR redirect:', error);
