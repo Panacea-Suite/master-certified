@@ -25,56 +25,64 @@ export const QrRedirect: React.FC = () => {
       }
 
       try {
-        // Look up the QR code in the database
+        // Step 1: Get QR code and batch ID
+        console.log('📡 QrRedirect: Step 1 - Getting QR code data...');
         const { data: qrData, error: qrError } = await supabase
           .from('qr_codes')
-          .select(`
-            *,
-            batches (
-              campaigns (
-                id,
-                name,
-                final_redirect_url,
-                customer_access_token,
-                flows (
-                  id,
-                  base_url
-                )
-              )
-            )
-          `)
+          .select('id, batch_id, scans, unique_code')
           .eq('unique_code', uniqueCode)
           .single();
 
         if (qrError || !qrData) {
-          console.error('QR code not found:', qrError);
+          console.error('❌ QrRedirect: QR code not found:', qrError);
           navigate('/not-found?error=qr-not-found');
           return;
         }
 
-        // ADD DATA STRUCTURE LOGGING
-        console.log('🔍 QrRedirect: Raw data structure:', qrData);
-        console.log('🔍 QrRedirect: Batches data:', qrData.batches);
-        console.log('🔍 QrRedirect: Campaign data:', qrData.batches?.campaigns);
+        console.log('✅ QrRedirect: QR code found:', qrData);
 
-        // Increment scan count
+        // Step 2: Get batch and campaign ID
+        console.log('📡 QrRedirect: Step 2 - Getting batch data...');
+        const { data: batchData, error: batchError } = await supabase
+          .from('batches')
+          .select('id, campaign_id')
+          .eq('id', qrData.batch_id)
+          .single();
+
+        if (batchError || !batchData) {
+          console.error('❌ QrRedirect: Batch not found:', batchError);
+          navigate('/not-found?error=batch-not-found');
+          return;
+        }
+
+        console.log('✅ QrRedirect: Batch found:', batchData);
+
+        // Step 3: Get campaign data
+        console.log('📡 QrRedirect: Step 3 - Getting campaign data...');
+        const { data: campaignData, error: campaignError } = await supabase
+          .from('campaigns')
+          .select('id, name, customer_access_token, final_redirect_url')
+          .eq('id', batchData.campaign_id)
+          .single();
+
+        if (campaignError || !campaignData) {
+          console.error('❌ QrRedirect: Campaign not found:', campaignError);
+          navigate('/not-found?error=campaign-not-found');
+          return;
+        }
+
+        console.log('✅ QrRedirect: Campaign found:', campaignData);
+
+        // Step 4: Increment scan count
+        console.log('📊 QrRedirect: Step 4 - Updating scan count...');
         await supabase
           .from('qr_codes')
           .update({ scans: qrData.scans + 1 })
           .eq('id', qrData.id);
 
-        // Get campaign data with proper extraction and logging
-        let campaign = null;
-        // Try different extraction methods based on data structure
-        if (qrData.batches) {
-          if (Array.isArray(qrData.batches) && qrData.batches.length > 0) {
-            campaign = qrData.batches[0].campaigns;
-          } else if (qrData.batches.campaigns) {
-            campaign = qrData.batches.campaigns;
-          }
-        }
-
-        console.log('🔍 QrRedirect: Extracted campaign:', campaign);
+        // Use campaignData directly (no extraction needed)
+        const campaign = campaignData;
+        console.log('🔍 QrRedirect: Using campaign data:', campaign);
 
         if (campaign) {
           // Navigate to customer flow with the campaign ID and access token
