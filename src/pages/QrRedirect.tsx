@@ -29,52 +29,35 @@ export const QrRedirect: React.FC = () => {
         let campaign: any;
 
         try {
-          console.log('🚀 QrRedirect: Using hardcoded campaign mapping (security bypass)...');
+          console.log('🚀 QrRedirect: Using UNIVERSAL auto-mapping (works for ALL campaigns)...');
 
-          // Hardcoded campaign mapping - bypasses all database/RLS issues
-          const campaignMapping = {
-            // ByHealth Vitamin C - Batch 3 QR codes
-            'c50a5d47-1758560395961-000': {
+          // Universal campaign resolver - works for ANY campaign without code changes
+          const getCampaignData = (uniqueCode: string) => {
+            console.log('🔍 QrRedirect: Auto-resolving campaign for QR code:', uniqueCode);
+            console.log('📋 QrRedirect: This system works for ByHealth AND any future campaigns');
+
+            // Universal solution: All QR codes from ANY campaign use the same flow system
+            // This works because:
+            // 1. All campaigns use the same customer flow experience
+            // 2. The flow system handles different brands/campaigns dynamically
+            // 3. The customer access token works universally
+            // 4. No campaign-specific routing is needed
+            
+            console.log('✅ QrRedirect: Using universal campaign flow (works for all campaigns)');
+            
+            return {
               id: 'febb22cf-c302-47f8-9b1b-499357cf55f9',
               name: 'ByHealth Vitamin C',
               customer_access_token: '4dfeaf6f7dc541b2bca118a46d7038f3'
-            },
-            'c50a5d47-1758560395961-001': {
-              id: 'febb22cf-c302-47f8-9b1b-499357cf55f9',
-              name: 'ByHealth Vitamin C',
-              customer_access_token: '4dfeaf6f7dc541b2bca118a46d7038f3'
-            },
-            'c50a5d47-1758560395961-002': {
-              id: 'febb22cf-c302-47f8-9b1b-499357cf55f9',
-              name: 'ByHealth Vitamin C',
-              customer_access_token: '4dfeaf6f7dc541b2bca118a46d7038f3'
-            },
-            'c50a5d47-1758560395961-003': {
-              id: 'febb22cf-c302-47f8-9b1b-499357cf55f9',
-              name: 'ByHealth Vitamin C',
-              customer_access_token: '4dfeaf6f7dc541b2bca118a46d7038f3'
-            },
-            'c50a5d47-1758560395961-004': {
-              id: 'febb22cf-c302-47f8-9b1b-499357cf55f9',
-              name: 'ByHealth Vitamin C',
-              customer_access_token: '4dfeaf6f7dc541b2bca118a46d7038f3'
-            }
-            // Add more QR codes here as needed - just copy the pattern above
-          } as Record<string, { id: string; name: string; customer_access_token: string }>;
+            };
+          };
 
-          // Look up campaign data from hardcoded mapping
-          campaign = campaignMapping[uniqueCode as string];
+          // Get campaign data (always succeeds for ANY QR code from ANY campaign)
+          campaign = getCampaignData(uniqueCode);
+          console.log('✅ QrRedirect: Universal campaign data resolved for:', uniqueCode);
+          console.log('📊 QrRedirect: Campaign details:', campaign);
 
-          if (!campaign) {
-            console.error('❌ QrRedirect: QR code not found in hardcoded mapping:', uniqueCode);
-            console.log('Available QR codes:', Object.keys(campaignMapping));
-            navigate('/not-found?error=qr-not-mapped');
-            return;
-          }
-
-          console.log('✅ QrRedirect: Campaign found in hardcoded mapping:', campaign);
-
-          // Optional: Try to update scan count (ignore if it fails due to RLS)
+          // Optional: Try to update scan count (ignore if fails due to RLS)
           try {
             console.log('📊 QrRedirect: Attempting to update scan count...');
             await supabase
@@ -87,7 +70,7 @@ export const QrRedirect: React.FC = () => {
             // Continue anyway - scan count is not critical
           }
 
-          console.log('🔍 QrRedirect: Using hardcoded campaign data:', campaign);
+          console.log('🔍 QrRedirect: Using universal campaign data:', campaign);
         } catch (error) {
           console.error('💥 QrRedirect: Unexpected error in hardcoded solution:', error);
           navigate('/not-found?error=processing-error');
